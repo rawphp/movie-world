@@ -1,13 +1,13 @@
 # REQ-005: NFO read/write & sidecar paths
 
 **UR:** UR-001
-**Status:** backlog
+**Status:** done
 **Created:** 2026-07-08
 **Layer:** main
 **Entry point:**
 **Terminal state:**
 **Parent:**
-**Closure proof:**
+**Closure proof:** commit:77dbec3 tests:passed
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** M

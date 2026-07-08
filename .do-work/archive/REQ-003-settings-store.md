@@ -1,13 +1,13 @@
 # REQ-003: JSON settings store
 
 **UR:** UR-001
-**Status:** backlog
+**Status:** done
 **Created:** 2026-07-08
 **Layer:** main
 **Entry point:**
 **Terminal state:**
 **Parent:**
-**Closure proof:**
+**Closure proof:** commit:686113d tests:passed
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** S

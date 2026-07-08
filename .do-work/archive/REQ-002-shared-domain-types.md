@@ -1,13 +1,13 @@
 # REQ-002: Shared domain types
 
 **UR:** UR-001
-**Status:** backlog
+**Status:** done
 **Created:** 2026-07-08
 **Layer:** shared
 **Entry point:**
 **Terminal state:**
 **Parent:**
-**Closure proof:**
+**Closure proof:** commit:6eac0b2 tests:passed
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** S

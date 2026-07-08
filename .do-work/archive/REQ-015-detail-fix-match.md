@@ -1,13 +1,13 @@
 # REQ-015: Movie detail view & fix-match dialog
 
 **UR:** UR-001
-**Status:** backlog
+**Status:** done
 **Created:** 2026-07-08
 **Layer:** renderer
 **Entry point:** Clicking a MovieCard → `/movie/:id` route (MovieDetailView)
 **Terminal state:** The detail view shows full metadata + trailer and Play works; the Fix-match dialog re-matches a movie via TMDB search or raw ID and the card/detail updates live
 **Parent:**
-**Closure proof:**
+**Closure proof:** commit:9acd4c9 tests:passed
 **Criteria approved:** agent-drafted
 **Priority:** 1
 **Size:** M

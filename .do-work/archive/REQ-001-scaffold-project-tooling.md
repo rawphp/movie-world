@@ -1,13 +1,13 @@
 # REQ-001: Scaffold project & tooling
 
 **UR:** UR-001
-**Status:** backlog
+**Status:** done
 **Created:** 2026-07-08
 **Layer:** packaging
 **Entry point:**
 **Terminal state:**
 **Parent:**
-**Closure proof:**
+**Closure proof:** commit:a1b2059 tests:passed
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** M

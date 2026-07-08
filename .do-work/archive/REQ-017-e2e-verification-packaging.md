@@ -1,13 +1,13 @@
 # REQ-017: End-to-end verification & packaging
 
 **UR:** UR-001
-**Status:** backlog
+**Status:** done
 **Created:** 2026-07-08
 **Layer:** packaging
 **Entry point:**
 **Terminal state:**
 **Parent:**
-**Closure proof:**
+**Closure proof:** commit:a6962ac tests:passed
 **Criteria approved:** agent-drafted
 **Priority:** 1
 **Size:** M

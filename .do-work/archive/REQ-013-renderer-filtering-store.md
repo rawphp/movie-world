@@ -1,13 +1,13 @@
 # REQ-013: Renderer filtering library & Pinia store
 
 **UR:** UR-001
-**Status:** backlog
+**Status:** done
 **Created:** 2026-07-08
 **Layer:** renderer
 **Entry point:**
 **Terminal state:**
 **Parent:**
-**Closure proof:**
+**Closure proof:** commit:ecab766 tests:passed
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M

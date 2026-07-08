@@ -1,13 +1,13 @@
 # REQ-016: Settings view & first-run experience
 
 **UR:** UR-001
-**Status:** backlog
+**Status:** done
 **Created:** 2026-07-08
 **Layer:** renderer
 **Entry point:** `/settings` route (SettingsView); first-run guided empty state on launch with no key + no folders
 **Terminal state:** User can add/remove library folders, save + validate the TMDB API key, and per-folder rescan with progress; a first-run user goes key → first folder → grid fills in
 **Parent:**
-**Closure proof:**
+**Closure proof:** commit:2f9f2a8 tests:passed
 **Criteria approved:** agent-drafted
 **Priority:** 1
 **Size:** M

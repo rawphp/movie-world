@@ -1,13 +1,13 @@
 # REQ-012: Preload bridge (window.api)
 
 **UR:** UR-001
-**Status:** backlog
+**Status:** done
 **Created:** 2026-07-08
 **Layer:** preload
 **Entry point:**
 **Terminal state:**
 **Parent:**
-**Closure proof:**
+**Closure proof:** commit:864b8af tests:passed
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M

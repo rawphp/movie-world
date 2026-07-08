@@ -1,13 +1,13 @@
 # REQ-014: Library UI — grid, card, filter bar, star rating
 
 **UR:** UR-001
-**Status:** backlog
+**Status:** done
 **Created:** 2026-07-08
 **Layer:** renderer
 **Entry point:** App launch / `/` route (LibraryView) — the default window view
 **Terminal state:** A responsive poster grid renders one MovieCard per movie with the correct state badges, and the FilterBar filters/sorts the grid live in-memory
 **Parent:**
-**Closure proof:**
+**Closure proof:** commit:44f7e5a tests:passed
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** L
