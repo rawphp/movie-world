@@ -7,6 +7,7 @@ import { createLibraryManager } from './library/manager'
 import { createTmdbClient } from './tmdb/client'
 import { registerIpc, emitToAll } from './ipc'
 import { MW_ART_SCHEME, serveArtFile, buildCsp } from './art-protocol'
+import { wireWindowStartupEvents } from './window-lifecycle'
 
 // Must run before app is ready so the renderer treats mw-art:// as a real scheme.
 protocol.registerSchemesAsPrivileged([
@@ -30,9 +31,7 @@ function createWindow(): void {
     }
   })
 
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
-  })
+  wireWindowStartupEvents(mainWindow)
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
@@ -42,9 +41,13 @@ function createWindow(): void {
   // HMR for renderer based on electron-vite cli. Load the remote URL for
   // development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    const rendererUrl = process.env['ELECTRON_RENDERER_URL']
+    console.info(`[startup] loading dev renderer: ${rendererUrl}`)
+    mainWindow.loadURL(rendererUrl)
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    const rendererFile = join(__dirname, '../renderer/index.html')
+    console.info(`[startup] loading packaged renderer: ${rendererFile}`)
+    mainWindow.loadFile(rendererFile)
   }
 }
 
