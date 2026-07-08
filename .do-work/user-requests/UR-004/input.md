@@ -1,8 +1,29 @@
 ---
 ur: UR-004
 received: 2026-07-09
-status: intake
+status: captured
+classification: feature
+layers_in_scope: [shared, main, preload, renderer, packaging]
+layer_decisions: { shared: no, main: no, preload: no, packaging: no }
+reqs:
+  - { id: REQ-021, layer: renderer, integration_confidence: high }
+acknowledged_partials: []
 ---
+
+<!-- capture-summary-start -->
+## Capture summary (2026-07-09)
+
+| Item | Value |
+|---|---|
+| Classification | feature |
+| Layers in scope | shared, main, preload, renderer, packaging |
+| Layer decisions | shared: no, main: no, preload: no, packaging: no |
+| REQs generated | 1 |
+
+| REQ | Layer | Integration confidence |
+|---|---|---|
+| REQ-021 | renderer | high |
+<!-- capture-summary-end -->
 
 # UR-004: User Request
 
