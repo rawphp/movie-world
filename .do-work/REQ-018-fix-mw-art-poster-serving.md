@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
-**Files:** src/main/index.ts, src/main/art-protocol.ts, src/main/__tests__/art-protocol.test.ts
+**Files:** src/main/index.ts, src/main/art-protocol.ts, src/main/__tests__/art-protocol.test.ts, src/renderer/src/lib/art.ts
 **Depends on:**
 
 ## Task
