@@ -18,6 +18,7 @@ const title = computed(() => movie.value?.title ?? movie.value?.parsedTitle ?? '
 const year = computed(() => movie.value?.year ?? movie.value?.parsedYear ?? null)
 const fanart = computed(() => artSrc(movie.value?.fanartPath ?? null))
 const poster = computed(() => artSrc(movie.value?.posterPath ?? null))
+const backgroundArt = computed(() => fanart.value || poster.value)
 const sizeGb = computed(() =>
   movie.value ? `${(movie.value.fileSize / 1024 ** 3).toFixed(2)} GB` : ''
 )
@@ -44,25 +45,40 @@ function retry(): void {
     </button>
   </div>
 
-  <div v-else class="pb-10">
-    <!-- Hero header: dimmed backdrop with title overlay -->
-    <div class="relative -mx-4 -mt-4 mb-4 h-72 overflow-hidden">
-      <img v-if="fanart" :src="fanart" :alt="title" class="h-full w-full object-cover opacity-40" />
+  <div
+    v-else
+    class="relative -mx-6 -my-6 min-h-[calc(100vh-4rem)] overflow-hidden bg-neutral-950 px-6 py-6"
+  >
+    <div class="pointer-events-none fixed inset-0 z-0 bg-neutral-950" aria-hidden="true">
       <div
-        class="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/40 to-transparent"
+        data-testid="detail-art-background"
+        class="pointer-events-none absolute inset-0 scale-[1.02] bg-cover bg-center opacity-45 blur-[1px]"
+        :class="backgroundArt ? '' : 'bg-neutral-950'"
+        :style="backgroundArt ? { backgroundImage: `url('${backgroundArt}')` } : undefined"
       />
+      <div class="pointer-events-none absolute inset-0 bg-neutral-950/55" />
+      <div
+        class="pointer-events-none absolute inset-y-0 left-1/2 w-[min(1180px,88vw)] -translate-x-1/2 bg-neutral-950/85 shadow-[0_0_150px_110px_rgba(10,10,11,0.92)]"
+      />
+      <div
+        class="pointer-events-none absolute inset-0 bg-gradient-to-b from-neutral-950/30 via-transparent to-neutral-950"
+      />
+    </div>
+
+    <!-- Header: title metadata over the shared page artwork background -->
+    <div class="relative z-10 mx-auto mb-8 max-w-7xl pt-2">
       <button
-        class="absolute left-4 top-4 rounded-full bg-black/60 px-3 py-1 text-sm text-white hover:bg-black/80"
+        class="rounded-full bg-black/60 px-3 py-1 text-sm text-white shadow-lg shadow-black/30 hover:bg-black/80"
         @click="router.push('/')"
       >
         ← Back
       </button>
-      <div class="absolute bottom-4 left-6 right-6">
-        <h1 class="text-3xl font-bold text-white">
+      <div class="mt-40 max-w-4xl">
+        <h1 class="text-3xl font-bold text-white drop-shadow-lg">
           {{ title }}
           <span class="font-normal text-neutral-300">({{ year ?? '—' }})</span>
         </h1>
-        <div class="mt-2 flex flex-wrap items-center gap-3 text-sm text-neutral-200">
+        <div class="mt-2 flex flex-wrap items-center gap-3 text-sm text-neutral-100 drop-shadow">
           <StarRating :vote-average="movie.voteAverage" />
           <span v-if="movie.runtime">· {{ movie.runtime }} min</span>
           <span
@@ -76,7 +92,10 @@ function retry(): void {
     </div>
 
     <!-- Two-column body -->
-    <div class="mx-auto grid max-w-5xl gap-6 md:grid-cols-[300px_1fr]">
+    <div
+      data-testid="detail-body"
+      class="relative z-10 mx-auto grid max-w-7xl gap-6 md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)]"
+    >
       <!-- Left: poster + tech-info card -->
       <div class="space-y-4">
         <img
@@ -149,7 +168,7 @@ function retry(): void {
           <h2 class="mb-2 text-lg font-semibold text-white">Trailer</h2>
           <div
             v-if="movie.trailerYoutubeKey"
-            class="aspect-video w-full max-w-2xl overflow-hidden rounded-lg bg-black"
+            class="aspect-video w-full max-w-4xl overflow-hidden rounded-lg bg-black shadow-2xl shadow-black/40"
           >
             <iframe
               :src="`https://www.youtube.com/embed/${movie.trailerYoutubeKey}`"
