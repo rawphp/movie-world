@@ -4,3 +4,9 @@
 2026-07-09 | UR-004 | layer "main" out of scope | user answered "No" at layer-coverage prompt
 2026-07-09 | UR-004 | layer "preload" out of scope | user answered "No" at layer-coverage prompt
 2026-07-09 | UR-004 | layer "packaging" out of scope | user answered "No" at layer-coverage prompt
+2026-07-09 | UR-005 | hero-band redesign kept as one REQ (REQ-022) incl. file-info collapse + trailer sizing | all same-file template changes in MovieDetailView.vue; splitting forces footprint serialization
+2026-07-09 | UR-005 | supersedes REQ-021 full-page background treatment; keep its max-w-7xl width | full-page backdrop failed human validation — art zone and text zone must be separated
+2026-07-09 | UR-005 | layer "shared" out of scope | user answered "No" at layer-coverage prompt
+2026-07-09 | UR-005 | layer "main" out of scope | user answered "No" at layer-coverage prompt
+2026-07-09 | UR-005 | layer "preload" out of scope | user answered "No" at layer-coverage prompt
+2026-07-09 | UR-005 | layer "packaging" out of scope | user answered "No" at layer-coverage prompt
