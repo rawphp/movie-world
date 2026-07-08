@@ -1,13 +1,7 @@
 # REQ-022: Detail page — hero-band redesign (visible artwork, solid body)
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.16693
-**Claimed at:** 2026-07-08T23:41:26Z
-**Heartbeat:** 2026-07-08T23:41:26Z
-<!-- claimed-end -->
-
 **UR:** UR-005
-**Status:** in-progress
+**Status:** pending-validation
 **Created:** 2026-07-09
 **Layer:** renderer
 **Entry point:** Click a movie card in the library → route `/movie/:id` renders `MovieDetailView.vue` (src/renderer/src/router.ts)
@@ -45,17 +39,17 @@ Advisory design reference: `docs/design/movie_detail_modal_the_matrix/` and toke
 
 ## Acceptance Criteria
 
-- [ ] The backdrop artwork is confined to a top hero band (height ≈ 40–50vh, not full-page), rendered without blur and without a flat full-coverage scrim; the four-layer darkening stack (opacity-45+blur image, 55% overlay, 85% center panel with 150px/110px shadow, full-page gradient) is deleted from the template.
-- [ ] The hero band carries exactly two gradient overlays: a bottom fade that resolves to the solid page background color, and a left-side scrim behind the title block.
-- [ ] Title, star rating, meta line (runtime/certification/genres), and the Play + Fix match buttons render inside the hero's lower-left region; the `mt-40` spacer is removed.
-- [ ] Content below the hero (synopsis, stars, trailer, file info) sits on a solid `neutral-950` (or equivalent token) background with no artwork visible behind body text.
-- [ ] The poster column overlaps the hero's bottom edge via a negative top margin (poster partially inside the hero, partially in the body).
-- [ ] The file-info card is replaced by a compact single line showing the file size and a "Reveal in Finder" action; the full file path is not permanently rendered — it is available via tooltip or click-to-expand.
-- [ ] The trailer embed is constrained to `max-w-2xl` with a 16:9 aspect ratio (`aspect-video` or equivalent).
-- [ ] When the movie has no fanart, the hero band falls back to the poster image or a solid dark surface — no blank/white region and no layout breakage; hero/background layers have `pointer-events: none` so all actions stay clickable.
-- [ ] The body container keeps its widened `max-w-7xl` width from REQ-021.
-- [ ] Component tests in `src/renderer/src/views/__tests__/MovieDetailView.test.ts` are updated to assert: (a) a hero element with an `mw-art:` source when `fanartPath` is set, (b) the fallback renders when `fanartPath` is null, (c) the full file path is not present in the default rendered output but the size + Reveal action are, (d) the trailer container carries the `max-w-2xl` and aspect-ratio classes.
-- [ ] Full suite stays green: `npx vitest run` passes 100%.
+- [x] The backdrop artwork is confined to a top hero band (height ≈ 40–50vh, not full-page), rendered without blur and without a flat full-coverage scrim; the four-layer darkening stack (opacity-45+blur image, 55% overlay, 85% center panel with 150px/110px shadow, full-page gradient) is deleted from the template.
+- [x] The hero band carries exactly two gradient overlays: a bottom fade that resolves to the solid page background color, and a left-side scrim behind the title block.
+- [x] Title, star rating, meta line (runtime/certification/genres), and the Play + Fix match buttons render inside the hero's lower-left region; the `mt-40` spacer is removed.
+- [x] Content below the hero (synopsis, stars, trailer, file info) sits on a solid `neutral-950` (or equivalent token) background with no artwork visible behind body text.
+- [x] The poster column overlaps the hero's bottom edge via a negative top margin (poster partially inside the hero, partially in the body).
+- [x] The file-info card is replaced by a compact single line showing the file size and a "Reveal in Finder" action; the full file path is not permanently rendered — it is available via tooltip or click-to-expand.
+- [x] The trailer embed is constrained to `max-w-2xl` with a 16:9 aspect ratio (`aspect-video` or equivalent).
+- [x] When the movie has no fanart, the hero band falls back to the poster image or a solid dark surface — no blank/white region and no layout breakage; hero/background layers have `pointer-events: none` so all actions stay clickable.
+- [x] The body container keeps its widened `max-w-7xl` width from REQ-021.
+- [x] Component tests in `src/renderer/src/views/__tests__/MovieDetailView.test.ts` are updated to assert: (a) a hero element with an `mw-art:` source when `fanartPath` is set, (b) the fallback renders when `fanartPath` is null, (c) the full file path is not present in the default rendered output but the size + Reveal action are, (d) the trailer container carries the `max-w-2xl` and aspect-ratio classes.
+- [x] Full suite stays green: `npx vitest run` passes 100%.
 
 ## Verification Steps
 
@@ -89,3 +83,8 @@ Advisory design reference: `docs/design/movie_detail_modal_the_matrix/` and toke
 ## Assets
 
 - (screenshot of the too-dark result lives in the conversation; the current code state at `src/renderer/src/views/MovieDetailView.vue:52-66` is the authoritative "before")
+
+## Outputs
+
+- src/renderer/src/views/MovieDetailView.vue — Replaced full-page dark backdrop with hero-band artwork, solid body, compact file info, poster overlap, and capped trailer
+- src/renderer/src/views/__tests__/MovieDetailView.test.ts — Updated component coverage for hero artwork, fallback, compact file info, trailer sizing, and width preservation
