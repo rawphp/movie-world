@@ -81,3 +81,32 @@ export function buildCsp(isDev: boolean): string {
     'child-src https://www.youtube.com'
   ].join('; ')
 }
+
+/**
+ * Decide whether a response belongs to the renderer shell and should receive
+ * the app CSP. Electron's session-wide webRequest hook also observes remote
+ * subframes; applying the renderer CSP to YouTube's own embed response blocks
+ * YouTube's inline player scripts and leaves the iframe blank.
+ */
+export function shouldApplyRendererCsp(
+  requestUrl: string,
+  isDev: boolean,
+  rendererUrl?: string
+): boolean {
+  let url: URL
+  try {
+    url = new URL(requestUrl)
+  } catch {
+    return false
+  }
+
+  if (url.protocol === 'file:') return true
+
+  if (!isDev || !rendererUrl) return false
+
+  try {
+    return url.origin === new URL(rendererUrl).origin
+  } catch {
+    return false
+  }
+}

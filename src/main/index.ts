@@ -6,7 +6,7 @@ import { createSettingsStore } from './settings'
 import { createLibraryManager } from './library/manager'
 import { createTmdbClient } from './tmdb/client'
 import { registerIpc, emitToAll } from './ipc'
-import { MW_ART_SCHEME, serveArtFile, buildCsp } from './art-protocol'
+import { MW_ART_SCHEME, serveArtFile, buildCsp, shouldApplyRendererCsp } from './art-protocol'
 import { wireWindowStartupEvents } from './window-lifecycle'
 
 // Must run before app is ready so the renderer treats mw-art:// as a real scheme.
@@ -66,9 +66,16 @@ app.whenReady().then(() => {
   protocol.handle(MW_ART_SCHEME, (req) => serveArtFile(req.url))
 
   // Content-Security-Policy for the renderer: permit mw-art: artwork images and
-  // the https://www.youtube.com trailer iframe (posters/trailer fail otherwise).
+  // the https://www.youtube.com trailer iframe. Keep this scoped to renderer
+  // responses so Electron does not inject the app CSP into remote iframes.
   const csp = buildCsp(is.dev)
+  const rendererUrl = is.dev ? process.env['ELECTRON_RENDERER_URL'] : undefined
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    if (!shouldApplyRendererCsp(details.url, is.dev, rendererUrl)) {
+      callback({ responseHeaders: details.responseHeaders })
+      return
+    }
+
     callback({
       responseHeaders: {
         ...details.responseHeaders,
