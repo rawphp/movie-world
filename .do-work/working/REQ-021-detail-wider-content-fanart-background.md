@@ -3,11 +3,12 @@
 <!-- claimed-start -->
 **Claimed by:** Toms-MacBook-Pro.local.78084
 **Claimed at:** 2026-07-08T22:50:36Z
-**Heartbeat:** 2026-07-08T22:50:36Z
+**Heartbeat:** 2026-07-08T22:56:26Z
 <!-- claimed-end -->
 
 **UR:** UR-004
-**Status:** in-progress
+**Status:** stopped
+**Reason:** verification-failing
 **Created:** 2026-07-09
 **Layer:** renderer
 **Entry point:** Click a movie card in the library → route `/movie/:id` renders `MovieDetailView.vue` (src/renderer/src/router.ts)
