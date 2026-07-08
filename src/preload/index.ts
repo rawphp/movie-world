@@ -1,22 +1,20 @@
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron'
 
-// Custom APIs for renderer
-const api = {}
-
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
-if (process.contextIsolated) {
-  try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
-  } catch (error) {
-    console.error(error)
-  }
-} else {
-  // @ts-ignore (define in dts)
-  window.electron = electronAPI
-  // @ts-ignore (define in dts)
-  window.api = api
+const api = {
+  getSettings: () => ipcRenderer.invoke('settings:get'),
+  setApiKey: (key: string) => ipcRenderer.invoke('settings:set-api-key', key),
+  addFolder: () => ipcRenderer.invoke('folders:add'),
+  removeFolder: (path: string) => ipcRenderer.invoke('folders:remove', path),
+  loadLibrary: () => ipcRenderer.invoke('library:load'),
+  rescanFolder: (folder: string) => ipcRenderer.invoke('library:rescan', folder),
+  play: (id: string) => ipcRenderer.invoke('movie:play', id),
+  retryFetch: (id: string) => ipcRenderer.invoke('movie:retry-fetch', id),
+  fixMatch: (id: string, tmdbId: number) => ipcRenderer.invoke('movie:fix-match', id, tmdbId),
+  searchTmdb: (query: string, year: number | null) =>
+    ipcRenderer.invoke('tmdb:search', query, year),
+  revealFile: (id: string) => ipcRenderer.invoke('file:reveal', id),
+  onMovieUpdated: (cb: (m: unknown) => void) => ipcRenderer.on('movie:updated', (_e, m) => cb(m)),
+  onScanProgress: (cb: (p: unknown) => void) => ipcRenderer.on('scan:progress', (_e, p) => cb(p))
 }
+
+contextBridge.exposeInMainWorld('api', api)
