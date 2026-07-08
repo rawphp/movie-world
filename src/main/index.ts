@@ -1,19 +1,34 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
-import { join } from 'path'
+import { app, shell, BrowserWindow, session, protocol, net } from 'electron'
+import { join } from 'node:path'
+import { existsSync } from 'node:fs'
+import { pathToFileURL } from 'node:url'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { createSettingsStore } from './settings'
+import { createLibraryManager } from './library/manager'
+import { createTmdbClient } from './tmdb/client'
+import { registerIpc, emitToAll } from './ipc'
+import { MW_ART_SCHEME, decodeArtUrl, buildCsp } from './art-protocol'
+
+// Must run before app is ready so the renderer treats mw-art:// as a real scheme.
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: MW_ART_SCHEME,
+    privileges: { standard: false, stream: true, supportFetchAPI: true }
+  }
+])
 
 function createWindow(): void {
-  // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1200,
+    height: 800,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      contextIsolation: true
     }
   })
 
@@ -26,8 +41,8 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
+  // HMR for renderer based on electron-vite cli. Load the remote URL for
+  // development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
@@ -35,22 +50,44 @@ function createWindow(): void {
   }
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
+  // Serve on-disk poster/fanart to the sandboxed renderer.
+  // Renderer requests `mw-art://<encodeURIComponent(absPath)>`; resolve to the
+  // file and stream its bytes, or a 404-equivalent when the file is absent.
+  protocol.handle(MW_ART_SCHEME, (req) => {
+    const filePath = decodeArtUrl(req.url)
+    if (!filePath || !existsSync(filePath)) return new Response(null, { status: 404 })
+    return net.fetch(pathToFileURL(filePath).toString())
+  })
+
+  // Content-Security-Policy for the renderer: permit mw-art: artwork images and
+  // the https://www.youtube.com trailer iframe (posters/trailer fail otherwise).
+  const csp = buildCsp(is.dev)
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [csp]
+      }
+    })
+  })
+
+  // Wire settings store, library manager and IPC surface together. Manager
+  // events are forwarded to every renderer on their channels.
+  const settings = createSettingsStore(join(app.getPath('userData'), 'settings.json'))
+  const manager = createLibraryManager({
+    settings,
+    makeClient: (key) => createTmdbClient(key),
+    emit: (channel, payload) => emitToAll(channel, payload)
+  })
+  registerIpc(settings, manager)
 
   createWindow()
 
@@ -61,14 +98,9 @@ app.whenReady().then(() => {
   })
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+// Quit when all windows are closed, except on macOS.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
