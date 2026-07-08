@@ -1,7 +1,13 @@
 # REQ-022: Detail page — hero-band redesign (visible artwork, solid body)
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.16693
+**Claimed at:** 2026-07-08T23:41:26Z
+**Heartbeat:** 2026-07-08T23:41:26Z
+<!-- claimed-end -->
+
 **UR:** UR-005
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-09
 **Layer:** renderer
 **Entry point:** Click a movie card in the library → route `/movie/:id` renders `MovieDetailView.vue` (src/renderer/src/router.ts)
