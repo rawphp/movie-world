@@ -1,0 +1,26 @@
+run_id: RUN-002
+req: REQ-020
+ur: UR-003
+agent_id: "Toms-MacBook-Pro.local.37391"
+model: "sonnet"
+branch: "req/REQ-020"
+started_at: "2026-07-08T20:51:44Z"
+ended_at: "2026-07-08T21:05:19Z"
+result: "pending-validation"
+review_outcome: "passed"
+proof_status: "unproven"
+cost_estimate: "sonnet estimate"
+cost_estimate_num: 0.25
+pr_url: ""
+commands:
+  - "npm run build"
+  - "Electron file-origin diagnostic for packaged CSP and YouTube iframe response"
+  - "npx vitest run"
+  - "npm run dev -- --rendererOnly --clearScreen=false UI iframe check"
+tests:
+  - "npx vitest run: 18 files passed, 86 tests passed"
+  - "npm run build: typecheck and electron-vite build passed"
+changed_files:
+  - "src/main/__tests__/art-protocol.test.ts"
+  - "src/main/art-protocol.ts"
+  - "src/main/index.ts"

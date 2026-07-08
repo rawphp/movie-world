@@ -1,13 +1,7 @@
 # REQ-020: Fix packaged-app trailer blank embed
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.37391
-**Claimed at:** 2026-07-08T20:51:44Z
-**Heartbeat:** 2026-07-08T20:51:44Z
-<!-- claimed-end -->
-
 **UR:** UR-003
-**Status:** in-progress
+**Status:** pending-validation
 **Created:** 2026-07-09
 **Layer:** none
 **Entry point:**
@@ -33,11 +27,11 @@ UR-003 verbatim brief: "movie detail trailer not working. Just a placeholder in 
 
 ## Acceptance Criteria
 
-- [ ] Root cause is identified and documented in the worker's closure notes with concrete evidence (devtools console error, CSP violation report, or network log from the packaged app), before any fix is applied
-- [ ] In dev mode, navigating to a movie detail page with a `trailerYoutubeKey` loads the YouTube player inside the Trailer section iframe (player chrome visible, no blank/black box) with zero CSP violations in the devtools console
-- [ ] `npm run build` completes with zero errors
-- [ ] A unit test covers the fixed behavior (e.g. the CSP string in `buildCsp`, or the embed-URL builder if one is introduced) and fails if the fix is reverted
-- [ ] The `mw-art:` poster serving fixed in REQ-018 still works: existing `art-protocol` tests pass unchanged
+- [x] Root cause is identified and documented in the worker's closure notes with concrete evidence (devtools console error, CSP violation report, or network log from the packaged app), before any fix is applied
+- [x] In dev mode, navigating to a movie detail page with a `trailerYoutubeKey` loads the YouTube player inside the Trailer section iframe (player chrome visible, no blank/black box) with zero CSP violations in the devtools console
+- [x] `npm run build` completes with zero errors
+- [x] A unit test covers the fixed behavior (e.g. the CSP string in `buildCsp`, or the embed-URL builder if one is introduced) and fails if the fix is reverted
+- [x] The `mw-art:` poster serving fixed in REQ-018 still works: existing `art-protocol` tests pass unchanged
 
 ## Verification Steps
 
@@ -57,3 +51,9 @@ UR-003 verbatim brief: "movie detail trailer not working. Just a placeholder in 
 > Optional. Human, device, or environment checks that cannot run in a worker's isolated worktree.
 
 - [ ] Action: package the app (`npm run build` + electron-builder) and open a movie detail page for a movie with a trailer — Observable outcome: the trailer plays inside the app (video and audio start when clicking play), for at least two different movies
+
+## Outputs
+
+- src/main/art-protocol.ts — Adds shouldApplyRendererCsp to scope renderer CSP injection away from remote subframes.
+- src/main/index.ts — Uses shouldApplyRendererCsp before setting the Content-Security-Policy header.
+- src/main/__tests__/art-protocol.test.ts — Covers packaged and dev CSP scoping so YouTube iframe responses are not rewritten.

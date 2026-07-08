@@ -1,23 +1,17 @@
 # REQ-019: Fix dev startup hang
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.37391
-**Claimed at:** 2026-07-08T20:37:47Z
-**Heartbeat:** 2026-07-08T20:37:47Z
-<!-- claimed-end -->
-
 **UR:** UR-003
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-09
 **Layer:** none
 **Entry point:**
 **Terminal state:**
 **Parent:**
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:75172ef
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** M
-**Files:** electron.vite.config.ts, src/main/index.ts, package.json
+**Files:** src/main/__tests__/window-lifecycle.test.ts, src/main/index.ts, src/main/window-lifecycle.ts
 **Depends on:**
 
 ## Task
@@ -30,9 +24,9 @@ Reported in UR-003's question session: while investigating the packaged-app trai
 
 ## Acceptance Criteria
 
-- [ ] Root cause of the hang is identified and documented in the worker's closure notes with concrete evidence (log line, stack trace, or config diff), not just "it works now"
-- [ ] `npm run dev` reaches an open, interactive app window (main window created and renderer loaded) within 60 seconds on a clean checkout
-- [ ] The full test suite (`npx vitest run`) passes with zero failures after the fix
+- [x] Root cause of the hang is identified and documented in the worker's closure notes with concrete evidence (log line, stack trace, or config diff), not just "it works now"
+- [x] `npm run dev` reaches an open, interactive app window (main window created and renderer loaded) within 60 seconds on a clean checkout
+- [x] The full test suite (`npx vitest run`) passes with zero failures after the fix
 
 ## Verification Steps
 
@@ -42,3 +36,9 @@ Reported in UR-003's question session: while investigating the packaged-app trai
    - Expected: startup completes — electron-vite reports the dev server ready and the Electron main process logs window creation; the command does not hang indefinitely. Handoff: dev server ready → BrowserWindow load.
 2. **test** `npx vitest run`
    - Expected: all tests pass, zero failures — confirms the fix didn't regress main/renderer units.
+
+## Outputs
+
+- src/main/index.ts — Wires deterministic startup lifecycle logging and window reveal behavior into BrowserWindow creation.
+- src/main/window-lifecycle.ts — Adds idempotent BrowserWindow startup lifecycle helper with did-finish-load fallback and load-failure logging.
+- src/main/__tests__/window-lifecycle.test.ts — Covers renderer-load window reveal and idempotent ready-to-show handling.
