@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** M
-**Files:** src/main/__tests__/window-lifecycle.test.ts, src/main/index.ts, src/main/window-lifecycle.ts
+**Files:** src/main/**tests**/window-lifecycle.test.ts, src/main/index.ts, src/main/window-lifecycle.ts
 **Depends on:**
 
 ## Task
@@ -41,4 +41,4 @@ Reported in UR-003's question session: while investigating the packaged-app trai
 
 - src/main/index.ts — Wires deterministic startup lifecycle logging and window reveal behavior into BrowserWindow creation.
 - src/main/window-lifecycle.ts — Adds idempotent BrowserWindow startup lifecycle helper with did-finish-load fallback and load-failure logging.
-- src/main/__tests__/window-lifecycle.test.ts — Covers renderer-load window reveal and idempotent ready-to-show handling.
+- src/main/**tests**/window-lifecycle.test.ts — Covers renderer-load window reveal and idempotent ready-to-show handling.

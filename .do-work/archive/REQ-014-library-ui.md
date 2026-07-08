@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** L
-**Files:** src/renderer/src/components/StarRating.vue, src/renderer/src/components/MovieCard.vue, src/renderer/src/components/FilterBar.vue, src/renderer/src/views/LibraryView.vue, src/renderer/src/router.ts, src/renderer/src/lib/art.ts, src/renderer/src/App.vue, src/renderer/src/main.ts, src/renderer/src/components/__tests__/MovieCard.test.ts, src/renderer/src/components/__tests__/FilterBar.test.ts
+**Files:** src/renderer/src/components/StarRating.vue, src/renderer/src/components/MovieCard.vue, src/renderer/src/components/FilterBar.vue, src/renderer/src/views/LibraryView.vue, src/renderer/src/router.ts, src/renderer/src/lib/art.ts, src/renderer/src/App.vue, src/renderer/src/main.ts, src/renderer/src/components/**tests**/MovieCard.test.ts, src/renderer/src/components/**tests**/FilterBar.test.ts
 **Depends on:** REQ-013
 
 ## Task

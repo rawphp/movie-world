@@ -27,36 +27,38 @@ acknowledged_partials: []
 ---
 
 <!-- capture-summary-start -->
+
 ## Capture summary (2026-07-08)
 
-| Item | Value |
-|---|---|
-| Classification | feature |
+| Item            | Value                                      |
+| --------------- | ------------------------------------------ |
+| Classification  | feature                                    |
 | Layers in scope | shared, main, preload, renderer, packaging |
-| Layer decisions | (none — all covered) |
-| REQs generated | 17 |
+| Layer decisions | (none — all covered)                       |
+| REQs generated  | 17                                         |
 
-| REQ | Layer | Integration confidence |
-|---|---|---|
-| REQ-001 | packaging | high |
-| REQ-002 | shared | high |
-| REQ-003 | main | high |
-| REQ-004 | main | high |
-| REQ-005 | main | high |
-| REQ-006 | main | high |
-| REQ-007 | main | high |
-| REQ-008 | main | high |
-| REQ-009 | main | high |
-| REQ-010 | main | high |
-| REQ-011 | main | high |
-| REQ-012 | preload | high |
-| REQ-013 | renderer | high |
-| REQ-014 | renderer | high |
-| REQ-015 | renderer | high |
-| REQ-016 | renderer | high |
-| REQ-017 | packaging | high |
+| REQ     | Layer     | Integration confidence |
+| ------- | --------- | ---------------------- |
+| REQ-001 | packaging | high                   |
+| REQ-002 | shared    | high                   |
+| REQ-003 | main      | high                   |
+| REQ-004 | main      | high                   |
+| REQ-005 | main      | high                   |
+| REQ-006 | main      | high                   |
+| REQ-007 | main      | high                   |
+| REQ-008 | main      | high                   |
+| REQ-009 | main      | high                   |
+| REQ-010 | main      | high                   |
+| REQ-011 | main      | high                   |
+| REQ-012 | preload   | high                   |
+| REQ-013 | renderer  | high                   |
+| REQ-014 | renderer  | high                   |
+| REQ-015 | renderer  | high                   |
+| REQ-016 | renderer  | high                   |
+| REQ-017 | packaging | high                   |
 
 > Decomposition maps the plan's 15 build tasks 1:1, with two layer-boundary splits: Task 2 → REQ-002 (shared types) + REQ-003 (settings/main); Task 10 → REQ-011 (IPC+main wiring) + REQ-012 (preload). Ideate gaps were folded into existing REQs per the UR-001 clarification: mw-art:// protocol + renderer CSP → REQ-011; partial-write resilience → REQ-007/008/010; AU-cert US→GB→any fallback → REQ-006; folder-name filename fallback → REQ-004/007. Integration confidence is "high" against the plan/design contracts (this is a greenfield build, so cited files are created by their own or sibling REQs — the plan is the authoritative source for every reachability/data/service answer).
+
 <!-- capture-summary-end -->
 
 # UR-001: User Request

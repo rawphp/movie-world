@@ -12,19 +12,21 @@ acknowledged_partials: []
 ---
 
 <!-- capture-summary-start -->
+
 ## Capture summary (2026-07-09)
 
-| Item | Value |
-|---|---|
-| Classification | bug-fix |
-| Layers in scope | (none — bug-fix) |
+| Item            | Value                |
+| --------------- | -------------------- |
+| Classification  | bug-fix              |
+| Layers in scope | (none — bug-fix)     |
 | Layer decisions | (none — all covered) |
-| REQs generated | 2 |
+| REQs generated  | 2                    |
 
-| REQ | Layer | Integration confidence |
-|---|---|---|
-| REQ-019 | none | n/a |
-| REQ-020 | none | n/a |
+| REQ     | Layer | Integration confidence |
+| ------- | ----- | ---------------------- |
+| REQ-019 | none  | n/a                    |
+| REQ-020 | none  | n/a                    |
+
 <!-- capture-summary-end -->
 
 # UR-003: User Request

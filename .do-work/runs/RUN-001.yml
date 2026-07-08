@@ -1,23 +1,23 @@
 run_id: RUN-001
 req: REQ-019
 ur: UR-003
-agent_id: "Toms-MacBook-Pro.local.37391"
-model: "sonnet"
-branch: "req/REQ-019"
-started_at: "2026-07-08T20:37:47Z"
-ended_at: "2026-07-08T20:50:41Z"
-result: "done"
-review_outcome: "passed"
-proof_status: "unproven"
-cost_estimate: "sonnet estimate"
+agent_id: 'Toms-MacBook-Pro.local.37391'
+model: 'sonnet'
+branch: 'req/REQ-019'
+started_at: '2026-07-08T20:37:47Z'
+ended_at: '2026-07-08T20:50:41Z'
+result: 'done'
+review_outcome: 'passed'
+proof_status: 'unproven'
+cost_estimate: 'sonnet estimate'
 cost_estimate_num: 0.25
-pr_url: ""
+pr_url: ''
 commands:
-  - "npm run dev with 60s readiness guard"
-  - "npx vitest run"
+  - 'npm run dev with 60s readiness guard'
+  - 'npx vitest run'
 tests:
-  - "npx vitest run: 18 files passed, 84 tests passed"
+  - 'npx vitest run: 18 files passed, 84 tests passed'
 changed_files:
-  - "src/main/__tests__/window-lifecycle.test.ts"
-  - "src/main/index.ts"
-  - "src/main/window-lifecycle.ts"
+  - 'src/main/__tests__/window-lifecycle.test.ts'
+  - 'src/main/index.ts'
+  - 'src/main/window-lifecycle.ts'

@@ -4,7 +4,14 @@ import type { StartupWindow } from '../window-lifecycle'
 
 type Handler = (...args: unknown[]) => void
 
-function createWindowStub() {
+type WindowStub = {
+  window: StartupWindow
+  show: ReturnType<typeof vi.fn>
+  windowHandlers: Map<string, Handler>
+  webHandlers: Map<string, Handler>
+}
+
+function createWindowStub(): WindowStub {
   const windowHandlers = new Map<string, Handler>()
   const webHandlers = new Map<string, Handler>()
   const show = vi.fn()

@@ -18,18 +18,18 @@ A personal desktop app (macOS-first) for browsing a local movie collection. The 
 
 ## Core decisions (from brainstorming)
 
-| Decision | Choice |
-|---|---|
-| Platform | Installable Electron desktop app (was: localhost Laravel web app) |
-| Users/auth | Single user, no accounts, no auth |
-| Playback | External player via `shell.openPath()`; app stamps watch state on Play |
-| Folder selection | Native OS folder dialog; multiple folders supported |
-| Sync | Manual Rescan button + automatic scan on app launch |
-| Match correction | Fix-match dialog: live TMDB candidate search (editable title/year) + raw TMDB ID input |
-| Metadata fetching | Async in main process with small concurrency limit (~4); UI fills in live via IPC events |
-| Age rating | Australian certification displayed (G/PG/M/MA15+/R18+); all countries kept in memory/NFO `<mpaa>` |
-| On-disk format | Kodi-compatible NFO + poster/fanart artwork, Kodi naming convention |
-| Watch state | Stored in NFO standard tags: `<playcount>`, `<lastplayed>` |
+| Decision          | Choice                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------- |
+| Platform          | Installable Electron desktop app (was: localhost Laravel web app)                                 |
+| Users/auth        | Single user, no accounts, no auth                                                                 |
+| Playback          | External player via `shell.openPath()`; app stamps watch state on Play                            |
+| Folder selection  | Native OS folder dialog; multiple folders supported                                               |
+| Sync              | Manual Rescan button + automatic scan on app launch                                               |
+| Match correction  | Fix-match dialog: live TMDB candidate search (editable title/year) + raw TMDB ID input            |
+| Metadata fetching | Async in main process with small concurrency limit (~4); UI fills in live via IPC events          |
+| Age rating        | Australian certification displayed (G/PG/M/MA15+/R18+); all countries kept in memory/NFO `<mpaa>` |
+| On-disk format    | Kodi-compatible NFO + poster/fanart artwork, Kodi naming convention                               |
+| Watch state       | Stored in NFO standard tags: `<playcount>`, `<lastplayed>`                                        |
 
 ## Data layer
 
@@ -60,6 +60,7 @@ Registered folder paths, TMDB API key, window bounds. Nothing else.
 ## Core flows
 
 ### Scan / rescan (main process)
+
 1. Walk each registered folder recursively for video extensions: `mkv, mp4, avi, mov, m4v, wmv, webm`.
 2. File has a sidecar NFO → ingest it directly (status `matched`); no TMDB call.
 3. No NFO → parse filename (strip release tags — `1080p`, `BluRay`, `x264`, etc. — extract title + year), emit a `pending` record to the UI immediately, enqueue a TMDB fetch (in-process async queue, concurrency ~4).
@@ -67,6 +68,7 @@ Registered folder paths, TMDB API key, window bounds. Nothing else.
 5. Triggered on app launch and by per-folder Rescan buttons. Progress and per-movie results stream to the renderer over IPC — no polling.
 
 ### TMDB metadata fetch
+
 1. Search TMDB by parsed title + year.
 2. Confident top match (title similarity + year within ±1) → fetch full details in one call (`append_to_response=credits,videos,release_dates`) → write NFO + download poster/fanart → emit `matched` record to UI.
 3. No confident match → emit `unmatched`; card shows "needs match" badge.
@@ -74,9 +76,11 @@ Registered folder paths, TMDB API key, window bounds. Nothing else.
 5. Failures/rate limits retry with backoff (3 attempts), then surface on the card with a manual Retry action.
 
 ### Fix match
+
 Dialog with live TMDB search (poster + title + year candidates, editable query) and a raw TMDB ID input as escape hatch. Selecting a candidate re-runs the detail fetch and rewrites the sidecars.
 
 ### Playback
+
 Play button → main process verifies the file still exists → `shell.openPath(file)` opens the OS default player (VLC etc.) → increments `<playcount>`, sets `<lastplayed>` to now, rewrites the NFO, emits the updated record.
 
 ## Windows & UI

@@ -112,7 +112,7 @@ The aesthetic leans heavily into **Minimalism** with subtle **Glassmorphic** tou
 
 ## Colors
 
-The palette is strictly dark-mode, utilizing a "Near-Black" foundation to ensure maximum contrast with movie artwork. 
+The palette is strictly dark-mode, utilizing a "Near-Black" foundation to ensure maximum contrast with movie artwork.
 
 - **Foundation:** The background uses a deep neutral (#0B0B0C), while elevated surfaces move slightly lighter (#161617) to create depth without visible lines.
 - **Accent:** A cool Cyan is used with extreme restraint. It serves only as a beacon for primary actions, active states, or focus indicators, preventing the interface from feeling "colorful" and keeping the focus on the media.
@@ -139,7 +139,7 @@ The layout philosophy is "Fluid Content, Fixed Ratios." The grid is a 12-column 
 To achieve a "zero-chrome" aesthetic, depth is communicated through light and shadow rather than lines:
 
 - **Surface Tiers:** The background is the lowest layer (#0B0B0C). Elevated elements like cards or the filter panel sit on a secondary surface (#161617).
-- **Shadows:** Use large, highly diffused shadows (e.g., `box-shadow: 0 20px 40px rgba(0,0,0,0.4)`) to lift posters off the background. 
+- **Shadows:** Use large, highly diffused shadows (e.g., `box-shadow: 0 20px 40px rgba(0,0,0,0.4)`) to lift posters off the background.
 - **Backdrop Blur:** Modals and navigation overlays use a high-saturation backdrop blur (20px–30px) to maintain the cinematic context of the layer beneath without distracting the user.
 
 ## Shapes
@@ -153,11 +153,11 @@ The design uses a refined roundedness level to soften the technical feel of the 
 ## Components
 
 - **Poster Cards:** 2:3 aspect ratio. No borders or visible strokes. Title and year should appear as a subtle overlay on hover or below the card in `label-sm` typography.
-- **Status Badges:** Small, pill-shaped chips with a low-opacity background tint of the semantic color and a solid-colored dot indicator. 
-    - *Fetching:* Blue
-    - *Needs Match:* Amber
-    - *Missing:* Red
-    - *Not Saved:* Orange
+- **Status Badges:** Small, pill-shaped chips with a low-opacity background tint of the semantic color and a solid-colored dot indicator.
+  - _Fetching:_ Blue
+  - _Needs Match:_ Amber
+  - _Missing:_ Red
+  - _Not Saved:_ Orange
 - **Filter Panel:** A single, horizontal-scrolling strip with pill-shaped active states. The panel should be semi-transparent with a backdrop blur to appear as if it is floating over the content.
 - **Primary Action Buttons:** Pill-shaped, using the Cyan accent color (#22D3EE) with black text for maximum visibility.
 - **Input Fields:** Minimalist under-lines or subtle surface shifts (#161617) only. No full borders. Use the Cyan accent for the cursor and focus state.

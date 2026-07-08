@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
-**Files:** src/renderer/src/lib/filtering.ts, src/renderer/src/stores/library.ts, src/renderer/src/stores/preferences.ts, src/renderer/src/lib/__tests__/filtering.test.ts, src/renderer/src/stores/__tests__/library.test.ts, src/renderer/src/stores/__tests__/preferences.test.ts
+**Files:** src/renderer/src/lib/filtering.ts, src/renderer/src/stores/library.ts, src/renderer/src/stores/preferences.ts, src/renderer/src/lib/**tests**/filtering.test.ts, src/renderer/src/stores/**tests**/library.test.ts, src/renderer/src/stores/**tests**/preferences.test.ts
 **Depends on:** REQ-012
 
 ## Task

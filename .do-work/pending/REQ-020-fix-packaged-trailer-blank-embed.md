@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 1
 **Size:** M
-**Files:** src/renderer/src/views/MovieDetailView.vue, src/main/art-protocol.ts, src/main/index.ts, src/main/__tests__/art-protocol.test.ts
+**Files:** src/renderer/src/views/MovieDetailView.vue, src/main/art-protocol.ts, src/main/index.ts, src/main/**tests**/art-protocol.test.ts
 **Depends on:** REQ-019
 
 ## Task
@@ -56,4 +56,4 @@ UR-003 verbatim brief: "movie detail trailer not working. Just a placeholder in 
 
 - src/main/art-protocol.ts — Adds shouldApplyRendererCsp to scope renderer CSP injection away from remote subframes.
 - src/main/index.ts — Uses shouldApplyRendererCsp before setting the Content-Security-Policy header.
-- src/main/__tests__/art-protocol.test.ts — Covers packaged and dev CSP scoping so YouTube iframe responses are not rewritten.
+- src/main/**tests**/art-protocol.test.ts — Covers packaged and dev CSP scoping so YouTube iframe responses are not rewritten.

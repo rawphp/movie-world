@@ -1,6 +1,7 @@
 # REQ-021: Detail page — wider content + fanart page background with central shade
 
 <!-- claimed-start -->
+
 **Claimed by:** Toms-MacBook-Pro.local.78084
 **Claimed at:** 2026-07-08T22:50:36Z
 **Heartbeat:** 2026-07-08T22:56:26Z
@@ -18,7 +19,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
-**Files:** src/renderer/src/views/MovieDetailView.vue, src/renderer/src/views/__tests__/MovieDetailView.test.ts
+**Files:** src/renderer/src/views/MovieDetailView.vue, src/renderer/src/views/**tests**/MovieDetailView.test.ts
 **Depends on:**
 
 ## Task

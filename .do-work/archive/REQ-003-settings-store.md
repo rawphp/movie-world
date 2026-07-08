@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** S
-**Files:** src/main/settings.ts, src/main/__tests__/settings.test.ts
+**Files:** src/main/settings.ts, src/main/**tests**/settings.test.ts
 **Depends on:** REQ-002
 
 ## Task

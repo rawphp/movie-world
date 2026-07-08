@@ -37,9 +37,12 @@ export function wireWindowStartupEvents(
   logger.info('[startup] main window created')
   mainWindow.on('ready-to-show', () => showOnce('ready-to-show'))
   mainWindow.webContents.on('did-finish-load', () => showOnce('did-finish-load'))
-  mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
-    logger.error(
-      `[startup] renderer load failed: ${errorCode} ${errorDescription} ${validatedURL}`
-    )
-  })
+  mainWindow.webContents.on(
+    'did-fail-load',
+    (_event, errorCode, errorDescription, validatedURL) => {
+      logger.error(
+        `[startup] renderer load failed: ${errorCode} ${errorDescription} ${validatedURL}`
+      )
+    }
+  )
 }

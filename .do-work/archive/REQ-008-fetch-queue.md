@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
-**Files:** src/main/tmdb/fetcher.ts, src/main/tmdb/__tests__/fetcher.test.ts
+**Files:** src/main/tmdb/fetcher.ts, src/main/tmdb/**tests**/fetcher.test.ts
 **Depends on:** REQ-005, REQ-006
 
 ## Task

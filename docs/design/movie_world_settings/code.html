@@ -1,452 +1,586 @@
-<!DOCTYPE html>
+<!doctype html>
 
-<html class="dark" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Movie World - Settings</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Movie World - Settings</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
       tailwind.config = {
-        darkMode: "class",
+        darkMode: 'class',
         theme: {
           extend: {
-            "colors": {
-                    "surface-variant": "#353436",
-                    "primary-container": "#22d3ee",
-                    "on-surface-variant": "#bbc9cd",
-                    "on-surface": "#e5e2e3",
-                    "tertiary-fixed-dim": "#ffb957",
-                    "primary": "#8aebff",
-                    "on-background": "#e5e2e3",
-                    "outline": "#859397",
-                    "on-error": "#690005",
-                    "surface-container-high": "#2a2a2b",
-                    "surface": "#131314",
-                    "on-secondary": "#00363e",
-                    "on-primary-container": "#005763",
-                    "tertiary-container": "#ffb13b",
-                    "on-secondary-fixed-variant": "#184d57",
-                    "outline-variant": "#3c494c",
-                    "on-tertiary-fixed": "#2a1800",
-                    "on-primary-fixed-variant": "#004e5a",
-                    "secondary-fixed": "#b8ebf7",
-                    "surface-bright": "#3a393a",
-                    "inverse-surface": "#e5e2e3",
-                    "tertiary": "#ffd6a3",
-                    "surface-dim": "#131314",
-                    "surface-container-lowest": "#0e0e0f",
-                    "surface-container-low": "#1c1b1c",
-                    "secondary-fixed-dim": "#9dcfda",
-                    "on-tertiary": "#462b00",
-                    "primary-fixed": "#a2eeff",
-                    "tertiary-fixed": "#ffddb5",
-                    "surface-container-highest": "#353436",
-                    "error-container": "#93000a",
-                    "error": "#ffb4ab",
-                    "background": "#131314",
-                    "inverse-on-surface": "#313031",
-                    "on-secondary-container": "#8fc0cc",
-                    "on-primary-fixed": "#001f25",
-                    "on-primary": "#00363e",
-                    "on-error-container": "#ffdad6",
-                    "on-tertiary-container": "#6e4600",
-                    "inverse-primary": "#006877",
-                    "surface-tint": "#2fd9f4",
-                    "secondary-container": "#1b5059",
-                    "primary-fixed-dim": "#2fd9f4",
-                    "secondary": "#9dcfda",
-                    "on-tertiary-fixed-variant": "#643f00",
-                    "surface-container": "#201f20",
-                    "on-secondary-fixed": "#001f25"
+            colors: {
+              'surface-variant': '#353436',
+              'primary-container': '#22d3ee',
+              'on-surface-variant': '#bbc9cd',
+              'on-surface': '#e5e2e3',
+              'tertiary-fixed-dim': '#ffb957',
+              primary: '#8aebff',
+              'on-background': '#e5e2e3',
+              outline: '#859397',
+              'on-error': '#690005',
+              'surface-container-high': '#2a2a2b',
+              surface: '#131314',
+              'on-secondary': '#00363e',
+              'on-primary-container': '#005763',
+              'tertiary-container': '#ffb13b',
+              'on-secondary-fixed-variant': '#184d57',
+              'outline-variant': '#3c494c',
+              'on-tertiary-fixed': '#2a1800',
+              'on-primary-fixed-variant': '#004e5a',
+              'secondary-fixed': '#b8ebf7',
+              'surface-bright': '#3a393a',
+              'inverse-surface': '#e5e2e3',
+              tertiary: '#ffd6a3',
+              'surface-dim': '#131314',
+              'surface-container-lowest': '#0e0e0f',
+              'surface-container-low': '#1c1b1c',
+              'secondary-fixed-dim': '#9dcfda',
+              'on-tertiary': '#462b00',
+              'primary-fixed': '#a2eeff',
+              'tertiary-fixed': '#ffddb5',
+              'surface-container-highest': '#353436',
+              'error-container': '#93000a',
+              error: '#ffb4ab',
+              background: '#131314',
+              'inverse-on-surface': '#313031',
+              'on-secondary-container': '#8fc0cc',
+              'on-primary-fixed': '#001f25',
+              'on-primary': '#00363e',
+              'on-error-container': '#ffdad6',
+              'on-tertiary-container': '#6e4600',
+              'inverse-primary': '#006877',
+              'surface-tint': '#2fd9f4',
+              'secondary-container': '#1b5059',
+              'primary-fixed-dim': '#2fd9f4',
+              secondary: '#9dcfda',
+              'on-tertiary-fixed-variant': '#643f00',
+              'surface-container': '#201f20',
+              'on-secondary-fixed': '#001f25'
             },
-            "borderRadius": {
-                    "DEFAULT": "0.25rem",
-                    "lg": "0.5rem",
-                    "xl": "0.75rem",
-                    "full": "9999px"
+            borderRadius: {
+              DEFAULT: '0.25rem',
+              lg: '0.5rem',
+              xl: '0.75rem',
+              full: '9999px'
             },
-            "spacing": {
-                    "stack-sm": "4px",
-                    "stack-md": "12px",
-                    "unit": "8px",
-                    "stack-lg": "32px",
-                    "gutter": "16px",
-                    "container-margin": "24px"
+            spacing: {
+              'stack-sm': '4px',
+              'stack-md': '12px',
+              unit: '8px',
+              'stack-lg': '32px',
+              gutter: '16px',
+              'container-margin': '24px'
             },
-            "fontFamily": {
-                    "body-sm": ["Inter"],
-                    "body-md": ["Inter"],
-                    "label-sm": ["Inter"],
-                    "headline-sm": ["Inter"],
-                    "headline-md": ["Inter"],
-                    "display-lg": ["Inter"],
-                    "label-md": ["Inter"]
+            fontFamily: {
+              'body-sm': ['Inter'],
+              'body-md': ['Inter'],
+              'label-sm': ['Inter'],
+              'headline-sm': ['Inter'],
+              'headline-md': ['Inter'],
+              'display-lg': ['Inter'],
+              'label-md': ['Inter']
             },
-            "fontSize": {
-                    "body-sm": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
-                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
-                    "label-sm": ["10px", {"lineHeight": "1.0", "letterSpacing": "0.12em", "fontWeight": "600"}],
-                    "headline-sm": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
-                    "headline-md": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
-                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                    "label-md": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "600"}]
+            fontSize: {
+              'body-sm': ['14px', { lineHeight: '1.6', fontWeight: '400' }],
+              'body-md': ['16px', { lineHeight: '1.6', fontWeight: '400' }],
+              'label-sm': [
+                '10px',
+                { lineHeight: '1.0', letterSpacing: '0.12em', fontWeight: '600' }
+              ],
+              'headline-sm': ['18px', { lineHeight: '1.4', fontWeight: '600' }],
+              'headline-md': [
+                '24px',
+                { lineHeight: '1.2', letterSpacing: '-0.01em', fontWeight: '600' }
+              ],
+              'display-lg': [
+                '48px',
+                { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '700' }
+              ],
+              'label-md': ['12px', { lineHeight: '1.0', letterSpacing: '0.1em', fontWeight: '600' }]
             }
-          },
-        },
+          }
+        }
       }
     </script>
-<style>
-        body {
-            background-color: #0b0b0c;
-            color: #e5e2e3;
-            font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
-        }
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            vertical-align: middle;
-        }
-        .settings-card {
-            background-color: #161617;
-            transition: transform 0.2s ease;
-        }
-        .custom-toggle {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 24px;
-        }
-        .custom-toggle input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #353436;
-            transition: .4s;
-            border-radius: 9999px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: #e5e2e3;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: #22d3ee;
-        }
-        input:checked + .slider:before {
-            transform: translateX(20px);
-        }
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: #353436;
-            border-radius: 2px;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            background: #22d3ee;
-            cursor: pointer;
-            -webkit-appearance: none;
-            margin-top: -6px;
-        }
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #353436;
-            border-radius: 10px;
-        }
-        .glass-panel {
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            background: rgba(22, 22, 23, 0.7);
-        }
+    <style>
+      body {
+        background-color: #0b0b0c;
+        color: #e5e2e3;
+        font-family: 'Inter', sans-serif;
+        overflow-x: hidden;
+      }
+      .material-symbols-outlined {
+        font-variation-settings:
+          'FILL' 0,
+          'wght' 400,
+          'GRAD' 0,
+          'opsz' 24;
+        vertical-align: middle;
+      }
+      .settings-card {
+        background-color: #161617;
+        transition: transform 0.2s ease;
+      }
+      .custom-toggle {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+      }
+      .custom-toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #353436;
+        transition: 0.4s;
+        border-radius: 9999px;
+      }
+      .slider:before {
+        position: absolute;
+        content: '';
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: #e5e2e3;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+      input:checked + .slider {
+        background-color: #22d3ee;
+      }
+      input:checked + .slider:before {
+        transform: translateX(20px);
+      }
+      input[type='range'] {
+        -webkit-appearance: none;
+        width: 100%;
+        background: transparent;
+      }
+      input[type='range']::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 4px;
+        cursor: pointer;
+        background: #353436;
+        border-radius: 2px;
+      }
+      input[type='range']::-webkit-slider-thumb {
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        background: #22d3ee;
+        cursor: pointer;
+        -webkit-appearance: none;
+        margin-top: -6px;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #353436;
+        border-radius: 10px;
+      }
+      .glass-panel {
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        background: rgba(22, 22, 23, 0.7);
+      }
     </style>
-</head>
-<body class="flex min-h-screen">
-<!-- SideNavBar Anchor -->
-<aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-low flex flex-col p-stack-md pt-20 z-40">
-<div class="px-4 mb-10">
-<h2 class="text-headline-sm font-headline-sm text-primary">Settings</h2>
-<p class="text-label-md font-label-md text-on-surface-variant opacity-60">Preferences</p>
-</div>
-<nav class="flex-1 space-y-2">
-<!-- Active Tab: Library (mapped by intent for settings context) -->
-<a class="flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container rounded-lg font-bold transition-all duration-200 active:scale-95" href="#library">
-<span class="material-symbols-outlined">folder_open</span>
-<span class="text-body-md font-body-md">Library</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 rounded-lg transition-all duration-200 active:scale-95" href="#scraping">
-<span class="material-symbols-outlined">database</span>
-<span class="text-body-md font-body-md">Scraping</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 rounded-lg transition-all duration-200 active:scale-95" href="#appearance">
-<span class="material-symbols-outlined">palette</span>
-<span class="text-body-md font-body-md">Appearance</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 rounded-lg transition-all duration-200 active:scale-95" href="#about">
-<span class="material-symbols-outlined">info</span>
-<span class="text-body-md font-body-md">About</span>
-</a>
-</nav>
-<div class="mt-auto p-4 border-t border-outline-variant/20">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center overflow-hidden">
-<img class="w-full h-full object-cover" data-alt="A minimalist abstract profile avatar with soft geometric shapes in cool cyan and deep slate tones, consistent with a premium movie collector application aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDjf452QJXsBVzwP_t5DzqFolm8dU9OdtAHPI3yv5Uwrza6u9ki7FRgQmzvApAoOGF0BwNzTcyYupracri80szTFU0p3_hY3s4Hj91cJz7nA5P_bmHNjesZEtSaF2PB8mAQi8OpPDvX6M4CS3g6c60SJZDlY46MmKLJHRtWuI0wnkGc80p0Vz1IC0RcUMtUcyCF6qfXwXlh1xh6hGKZR8qG1goqQJdK7yxoQLLeosrBEijUiIx77Y4Ow"/>
-</div>
-<div>
-<p class="text-label-md font-label-md text-on-surface">Admin</p>
-<p class="text-label-sm font-label-sm text-on-surface-variant">Pro Plan</p>
-</div>
-</div>
-</div>
-</aside>
-<!-- Main Content Canvas -->
-<main class="ml-64 flex-1 p-container-margin md:px-16 pt-32 pb-20">
-<!-- TopAppBar (Simulated as Fixed Header) -->
-<header class="fixed top-0 left-64 right-0 z-50 bg-surface/80 backdrop-blur-xl shadow-2xl flex justify-between items-center px-container-margin py-4">
-<div class="flex items-center gap-4">
-<span class="text-headline-md font-headline-md font-bold tracking-tight text-on-surface">Movie World</span>
-</div>
-<div class="flex items-center gap-6">
-<div class="flex items-center gap-4 text-on-surface-variant">
-<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors duration-300">settings</span>
-<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors duration-300" style="font-variation-settings: 'FILL' 1;">account_circle</span>
-</div>
-</div>
-</header>
-<div class="max-w-4xl mx-auto">
-<div class="mb-stack-lg">
-<h1 class="text-display-lg font-display-lg text-on-surface mb-2">Settings</h1>
-<p class="text-body-md font-body-md text-on-surface-variant">Manage your cinematic library and application preferences.</p>
-</div>
-<!-- Library Section -->
-<section class="mb-16 scroll-mt-28" id="library">
-<div class="flex justify-between items-end mb-stack-md">
-<div>
-<h2 class="text-headline-md font-headline-md text-primary mb-1">Library</h2>
-<p class="text-body-sm font-body-sm text-on-surface-variant">Define where your movies are stored.</p>
-</div>
-<button class="flex items-center gap-2 bg-primary-container text-on-primary-container px-6 py-2.5 rounded-full font-bold text-label-md hover:opacity-90 active:scale-95 transition-all">
-<span class="material-symbols-outlined text-[20px]">add</span>
-                        Add Folder
-                    </button>
-</div>
-<div class="space-y-3">
-<div class="settings-card p-4 rounded-xl flex items-center justify-between group">
-<div class="flex items-center gap-4">
-<span class="material-symbols-outlined text-on-surface-variant">folder</span>
-<span class="text-body-md font-body-md text-on-surface">/Volumes/Media/Movies</span>
-</div>
-<span class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 cursor-pointer hover:text-error transition-all">delete</span>
-</div>
-<div class="settings-card p-4 rounded-xl flex items-center justify-between group">
-<div class="flex items-center gap-4">
-<span class="material-symbols-outlined text-on-surface-variant">folder</span>
-<span class="text-body-md font-body-md text-on-surface">/Users/Admin/Downloads/New</span>
-</div>
-<span class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 cursor-pointer hover:text-error transition-all">delete</span>
-</div>
-</div>
-<div class="mt-8 flex items-center justify-between settings-card p-5 rounded-xl">
-<div>
-<p class="text-body-md font-body-md text-on-surface">Scan library on startup</p>
-<p class="text-body-sm font-body-sm text-on-surface-variant">Automatically index new files when opening Movie World.</p>
-</div>
-<label class="custom-toggle">
-<input checked="" type="checkbox"/>
-<span class="slider"></span>
-</label>
-</div>
-</section>
-<!-- Scraping Section -->
-<section class="mb-16 scroll-mt-28" id="scraping">
-<h2 class="text-headline-md font-headline-md text-primary mb-stack-md">Scraping</h2>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<div class="settings-card p-5 rounded-xl">
-<label class="block text-label-md font-label-md text-on-surface-variant mb-4 uppercase tracking-widest">Metadata Provider</label>
-<select class="w-full bg-surface-container-high border-none text-on-surface rounded-lg py-3 px-4 focus:ring-2 focus:ring-primary-container outline-none appearance-none">
-<option>The Movie Database (TMDB)</option>
-<option>IMDB (Via API)</option>
-<option>Trakt.tv</option>
-</select>
-</div>
-<div class="settings-card p-5 rounded-xl">
-<label class="block text-label-md font-label-md text-on-surface-variant mb-4 uppercase tracking-widest">Preferred Language</label>
-<select class="w-full bg-surface-container-high border-none text-on-surface rounded-lg py-3 px-4 focus:ring-2 focus:ring-primary-container outline-none appearance-none">
-<option>English</option>
-<option>French</option>
-<option>Spanish</option>
-<option>Japanese</option>
-</select>
-</div>
-<div class="col-span-1 md:col-span-2 flex items-center justify-between settings-card p-5 rounded-xl">
-<div>
-<p class="text-body-md font-body-md text-on-surface">Automatically download posters</p>
-<p class="text-body-sm font-body-sm text-on-surface-variant">Fetches high-resolution art for every movie matched.</p>
-</div>
-<label class="custom-toggle">
-<input checked="" type="checkbox"/>
-<span class="slider"></span>
-</label>
-</div>
-</div>
-</section>
-<!-- Appearance Section -->
-<section class="mb-16 scroll-mt-28" id="appearance">
-<h2 class="text-headline-md font-headline-md text-primary mb-stack-md">Appearance</h2>
-<div class="space-y-4">
-<div class="settings-card p-5 rounded-xl">
-<div class="flex items-center justify-between mb-6">
-<div>
-<p class="text-body-md font-body-md text-on-surface">Poster Size</p>
-<p class="text-body-sm font-body-sm text-on-surface-variant">Adjust the display scale of your movie cards.</p>
-</div>
-<span class="text-label-md font-label-md text-primary-container">Medium</span>
-</div>
-<input class="w-full" max="100" min="1" type="range" value="50"/>
-<div class="flex justify-between mt-2 text-label-sm font-label-sm text-on-surface-variant">
-<span>Small</span>
-<span>Large</span>
-</div>
-</div>
-<div class="flex items-center justify-between settings-card p-5 rounded-xl">
-<div>
-<p class="text-body-md font-body-md text-on-surface">Show adult ratings (R18+)</p>
-<p class="text-body-sm font-body-sm text-on-surface-variant">Display age-restricted labels and content warnings.</p>
-</div>
-<label class="custom-toggle">
-<input type="checkbox"/>
-<span class="slider"></span>
-</label>
-</div>
-<div class="flex items-center justify-between settings-card p-5 rounded-xl">
-<div>
-<p class="text-body-md font-body-md text-on-surface">Enable backdrop blur in modals</p>
-<p class="text-body-sm font-body-sm text-on-surface-variant">Use cinematic glass effects for overlays (Requires GPU).</p>
-</div>
-<label class="custom-toggle">
-<input checked="" type="checkbox"/>
-<span class="slider"></span>
-</label>
-</div>
-</div>
-</section>
-<!-- About Section -->
-<section class="mb-16 scroll-mt-28" id="about">
-<h2 class="text-headline-md font-headline-md text-primary mb-stack-md">About</h2>
-<div class="settings-card p-8 rounded-2xl flex flex-col items-center text-center">
-<div class="w-20 h-20 bg-primary-container/10 rounded-3xl flex items-center justify-center mb-6">
-<span class="material-symbols-outlined text-[48px] text-primary-container">movie</span>
-</div>
-<h3 class="text-headline-md font-headline-md text-on-surface mb-1">Movie World</h3>
-<p class="text-body-md font-body-md text-on-surface-variant mb-6">Version 1.2.4 (Build 20240510)</p>
-<div class="flex flex-col sm:flex-row gap-4 w-full max-w-xs">
-<button class="flex-1 bg-surface-container-high text-on-surface py-3 rounded-full font-bold text-label-md hover:bg-surface-variant transition-all active:scale-95">
-                            Check for Updates
-                        </button>
-<a class="flex-1 border border-outline-variant text-on-surface-variant py-3 rounded-full font-bold text-label-md hover:border-on-surface-variant transition-all active:scale-95 flex items-center justify-center gap-2" href="#">
-                            Documentation
-                            <span class="material-symbols-outlined text-[16px]">open_in_new</span>
-</a>
-</div>
-<div class="mt-10 grid grid-cols-3 gap-8 w-full border-t border-outline-variant/10 pt-8">
-<div>
-<p class="text-headline-sm font-headline-sm text-on-surface">2,481</p>
-<p class="text-label-sm font-label-sm text-on-surface-variant uppercase">Movies</p>
-</div>
-<div>
-<p class="text-headline-sm font-headline-sm text-on-surface">14.2TB</p>
-<p class="text-label-sm font-label-sm text-on-surface-variant uppercase">Storage</p>
-</div>
-<div>
-<p class="text-headline-sm font-headline-sm text-on-surface">3</p>
-<p class="text-label-sm font-label-sm text-on-surface-variant uppercase">Sources</p>
-</div>
-</div>
-</div>
-</section>
-</div>
-</main>
-<!-- Floating Action Button - Only for Home/Dash context, but here we might have a 'Scan Now' if appropriate -->
-<!-- Suppressed per instructions for Settings screens -->
-<script>
-        // Smooth scrolling for navigation
-        document.querySelectorAll('aside nav a').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const targetId = this.getAttribute('href').substring(1);
-                const targetElement = document.getElementById(targetId);
-                
-                // Update active state
-                document.querySelectorAll('aside nav a').forEach(a => {
-                    a.classList.remove('bg-secondary-container', 'text-on-secondary-container', 'font-bold');
-                    a.classList.add('text-on-surface-variant', 'hover:text-on-surface', 'hover:bg-surface-variant/50');
-                });
-                this.classList.add('bg-secondary-container', 'text-on-secondary-container', 'font-bold');
-                this.classList.remove('text-on-surface-variant', 'hover:text-on-surface', 'hover:bg-surface-variant/50');
+  </head>
+  <body class="flex min-h-screen">
+    <!-- SideNavBar Anchor -->
+    <aside
+      class="fixed left-0 top-0 h-full w-64 bg-surface-container-low flex flex-col p-stack-md pt-20 z-40"
+    >
+      <div class="px-4 mb-10">
+        <h2 class="text-headline-sm font-headline-sm text-primary">Settings</h2>
+        <p class="text-label-md font-label-md text-on-surface-variant opacity-60">Preferences</p>
+      </div>
+      <nav class="flex-1 space-y-2">
+        <!-- Active Tab: Library (mapped by intent for settings context) -->
+        <a
+          class="flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container rounded-lg font-bold transition-all duration-200 active:scale-95"
+          href="#library"
+        >
+          <span class="material-symbols-outlined">folder_open</span>
+          <span class="text-body-md font-body-md">Library</span>
+        </a>
+        <a
+          class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 rounded-lg transition-all duration-200 active:scale-95"
+          href="#scraping"
+        >
+          <span class="material-symbols-outlined">database</span>
+          <span class="text-body-md font-body-md">Scraping</span>
+        </a>
+        <a
+          class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 rounded-lg transition-all duration-200 active:scale-95"
+          href="#appearance"
+        >
+          <span class="material-symbols-outlined">palette</span>
+          <span class="text-body-md font-body-md">Appearance</span>
+        </a>
+        <a
+          class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 rounded-lg transition-all duration-200 active:scale-95"
+          href="#about"
+        >
+          <span class="material-symbols-outlined">info</span>
+          <span class="text-body-md font-body-md">About</span>
+        </a>
+      </nav>
+      <div class="mt-auto p-4 border-t border-outline-variant/20">
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center overflow-hidden"
+          >
+            <img
+              class="w-full h-full object-cover"
+              data-alt="A minimalist abstract profile avatar with soft geometric shapes in cool cyan and deep slate tones, consistent with a premium movie collector application aesthetic."
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDjf452QJXsBVzwP_t5DzqFolm8dU9OdtAHPI3yv5Uwrza6u9ki7FRgQmzvApAoOGF0BwNzTcyYupracri80szTFU0p3_hY3s4Hj91cJz7nA5P_bmHNjesZEtSaF2PB8mAQi8OpPDvX6M4CS3g6c60SJZDlY46MmKLJHRtWuI0wnkGc80p0Vz1IC0RcUMtUcyCF6qfXwXlh1xh6hGKZR8qG1goqQJdK7yxoQLLeosrBEijUiIx77Y4Ow"
+            />
+          </div>
+          <div>
+            <p class="text-label-md font-label-md text-on-surface">Admin</p>
+            <p class="text-label-sm font-label-sm text-on-surface-variant">Pro Plan</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+    <!-- Main Content Canvas -->
+    <main class="ml-64 flex-1 p-container-margin md:px-16 pt-32 pb-20">
+      <!-- TopAppBar (Simulated as Fixed Header) -->
+      <header
+        class="fixed top-0 left-64 right-0 z-50 bg-surface/80 backdrop-blur-xl shadow-2xl flex justify-between items-center px-container-margin py-4"
+      >
+        <div class="flex items-center gap-4">
+          <span class="text-headline-md font-headline-md font-bold tracking-tight text-on-surface"
+            >Movie World</span
+          >
+        </div>
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-4 text-on-surface-variant">
+            <span
+              class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors duration-300"
+              >settings</span
+            >
+            <span
+              class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors duration-300"
+              style="font-variation-settings: 'FILL' 1"
+              >account_circle</span
+            >
+          </div>
+        </div>
+      </header>
+      <div class="max-w-4xl mx-auto">
+        <div class="mb-stack-lg">
+          <h1 class="text-display-lg font-display-lg text-on-surface mb-2">Settings</h1>
+          <p class="text-body-md font-body-md text-on-surface-variant">
+            Manage your cinematic library and application preferences.
+          </p>
+        </div>
+        <!-- Library Section -->
+        <section class="mb-16 scroll-mt-28" id="library">
+          <div class="flex justify-between items-end mb-stack-md">
+            <div>
+              <h2 class="text-headline-md font-headline-md text-primary mb-1">Library</h2>
+              <p class="text-body-sm font-body-sm text-on-surface-variant">
+                Define where your movies are stored.
+              </p>
+            </div>
+            <button
+              class="flex items-center gap-2 bg-primary-container text-on-primary-container px-6 py-2.5 rounded-full font-bold text-label-md hover:opacity-90 active:scale-95 transition-all"
+            >
+              <span class="material-symbols-outlined text-[20px]">add</span>
+              Add Folder
+            </button>
+          </div>
+          <div class="space-y-3">
+            <div class="settings-card p-4 rounded-xl flex items-center justify-between group">
+              <div class="flex items-center gap-4">
+                <span class="material-symbols-outlined text-on-surface-variant">folder</span>
+                <span class="text-body-md font-body-md text-on-surface">/Volumes/Media/Movies</span>
+              </div>
+              <span
+                class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 cursor-pointer hover:text-error transition-all"
+                >delete</span
+              >
+            </div>
+            <div class="settings-card p-4 rounded-xl flex items-center justify-between group">
+              <div class="flex items-center gap-4">
+                <span class="material-symbols-outlined text-on-surface-variant">folder</span>
+                <span class="text-body-md font-body-md text-on-surface"
+                  >/Users/Admin/Downloads/New</span
+                >
+              </div>
+              <span
+                class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 cursor-pointer hover:text-error transition-all"
+                >delete</span
+              >
+            </div>
+          </div>
+          <div class="mt-8 flex items-center justify-between settings-card p-5 rounded-xl">
+            <div>
+              <p class="text-body-md font-body-md text-on-surface">Scan library on startup</p>
+              <p class="text-body-sm font-body-sm text-on-surface-variant">
+                Automatically index new files when opening Movie World.
+              </p>
+            </div>
+            <label class="custom-toggle">
+              <input checked="" type="checkbox" />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </section>
+        <!-- Scraping Section -->
+        <section class="mb-16 scroll-mt-28" id="scraping">
+          <h2 class="text-headline-md font-headline-md text-primary mb-stack-md">Scraping</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="settings-card p-5 rounded-xl">
+              <label
+                class="block text-label-md font-label-md text-on-surface-variant mb-4 uppercase tracking-widest"
+                >Metadata Provider</label
+              >
+              <select
+                class="w-full bg-surface-container-high border-none text-on-surface rounded-lg py-3 px-4 focus:ring-2 focus:ring-primary-container outline-none appearance-none"
+              >
+                <option>The Movie Database (TMDB)</option>
+                <option>IMDB (Via API)</option>
+                <option>Trakt.tv</option>
+              </select>
+            </div>
+            <div class="settings-card p-5 rounded-xl">
+              <label
+                class="block text-label-md font-label-md text-on-surface-variant mb-4 uppercase tracking-widest"
+                >Preferred Language</label
+              >
+              <select
+                class="w-full bg-surface-container-high border-none text-on-surface rounded-lg py-3 px-4 focus:ring-2 focus:ring-primary-container outline-none appearance-none"
+              >
+                <option>English</option>
+                <option>French</option>
+                <option>Spanish</option>
+                <option>Japanese</option>
+              </select>
+            </div>
+            <div
+              class="col-span-1 md:col-span-2 flex items-center justify-between settings-card p-5 rounded-xl"
+            >
+              <div>
+                <p class="text-body-md font-body-md text-on-surface">
+                  Automatically download posters
+                </p>
+                <p class="text-body-sm font-body-sm text-on-surface-variant">
+                  Fetches high-resolution art for every movie matched.
+                </p>
+              </div>
+              <label class="custom-toggle">
+                <input checked="" type="checkbox" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </section>
+        <!-- Appearance Section -->
+        <section class="mb-16 scroll-mt-28" id="appearance">
+          <h2 class="text-headline-md font-headline-md text-primary mb-stack-md">Appearance</h2>
+          <div class="space-y-4">
+            <div class="settings-card p-5 rounded-xl">
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <p class="text-body-md font-body-md text-on-surface">Poster Size</p>
+                  <p class="text-body-sm font-body-sm text-on-surface-variant">
+                    Adjust the display scale of your movie cards.
+                  </p>
+                </div>
+                <span class="text-label-md font-label-md text-primary-container">Medium</span>
+              </div>
+              <input class="w-full" max="100" min="1" type="range" value="50" />
+              <div
+                class="flex justify-between mt-2 text-label-sm font-label-sm text-on-surface-variant"
+              >
+                <span>Small</span>
+                <span>Large</span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between settings-card p-5 rounded-xl">
+              <div>
+                <p class="text-body-md font-body-md text-on-surface">Show adult ratings (R18+)</p>
+                <p class="text-body-sm font-body-sm text-on-surface-variant">
+                  Display age-restricted labels and content warnings.
+                </p>
+              </div>
+              <label class="custom-toggle">
+                <input type="checkbox" />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="flex items-center justify-between settings-card p-5 rounded-xl">
+              <div>
+                <p class="text-body-md font-body-md text-on-surface">
+                  Enable backdrop blur in modals
+                </p>
+                <p class="text-body-sm font-body-sm text-on-surface-variant">
+                  Use cinematic glass effects for overlays (Requires GPU).
+                </p>
+              </div>
+              <label class="custom-toggle">
+                <input checked="" type="checkbox" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </section>
+        <!-- About Section -->
+        <section class="mb-16 scroll-mt-28" id="about">
+          <h2 class="text-headline-md font-headline-md text-primary mb-stack-md">About</h2>
+          <div class="settings-card p-8 rounded-2xl flex flex-col items-center text-center">
+            <div
+              class="w-20 h-20 bg-primary-container/10 rounded-3xl flex items-center justify-center mb-6"
+            >
+              <span class="material-symbols-outlined text-[48px] text-primary-container"
+                >movie</span
+              >
+            </div>
+            <h3 class="text-headline-md font-headline-md text-on-surface mb-1">Movie World</h3>
+            <p class="text-body-md font-body-md text-on-surface-variant mb-6">
+              Version 1.2.4 (Build 20240510)
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 w-full max-w-xs">
+              <button
+                class="flex-1 bg-surface-container-high text-on-surface py-3 rounded-full font-bold text-label-md hover:bg-surface-variant transition-all active:scale-95"
+              >
+                Check for Updates
+              </button>
+              <a
+                class="flex-1 border border-outline-variant text-on-surface-variant py-3 rounded-full font-bold text-label-md hover:border-on-surface-variant transition-all active:scale-95 flex items-center justify-center gap-2"
+                href="#"
+              >
+                Documentation
+                <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+              </a>
+            </div>
+            <div
+              class="mt-10 grid grid-cols-3 gap-8 w-full border-t border-outline-variant/10 pt-8"
+            >
+              <div>
+                <p class="text-headline-sm font-headline-sm text-on-surface">2,481</p>
+                <p class="text-label-sm font-label-sm text-on-surface-variant uppercase">Movies</p>
+              </div>
+              <div>
+                <p class="text-headline-sm font-headline-sm text-on-surface">14.2TB</p>
+                <p class="text-label-sm font-label-sm text-on-surface-variant uppercase">Storage</p>
+              </div>
+              <div>
+                <p class="text-headline-sm font-headline-sm text-on-surface">3</p>
+                <p class="text-label-sm font-label-sm text-on-surface-variant uppercase">Sources</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+    <!-- Floating Action Button - Only for Home/Dash context, but here we might have a 'Scan Now' if appropriate -->
+    <!-- Suppressed per instructions for Settings screens -->
+    <script>
+      // Smooth scrolling for navigation
+      document.querySelectorAll('aside nav a').forEach((anchor) => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault()
+          const targetId = this.getAttribute('href').substring(1)
+          const targetElement = document.getElementById(targetId)
 
-                window.scrollTo({
-                    top: targetElement.offsetTop - 120,
-                    behavior: 'smooth'
-                });
-            });
-        });
+          // Update active state
+          document.querySelectorAll('aside nav a').forEach((a) => {
+            a.classList.remove('bg-secondary-container', 'text-on-secondary-container', 'font-bold')
+            a.classList.add(
+              'text-on-surface-variant',
+              'hover:text-on-surface',
+              'hover:bg-surface-variant/50'
+            )
+          })
+          this.classList.add('bg-secondary-container', 'text-on-secondary-container', 'font-bold')
+          this.classList.remove(
+            'text-on-surface-variant',
+            'hover:text-on-surface',
+            'hover:bg-surface-variant/50'
+          )
 
-        // Intersection Observer to highlight nav on scroll
-        const observerOptions = {
-            root: null,
-            rootMargin: '-20% 0px -70% 0px',
-            threshold: 0
-        };
+          window.scrollTo({
+            top: targetElement.offsetTop - 120,
+            behavior: 'smooth'
+          })
+        })
+      })
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const id = entry.target.getAttribute('id');
-                    const navItem = document.querySelector(`aside nav a[href="#${id}"]`);
-                    
-                    if (navItem) {
-                        document.querySelectorAll('aside nav a').forEach(a => {
-                            a.classList.remove('bg-secondary-container', 'text-on-secondary-container', 'font-bold');
-                            a.classList.add('text-on-surface-variant', 'hover:text-on-surface', 'hover:bg-surface-variant/50');
-                        });
-                        navItem.classList.add('bg-secondary-container', 'text-on-secondary-container', 'font-bold');
-                        navItem.classList.remove('text-on-surface-variant', 'hover:text-on-surface', 'hover:bg-surface-variant/50');
-                    }
-                }
-            });
-        }, observerOptions);
+      // Intersection Observer to highlight nav on scroll
+      const observerOptions = {
+        root: null,
+        rootMargin: '-20% 0px -70% 0px',
+        threshold: 0
+      }
 
-        document.querySelectorAll('section').forEach(section => {
-            observer.observe(section);
-        });
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute('id')
+            const navItem = document.querySelector(`aside nav a[href="#${id}"]`)
+
+            if (navItem) {
+              document.querySelectorAll('aside nav a').forEach((a) => {
+                a.classList.remove(
+                  'bg-secondary-container',
+                  'text-on-secondary-container',
+                  'font-bold'
+                )
+                a.classList.add(
+                  'text-on-surface-variant',
+                  'hover:text-on-surface',
+                  'hover:bg-surface-variant/50'
+                )
+              })
+              navItem.classList.add(
+                'bg-secondary-container',
+                'text-on-secondary-container',
+                'font-bold'
+              )
+              navItem.classList.remove(
+                'text-on-surface-variant',
+                'hover:text-on-surface',
+                'hover:bg-surface-variant/50'
+              )
+            }
+          }
+        })
+      }, observerOptions)
+
+      document.querySelectorAll('section').forEach((section) => {
+        observer.observe(section)
+      })
     </script>
-</body></html>
+  </body>
+</html>

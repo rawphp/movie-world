@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** L
-**Files:** src/main/library/manager.ts, src/main/library/__tests__/manager.test.ts
+**Files:** src/main/library/manager.ts, src/main/library/**tests**/manager.test.ts
 **Depends on:** REQ-003, REQ-007, REQ-008, REQ-009
 
 ## Task

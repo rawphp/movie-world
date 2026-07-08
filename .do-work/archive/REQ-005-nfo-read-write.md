@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** M
-**Files:** src/main/library/nfo.ts, src/main/library/__tests__/nfo.test.ts
+**Files:** src/main/library/nfo.ts, src/main/library/**tests**/nfo.test.ts
 **Depends on:** REQ-002
 
 ## Task

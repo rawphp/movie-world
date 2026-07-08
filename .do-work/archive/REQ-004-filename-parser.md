@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** S
-**Files:** src/main/library/filename-parser.ts, src/main/library/__tests__/filename-parser.test.ts
+**Files:** src/main/library/filename-parser.ts, src/main/library/**tests**/filename-parser.test.ts
 **Depends on:** REQ-002
 
 ## Task

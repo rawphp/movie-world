@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 1
 **Size:** M
-**Files:** src/renderer/src/views/SettingsView.vue, src/renderer/src/views/__tests__/SettingsView.test.ts
+**Files:** src/renderer/src/views/SettingsView.vue, src/renderer/src/views/**tests**/SettingsView.test.ts
 **Depends on:** REQ-013
 
 ## Task

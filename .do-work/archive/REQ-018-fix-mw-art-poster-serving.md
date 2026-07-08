@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
-**Files:** src/renderer/index.html, src/main/art-protocol.ts, src/main/index.ts, src/main/__tests__/art-protocol.test.ts
+**Files:** src/renderer/index.html, src/main/art-protocol.ts, src/main/index.ts, src/main/**tests**/art-protocol.test.ts
 **Depends on:**
 
 ## Task
@@ -25,13 +25,16 @@ The **actual** cause was a **conflicting Content-Security-Policy**, not the serv
 `src/renderer/index.html` shipped the electron-vite boilerplate meta tag:
 
 ```html
-<meta http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:" />
+<meta
+  http-equiv="Content-Security-Policy"
+  content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+/>
 ```
 
-Browsers enforce the **intersection** of every CSP source. This static meta policy (`img-src 'self' data:`, no `mw-art:`) intersected with — and, being stricter, overrode — the correct header policy from `buildCsp()` (which *does* allow `mw-art:`). Every poster was blocked **in the renderer, before the request ever reached the main process**.
+Browsers enforce the **intersection** of every CSP source. This static meta policy (`img-src 'self' data:`, no `mw-art:`) intersected with — and, being stricter, overrode — the correct header policy from `buildCsp()` (which _does_ allow `mw-art:`). Every poster was blocked **in the renderer, before the request ever reached the main process**.
 
 Proven by instrumenting a real `npm run dev` run:
+
 - Before: renderer logged `Loading the image 'mw-art://…' violates … "img-src 'self' data:". The action has been blocked.` for all 141 posters; the `protocol.handle` callback fired **0 times**.
 - After removing the meta tag: **141/141** handler invocations returned **200**, **0** CSP violations, **0** 404s.
 

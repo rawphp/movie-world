@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
-**Files:** src/main/tmdb/client.ts, src/main/tmdb/matcher.ts, src/main/tmdb/__tests__/client.test.ts, src/main/tmdb/__tests__/matcher.test.ts
+**Files:** src/main/tmdb/client.ts, src/main/tmdb/matcher.ts, src/main/tmdb/**tests**/client.test.ts, src/main/tmdb/**tests**/matcher.test.ts
 **Depends on:** REQ-002
 
 ## Task

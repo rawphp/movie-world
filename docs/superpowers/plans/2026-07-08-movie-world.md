@@ -51,10 +51,12 @@ tests mirror sources: src/**/__tests__/<name>.test.ts (node env default; jsdom p
 ### Task 1: Scaffold project & tooling
 
 **Files:**
+
 - Create: entire electron-vite scaffold, `tailwind` wiring, `vitest.config.ts`
 - Modify: `package.json`, `.gitignore`
 
 **Interfaces:**
+
 - Produces: working `npm run dev` (Electron window), `npx vitest run`, `npx eslint .`, `npx tsc --noEmit`.
 
 - [ ] **Step 1: Scaffold electron-vite Vue-TS template into the repo**
@@ -89,7 +91,7 @@ import tailwindcss from '@tailwindcss/vite'
 Replace `src/renderer/src/assets/main.css` (or the template's base css import) content with:
 
 ```css
-@import "tailwindcss";
+@import 'tailwindcss';
 ```
 
 - [ ] **Step 4: Add Vitest config**
@@ -104,11 +106,11 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     environment: 'node', // component tests opt into jsdom via // @vitest-environment jsdom
-    include: ['src/**/__tests__/**/*.test.ts'],
+    include: ['src/**/__tests__/**/*.test.ts']
   },
   resolve: {
-    alias: { '@renderer': '/src/renderer/src', '@shared': '/src/shared' },
-  },
+    alias: { '@renderer': '/src/renderer/src', '@shared': '/src/shared' }
+  }
 })
 ```
 
@@ -136,10 +138,12 @@ git add -A && git commit -m "chore: scaffold electron-vite vue-ts app with tailw
 ### Task 2: Shared types & settings store
 
 **Files:**
+
 - Create: `src/shared/types.ts`, `src/main/settings.ts`
 - Test: `src/main/__tests__/settings.test.ts`
 
 **Interfaces:**
+
 - Produces: `MovieRecord`, `MatchStatus`, `CastMember`, `Settings`, `ParsedFilename` types; `createSettingsStore(filePath)` with `read(): Settings`, `setApiKey(key: string): Settings`, `addFolder(path: string): Settings`, `removeFolder(path: string): Settings`. Every later task imports these types — copy signatures exactly.
 
 - [ ] **Step 1: Write `src/shared/types.ts`**
@@ -267,7 +271,7 @@ export function createSettingsStore(file: string) {
     read,
     setApiKey: (key: string) => write({ tmdbApiKey: key }),
     addFolder: (path: string) => write({ folders: [...new Set([...read().folders, path])] }),
-    removeFolder: (path: string) => write({ folders: read().folders.filter((f) => f !== path) }),
+    removeFolder: (path: string) => write({ folders: read().folders.filter((f) => f !== path) })
   }
 }
 ```
@@ -289,10 +293,12 @@ git add -A && git commit -m "feat: shared MovieRecord types and JSON settings st
 ### Task 3: Filename parser
 
 **Files:**
+
 - Create: `src/main/library/filename-parser.ts`
 - Test: `src/main/library/__tests__/filename-parser.test.ts`
 
 **Interfaces:**
+
 - Consumes: `ParsedFilename` from `@shared/types` (Task 2)
 - Produces: `parseFilename(basename: string): ParsedFilename`
 
@@ -312,7 +318,7 @@ const cases: Array<[string, string, number | null]> = [
   ['Heat 1995 REMASTERED 1080p WEB-DL.mkv', 'Heat', 1995],
   ['Blade_Runner_[1982]_Directors_Cut.avi', 'Blade Runner', 1982],
   ['Parasite.2019.KOREAN.2160p.4K.HDR.x265-GRP.mkv', 'Parasite', 2019],
-  ['Up.mov', 'Up', null],
+  ['Up.mov', 'Up', null]
 ]
 
 describe('parseFilename', () => {
@@ -343,7 +349,7 @@ export function parseFilename(basename: string): ParsedFilename {
   let year: number | null = null
   // Last standalone 19xx/20xx not at position 0 (so "2001 A Space Odyssey" keeps its title).
   const matches = [...working.matchAll(/(?:^|[( ])((?:19|20)\d{2})(?:[) ]|$)/g)].filter(
-    (m) => (m.index ?? 0) > 0,
+    (m) => (m.index ?? 0) > 0
   )
   const last = matches.at(-1)
   if (last) {
@@ -377,10 +383,12 @@ git add -A && git commit -m "feat: filename parser extracting title and year fro
 ### Task 4: NFO read/write
 
 **Files:**
+
 - Create: `src/main/library/nfo.ts`
 - Test: `src/main/library/__tests__/nfo.test.ts`
 
 **Interfaces:**
+
 - Consumes: `MovieRecord`, `CastMember` (Task 2)
 - Produces:
   - `sidecarPathsFor(filePath: string): { nfo: string; poster: string; fanart: string }`
@@ -402,34 +410,63 @@ import { movieToNfoXml, parseNfoXml, sidecarPathsFor, readSidecarNfo } from '../
 import type { MovieRecord } from '../../../shared/types'
 
 const movie: MovieRecord = {
-  id: 'abc', filePath: '/Movies/The Matrix (1999)/The Matrix (1999).mkv', fileSize: 1,
-  folderPath: '/Movies', parsedTitle: 'The Matrix', parsedYear: 1999,
-  matchStatus: 'matched', tmdbId: 603, title: 'The Matrix', originalTitle: 'The Matrix',
-  year: 1999, overview: 'A hacker learns the truth. <Reality> & "choice".', runtime: 136,
-  voteAverage: 8.2, genres: ['Action', 'Science Fiction'],
-  cast: [{ name: 'Keanu Reeves', order: 0 }, { name: 'Laurence Fishburne', order: 1 }],
-  certifications: { AU: 'MA15+', US: 'R' }, certificationAu: 'MA15+',
-  trailerYoutubeKey: 'vKQi3bBA1y8', playCount: 2, lastPlayedAt: '2026-07-01T10:00:00.000Z',
-  fileMissing: false, sidecarWriteFailed: false, fetchFailed: false,
-  posterPath: null, fanartPath: null,
+  id: 'abc',
+  filePath: '/Movies/The Matrix (1999)/The Matrix (1999).mkv',
+  fileSize: 1,
+  folderPath: '/Movies',
+  parsedTitle: 'The Matrix',
+  parsedYear: 1999,
+  matchStatus: 'matched',
+  tmdbId: 603,
+  title: 'The Matrix',
+  originalTitle: 'The Matrix',
+  year: 1999,
+  overview: 'A hacker learns the truth. <Reality> & "choice".',
+  runtime: 136,
+  voteAverage: 8.2,
+  genres: ['Action', 'Science Fiction'],
+  cast: [
+    { name: 'Keanu Reeves', order: 0 },
+    { name: 'Laurence Fishburne', order: 1 }
+  ],
+  certifications: { AU: 'MA15+', US: 'R' },
+  certificationAu: 'MA15+',
+  trailerYoutubeKey: 'vKQi3bBA1y8',
+  playCount: 2,
+  lastPlayedAt: '2026-07-01T10:00:00.000Z',
+  fileMissing: false,
+  sidecarWriteFailed: false,
+  fetchFailed: false,
+  posterPath: null,
+  fanartPath: null
 }
 
 describe('nfo', () => {
   it('maps sidecar paths from the movie file stem', () => {
     expect(sidecarPathsFor('/m/Alien.mkv')).toEqual({
-      nfo: '/m/Alien.nfo', poster: '/m/Alien-poster.jpg', fanart: '/m/Alien-fanart.jpg',
+      nfo: '/m/Alien.nfo',
+      poster: '/m/Alien-poster.jpg',
+      fanart: '/m/Alien-fanart.jpg'
     })
   })
 
   it('round-trips all metadata through Kodi XML', () => {
     const data = parseNfoXml(movieToNfoXml(movie))
     expect(data).toEqual({
-      tmdbId: 603, title: 'The Matrix', originalTitle: 'The Matrix', year: 1999,
-      overview: 'A hacker learns the truth. <Reality> & "choice".', runtime: 136,
-      voteAverage: 8.2, genres: ['Action', 'Science Fiction'],
-      cast: movie.cast, certifications: { AU: 'MA15+', US: 'R' }, certificationAu: 'MA15+',
-      trailerYoutubeKey: 'vKQi3bBA1y8', playCount: 2,
-      lastPlayedAt: '2026-07-01T10:00:00.000Z',
+      tmdbId: 603,
+      title: 'The Matrix',
+      originalTitle: 'The Matrix',
+      year: 1999,
+      overview: 'A hacker learns the truth. <Reality> & "choice".',
+      runtime: 136,
+      voteAverage: 8.2,
+      genres: ['Action', 'Science Fiction'],
+      cast: movie.cast,
+      certifications: { AU: 'MA15+', US: 'R' },
+      certificationAu: 'MA15+',
+      trailerYoutubeKey: 'vKQi3bBA1y8',
+      playCount: 2,
+      lastPlayedAt: '2026-07-01T10:00:00.000Z'
     })
   })
 
@@ -492,7 +529,12 @@ export function movieToNfoXml(m: MovieRecord): string {
       runtime: m.runtime ?? undefined,
       rating: m.voteAverage ?? undefined,
       mpaa: Object.keys(m.certifications).length
-        ? ['AU', ...Object.keys(m.certifications).filter((c) => c !== 'AU').sort()]
+        ? [
+            'AU',
+            ...Object.keys(m.certifications)
+              .filter((c) => c !== 'AU')
+              .sort()
+          ]
             .filter((c) => m.certifications[c])
             .map((c) => `${c}:${m.certifications[c]}`)
             .join(' / ')
@@ -500,12 +542,15 @@ export function movieToNfoXml(m: MovieRecord): string {
       playcount: m.playCount,
       lastplayed: m.lastPlayedAt ?? undefined,
       trailer: m.trailerYoutubeKey ? TRAILER_PREFIX + m.trailerYoutubeKey : undefined,
-      uniqueid: m.tmdbId != null ? { '@_type': 'tmdb', '@_default': 'true', '#text': m.tmdbId } : undefined,
+      uniqueid:
+        m.tmdbId != null ? { '@_type': 'tmdb', '@_default': 'true', '#text': m.tmdbId } : undefined,
       genre: asList(m.genres),
-      actor: asList(m.cast.map((c) => ({ name: c.name, order: c.order }))),
-    },
+      actor: asList(m.cast.map((c) => ({ name: c.name, order: c.order })))
+    }
   }
-  return new XMLBuilder({ ignoreAttributes: false, format: true, suppressEmptyNode: true }).build(doc)
+  return new XMLBuilder({ ignoreAttributes: false, format: true, suppressEmptyNode: true }).build(
+    doc
+  )
 }
 
 export function parseNfoXml(xml: string): NfoData {
@@ -536,13 +581,15 @@ export function parseNfoXml(xml: string): NfoData {
     genres: list(mv.genre).map(String),
     cast: list(mv.actor).map((a: Record<string, unknown>) => ({
       name: String(a.name),
-      order: Number(a.order ?? 0),
+      order: Number(a.order ?? 0)
     })),
     certifications,
     certificationAu: certifications['AU'] ?? null,
-    trailerYoutubeKey: trailer?.startsWith(TRAILER_PREFIX) ? trailer.slice(TRAILER_PREFIX.length) : null,
+    trailerYoutubeKey: trailer?.startsWith(TRAILER_PREFIX)
+      ? trailer.slice(TRAILER_PREFIX.length)
+      : null,
     playCount: num(mv.playcount) ?? 0,
-    lastPlayedAt: str(mv.lastplayed),
+    lastPlayedAt: str(mv.lastplayed)
   }
 }
 
@@ -574,10 +621,12 @@ git add -A && git commit -m "feat: Kodi NFO sidecar read/write with full metadat
 ### Task 5: TMDB client, matcher & details mapping
 
 **Files:**
+
 - Create: `src/main/tmdb/client.ts`, `src/main/tmdb/matcher.ts`
 - Test: `src/main/tmdb/__tests__/client.test.ts`, `src/main/tmdb/__tests__/matcher.test.ts`
 
 **Interfaces:**
+
 - Consumes: `ParsedFilename`, `MovieRecord` (Task 2)
 - Produces:
   - `createTmdbClient(apiKey: string, fetchFn?: typeof fetch)` with `searchMovies(query: string, year?: number | null): Promise<TmdbSearchResult[]>` and `getMovieDetails(id: number): Promise<TmdbMovieDetails>`
@@ -640,17 +689,29 @@ const r = (id: number, title: string, date?: string) => ({ id, title, release_da
 
 describe('pickConfidentMatch', () => {
   it('matches normalized title + year within ±1', () => {
-    expect(pickConfidentMatch({ title: 'the matrix', year: 2000 }, [r(603, 'The Matrix', '1999-03-30')])?.id).toBe(603)
+    expect(
+      pickConfidentMatch({ title: 'the matrix', year: 2000 }, [r(603, 'The Matrix', '1999-03-30')])
+        ?.id
+    ).toBe(603)
   })
   it('rejects when year is too far off', () => {
-    expect(pickConfidentMatch({ title: 'The Matrix', year: 1985 }, [r(603, 'The Matrix', '1999-03-30')])).toBeNull()
+    expect(
+      pickConfidentMatch({ title: 'The Matrix', year: 1985 }, [r(603, 'The Matrix', '1999-03-30')])
+    ).toBeNull()
   })
   it('skips year check when filename had no year, but requires exact title', () => {
-    expect(pickConfidentMatch({ title: 'Alien', year: null }, [r(348, 'Alien', '1979-05-25')])?.id).toBe(348)
-    expect(pickConfidentMatch({ title: 'Alien', year: null }, [r(8078, 'Aliens', '1986-07-18')])).toBeNull()
+    expect(
+      pickConfidentMatch({ title: 'Alien', year: null }, [r(348, 'Alien', '1979-05-25')])?.id
+    ).toBe(348)
+    expect(
+      pickConfidentMatch({ title: 'Alien', year: null }, [r(8078, 'Aliens', '1986-07-18')])
+    ).toBeNull()
   })
   it('finds the right candidate below the top result', () => {
-    const results = [r(1, 'The Matrix Resurrections', '2021-12-16'), r(603, 'The Matrix', '1999-03-30')]
+    const results = [
+      r(1, 'The Matrix Resurrections', '2021-12-16'),
+      r(603, 'The Matrix', '1999-03-30')
+    ]
     expect(pickConfidentMatch({ title: 'The Matrix', year: 1999 }, results)?.id).toBe(603)
   })
 })
@@ -658,28 +719,58 @@ describe('pickConfidentMatch', () => {
 describe('applyDetails', () => {
   it('maps details into a matched MovieRecord', () => {
     const pending = {
-      id: 'x', filePath: '/m/f.mkv', fileSize: 0, folderPath: '/m', parsedTitle: 'The Matrix',
-      parsedYear: 1999, matchStatus: 'pending', tmdbId: null, title: null, originalTitle: null,
-      year: null, overview: null, runtime: null, voteAverage: null, genres: [], cast: [],
-      certifications: {}, certificationAu: null, trailerYoutubeKey: null, playCount: 0,
-      lastPlayedAt: null, fileMissing: false, sidecarWriteFailed: false, fetchFailed: false,
-      posterPath: null, fanartPath: null,
+      id: 'x',
+      filePath: '/m/f.mkv',
+      fileSize: 0,
+      folderPath: '/m',
+      parsedTitle: 'The Matrix',
+      parsedYear: 1999,
+      matchStatus: 'pending',
+      tmdbId: null,
+      title: null,
+      originalTitle: null,
+      year: null,
+      overview: null,
+      runtime: null,
+      voteAverage: null,
+      genres: [],
+      cast: [],
+      certifications: {},
+      certificationAu: null,
+      trailerYoutubeKey: null,
+      playCount: 0,
+      lastPlayedAt: null,
+      fileMissing: false,
+      sidecarWriteFailed: false,
+      fetchFailed: false,
+      posterPath: null,
+      fanartPath: null
     } satisfies MovieRecord
 
     const details = {
-      id: 603, title: 'The Matrix', original_title: 'The Matrix', release_date: '1999-03-30',
-      overview: 'plot', runtime: 136, vote_average: 8.22,
+      id: 603,
+      title: 'The Matrix',
+      original_title: 'The Matrix',
+      release_date: '1999-03-30',
+      overview: 'plot',
+      runtime: 136,
+      vote_average: 8.22,
       genres: [{ id: 28, name: 'Action' }],
-      poster_path: '/p.jpg', backdrop_path: '/b.jpg',
+      poster_path: '/p.jpg',
+      backdrop_path: '/b.jpg',
       credits: { cast: [0, 1, 2, 3, 4, 5].map((i) => ({ name: `Actor ${i}`, order: i })) },
-      videos: { results: [
-        { site: 'YouTube', type: 'Teaser', key: 'teaser', official: true },
-        { site: 'YouTube', type: 'Trailer', key: 'trailerKey', official: true },
-      ]},
-      release_dates: { results: [
-        { iso_3166_1: 'AU', release_dates: [{ certification: 'MA15+' }] },
-        { iso_3166_1: 'US', release_dates: [{ certification: '' }, { certification: 'R' }] },
-      ]},
+      videos: {
+        results: [
+          { site: 'YouTube', type: 'Teaser', key: 'teaser', official: true },
+          { site: 'YouTube', type: 'Trailer', key: 'trailerKey', official: true }
+        ]
+      },
+      release_dates: {
+        results: [
+          { iso_3166_1: 'AU', release_dates: [{ certification: 'MA15+' }] },
+          { iso_3166_1: 'US', release_dates: [{ certification: '' }, { certification: 'R' }] }
+        ]
+      }
     }
 
     const m = applyDetails(pending, details)
@@ -724,7 +815,9 @@ export interface TmdbMovieDetails {
   backdrop_path?: string | null
   credits?: { cast?: Array<{ name: string; order: number }> }
   videos?: { results?: Array<{ site: string; type: string; key: string; official?: boolean }> }
-  release_dates?: { results?: Array<{ iso_3166_1: string; release_dates: Array<{ certification: string }> }> }
+  release_dates?: {
+    results?: Array<{ iso_3166_1: string; release_dates: Array<{ certification: string }> }>
+  }
 }
 
 export class TmdbError extends Error {
@@ -753,11 +846,11 @@ export function createTmdbClient(apiKey: string, fetchFn: typeof fetch = fetch) 
       (
         await get<{ results: TmdbSearchResult[] }>('/search/movie', {
           query,
-          ...(year ? { year: String(year) } : {}),
+          ...(year ? { year: String(year) } : {})
         })
       ).results,
     getMovieDetails: (id: number) =>
-      get<TmdbMovieDetails>(`/movie/${id}`, { append_to_response: 'credits,videos,release_dates' }),
+      get<TmdbMovieDetails>(`/movie/${id}`, { append_to_response: 'credits,videos,release_dates' })
   }
 }
 ```
@@ -768,11 +861,15 @@ export function createTmdbClient(apiKey: string, fetchFn: typeof fetch = fetch) 
 import type { MovieRecord, ParsedFilename } from '../../shared/types'
 import type { TmdbMovieDetails, TmdbSearchResult } from './client'
 
-const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+const norm = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
 
 export function pickConfidentMatch(
   parsed: ParsedFilename,
-  results: TmdbSearchResult[],
+  results: TmdbSearchResult[]
 ): TmdbSearchResult | null {
   const target = norm(parsed.title)
   for (const r of results.slice(0, 5)) {
@@ -816,7 +913,7 @@ export function applyDetails(movie: MovieRecord, d: TmdbMovieDetails): MovieReco
       .map((c) => ({ name: c.name, order: c.order })),
     certifications,
     certificationAu: certifications['AU'] ?? null,
-    trailerYoutubeKey: trailer?.key ?? null,
+    trailerYoutubeKey: trailer?.key ?? null
   }
 }
 ```
@@ -838,10 +935,12 @@ git add -A && git commit -m "feat: TMDB client, confidence matcher and details-t
 ### Task 6: Scanner — discover & ingest
 
 **Files:**
+
 - Create: `src/main/library/scanner.ts`
 - Test: `src/main/library/__tests__/scanner.test.ts`
 
 **Interfaces:**
+
 - Consumes: `parseFilename` (Task 3), `readSidecarNfo`, `sidecarPathsFor` (Task 4), `MovieRecord` (Task 2)
 - Produces:
   - `VIDEO_EXTENSIONS: Set<string>` (`.mkv .mp4 .avi .mov .m4v .wmv .webm`)
@@ -879,7 +978,7 @@ describe('discoverVideoFiles', () => {
     const files = await discoverVideoFiles(root)
     expect(files).toEqual([
       join(root, 'Alien.mp4'),
-      join(root, 'The Matrix (1999)', 'The Matrix (1999).mkv'),
+      join(root, 'The Matrix (1999)', 'The Matrix (1999).mkv')
     ])
   })
 })
@@ -890,9 +989,16 @@ describe('ingestFile', () => {
     writeFileSync(file, 'xx')
     const m = await ingestFile(file, root)
     expect(m).toMatchObject({
-      id: movieId(file), filePath: file, folderPath: root, fileSize: 2,
-      parsedTitle: 'Heat', parsedYear: 1995, matchStatus: 'pending',
-      tmdbId: null, playCount: 0, fileMissing: false,
+      id: movieId(file),
+      filePath: file,
+      folderPath: root,
+      fileSize: 2,
+      parsedTitle: 'Heat',
+      parsedYear: 1995,
+      matchStatus: 'pending',
+      tmdbId: null,
+      playCount: 0,
+      fileMissing: false
     })
   })
 
@@ -900,11 +1006,23 @@ describe('ingestFile', () => {
     const file = join(root, 'The Matrix (1999).mkv')
     writeFileSync(file, 'x')
     const matched: Partial<MovieRecord> = {
-      parsedTitle: 'The Matrix', parsedYear: 1999, matchStatus: 'matched', tmdbId: 603,
-      title: 'The Matrix', year: 1999, genres: ['Action'], cast: [], certifications: { AU: 'MA15+' },
-      certificationAu: 'MA15+', playCount: 3, lastPlayedAt: '2026-07-01T10:00:00.000Z',
+      parsedTitle: 'The Matrix',
+      parsedYear: 1999,
+      matchStatus: 'matched',
+      tmdbId: 603,
+      title: 'The Matrix',
+      year: 1999,
+      genres: ['Action'],
+      cast: [],
+      certifications: { AU: 'MA15+' },
+      certificationAu: 'MA15+',
+      playCount: 3,
+      lastPlayedAt: '2026-07-01T10:00:00.000Z'
     }
-    writeFileSync(sidecarPathsFor(file).nfo, movieToNfoXml({ ...(await ingestFile(file, root)), ...matched } as MovieRecord))
+    writeFileSync(
+      sidecarPathsFor(file).nfo,
+      movieToNfoXml({ ...(await ingestFile(file, root)), ...matched } as MovieRecord)
+    )
     writeFileSync(sidecarPathsFor(file).poster, 'img')
     const m = await ingestFile(file, root)
     expect(m.matchStatus).toBe('matched')
@@ -954,14 +1072,32 @@ export async function ingestFile(filePath: string, folderPath: string): Promise<
   const { size } = await stat(filePath)
   const parsed = parseFilename(filePath.split('/').at(-1)!)
   const base: MovieRecord = {
-    id: movieId(filePath), filePath, fileSize: size, folderPath,
-    parsedTitle: parsed.title, parsedYear: parsed.year,
-    matchStatus: 'pending', tmdbId: null, title: null, originalTitle: null, year: null,
-    overview: null, runtime: null, voteAverage: null, genres: [], cast: [],
-    certifications: {}, certificationAu: null, trailerYoutubeKey: null,
-    playCount: 0, lastPlayedAt: null,
-    fileMissing: false, sidecarWriteFailed: false, fetchFailed: false,
-    posterPath: null, fanartPath: null,
+    id: movieId(filePath),
+    filePath,
+    fileSize: size,
+    folderPath,
+    parsedTitle: parsed.title,
+    parsedYear: parsed.year,
+    matchStatus: 'pending',
+    tmdbId: null,
+    title: null,
+    originalTitle: null,
+    year: null,
+    overview: null,
+    runtime: null,
+    voteAverage: null,
+    genres: [],
+    cast: [],
+    certifications: {},
+    certificationAu: null,
+    trailerYoutubeKey: null,
+    playCount: 0,
+    lastPlayedAt: null,
+    fileMissing: false,
+    sidecarWriteFailed: false,
+    fetchFailed: false,
+    posterPath: null,
+    fanartPath: null
   }
   const nfo = readSidecarNfo(filePath)
   if (!nfo) return base
@@ -971,7 +1107,7 @@ export async function ingestFile(filePath: string, folderPath: string): Promise<
     ...nfo,
     matchStatus: 'matched',
     posterPath: existsSync(paths.poster) ? paths.poster : null,
-    fanartPath: existsSync(paths.fanart) ? paths.fanart : null,
+    fanartPath: existsSync(paths.fanart) ? paths.fanart : null
   }
 }
 ```
@@ -993,10 +1129,12 @@ git add -A && git commit -m "feat: recursive video discovery and NFO-aware file 
 ### Task 7: Fetch queue with concurrency, retries & sidecar writes
 
 **Files:**
+
 - Create: `src/main/tmdb/fetcher.ts`
 - Test: `src/main/tmdb/__tests__/fetcher.test.ts`
 
 **Interfaces:**
+
 - Consumes: `TmdbClient`, `TmdbError`, `imageUrl` (Task 5), `pickConfidentMatch`, `applyDetails` (Task 5), `writeSidecarNfo`, `sidecarPathsFor` (Task 4), `MovieRecord` (Task 2)
 - Produces:
   - `createFetchQueue(opts: { client: TmdbClient; onUpdate: (m: MovieRecord) => void; concurrency?: number; retries?: number; backoffMs?: number; downloadImage?: (url: string, dest: string) => Promise<void> })` returning `{ enqueue(movie: MovieRecord): void; idle(): Promise<void> }`
@@ -1017,15 +1155,41 @@ import type { TmdbClient } from '../client'
 import type { MovieRecord } from '../../../shared/types'
 
 const pendingMovie = (dir: string, name: string): MovieRecord => ({
-  id: name, filePath: join(dir, `${name}.mkv`), fileSize: 0, folderPath: dir,
-  parsedTitle: name, parsedYear: 1999, matchStatus: 'pending', tmdbId: null, title: null,
-  originalTitle: null, year: null, overview: null, runtime: null, voteAverage: null,
-  genres: [], cast: [], certifications: {}, certificationAu: null, trailerYoutubeKey: null,
-  playCount: 0, lastPlayedAt: null, fileMissing: false, sidecarWriteFailed: false,
-  fetchFailed: false, posterPath: null, fanartPath: null,
+  id: name,
+  filePath: join(dir, `${name}.mkv`),
+  fileSize: 0,
+  folderPath: dir,
+  parsedTitle: name,
+  parsedYear: 1999,
+  matchStatus: 'pending',
+  tmdbId: null,
+  title: null,
+  originalTitle: null,
+  year: null,
+  overview: null,
+  runtime: null,
+  voteAverage: null,
+  genres: [],
+  cast: [],
+  certifications: {},
+  certificationAu: null,
+  trailerYoutubeKey: null,
+  playCount: 0,
+  lastPlayedAt: null,
+  fileMissing: false,
+  sidecarWriteFailed: false,
+  fetchFailed: false,
+  posterPath: null,
+  fanartPath: null
 })
 
-const details = { id: 603, title: 'The Matrix', release_date: '1999-03-30', poster_path: '/p.jpg', backdrop_path: '/b.jpg' }
+const details = {
+  id: 603,
+  title: 'The Matrix',
+  release_date: '1999-03-30',
+  poster_path: '/p.jpg',
+  backdrop_path: '/b.jpg'
+}
 const searchHit = [{ id: 603, title: 'The Matrix', release_date: '1999-03-30' }]
 
 function tempDir() {
@@ -1038,7 +1202,7 @@ describe('fetch queue', () => {
     using t = tempDir()
     const client = {
       searchMovies: vi.fn(async () => searchHit),
-      getMovieDetails: vi.fn(async () => details),
+      getMovieDetails: vi.fn(async () => details)
     } as unknown as TmdbClient
     const downloadImage = vi.fn(async () => {})
     const updates: MovieRecord[] = []
@@ -1056,10 +1220,14 @@ describe('fetch queue', () => {
     using t = tempDir()
     const client = {
       searchMovies: vi.fn(async () => []),
-      getMovieDetails: vi.fn(),
+      getMovieDetails: vi.fn()
     } as unknown as TmdbClient
     const updates: MovieRecord[] = []
-    const q = createFetchQueue({ client, onUpdate: (m) => updates.push(m), downloadImage: async () => {} })
+    const q = createFetchQueue({
+      client,
+      onUpdate: (m) => updates.push(m),
+      downloadImage: async () => {}
+    })
     q.enqueue(pendingMovie(t.dir, 'Unknown Film'))
     await q.idle()
     expect(updates.at(-1)!.matchStatus).toBe('unmatched')
@@ -1067,12 +1235,17 @@ describe('fetch queue', () => {
 
   it('retries on failure then flags fetchFailed', async () => {
     using t = tempDir()
-    const searchMovies = vi.fn(async () => { throw new Error('network down') })
+    const searchMovies = vi.fn(async () => {
+      throw new Error('network down')
+    })
     const client = { searchMovies, getMovieDetails: vi.fn() } as unknown as TmdbClient
     const updates: MovieRecord[] = []
     const q = createFetchQueue({
-      client, onUpdate: (m) => updates.push(m), downloadImage: async () => {},
-      retries: 3, backoffMs: 1,
+      client,
+      onUpdate: (m) => updates.push(m),
+      downloadImage: async () => {},
+      retries: 3,
+      backoffMs: 1
     })
     q.enqueue(pendingMovie(t.dir, 'Flaky'))
     await q.idle()
@@ -1087,14 +1260,20 @@ describe('fetch queue', () => {
     let peak = 0
     const client = {
       searchMovies: vi.fn(async () => {
-        active++; peak = Math.max(peak, active)
+        active++
+        peak = Math.max(peak, active)
         await new Promise((r) => setTimeout(r, 5))
         active--
         return []
       }),
-      getMovieDetails: vi.fn(),
+      getMovieDetails: vi.fn()
     } as unknown as TmdbClient
-    const q = createFetchQueue({ client, onUpdate: () => {}, downloadImage: async () => {}, concurrency: 2 })
+    const q = createFetchQueue({
+      client,
+      onUpdate: () => {},
+      downloadImage: async () => {},
+      concurrency: 2
+    })
     for (let i = 0; i < 6; i++) q.enqueue(pendingMovie(t.dir, `M${i}`))
     await q.idle()
     expect(peak).toBeLessThanOrEqual(2)
@@ -1123,7 +1302,7 @@ type DownloadImage = (url: string, dest: string) => Promise<void>
 export async function downloadImageToFile(
   url: string,
   dest: string,
-  fetchFn: typeof fetch = fetch,
+  fetchFn: typeof fetch = fetch
 ): Promise<void> {
   const res = await fetchFn(url)
   if (!res.ok) throw new Error(`image download failed: ${res.status}`)
@@ -1134,7 +1313,7 @@ export async function fetchAndApply(
   movie: MovieRecord,
   client: TmdbClient,
   downloadImage: DownloadImage,
-  tmdbId?: number,
+  tmdbId?: number
 ): Promise<MovieRecord> {
   let id = tmdbId ?? null
   if (id == null) {
@@ -1216,7 +1395,7 @@ export function createFetchQueue(opts: {
       new Promise<void>((resolve) => {
         if (active === 0 && waiting.length === 0) resolve()
         else idleResolvers.push(resolve)
-      }),
+      })
   }
 }
 ```
@@ -1238,10 +1417,12 @@ git add -A && git commit -m "feat: concurrency-limited TMDB fetch queue with ret
 ### Task 8: Player — launch & watch-state stamping
 
 **Files:**
+
 - Create: `src/main/player.ts`
 - Test: `src/main/__tests__/player.test.ts`
 
 **Interfaces:**
+
 - Consumes: `writeSidecarNfo` (Task 4), `MovieRecord` (Task 2)
 - Produces: `playMovie(movie: MovieRecord, deps?: { openPath?: (p: string) => Promise<string>; now?: () => Date }): Promise<MovieRecord>` — default `openPath` is Electron's `shell.openPath`. Returns the updated record; sets `fileMissing: true` (and does NOT launch) if the file is gone.
 
@@ -1259,12 +1440,32 @@ import { sidecarPathsFor } from '../library/nfo'
 import type { MovieRecord } from '../../shared/types'
 
 const record = (filePath: string): MovieRecord => ({
-  id: 'x', filePath, fileSize: 1, folderPath: '/m', parsedTitle: 'Alien', parsedYear: 1979,
-  matchStatus: 'matched', tmdbId: 348, title: 'Alien', originalTitle: 'Alien', year: 1979,
-  overview: null, runtime: 117, voteAverage: 8.1, genres: ['Horror'], cast: [],
-  certifications: { AU: 'M' }, certificationAu: 'M', trailerYoutubeKey: null,
-  playCount: 1, lastPlayedAt: null, fileMissing: false, sidecarWriteFailed: false,
-  fetchFailed: false, posterPath: null, fanartPath: null,
+  id: 'x',
+  filePath,
+  fileSize: 1,
+  folderPath: '/m',
+  parsedTitle: 'Alien',
+  parsedYear: 1979,
+  matchStatus: 'matched',
+  tmdbId: 348,
+  title: 'Alien',
+  originalTitle: 'Alien',
+  year: 1979,
+  overview: null,
+  runtime: 117,
+  voteAverage: 8.1,
+  genres: ['Horror'],
+  cast: [],
+  certifications: { AU: 'M' },
+  certificationAu: 'M',
+  trailerYoutubeKey: null,
+  playCount: 1,
+  lastPlayedAt: null,
+  fileMissing: false,
+  sidecarWriteFailed: false,
+  fetchFailed: false,
+  posterPath: null,
+  fanartPath: null
 })
 
 describe('playMovie', () => {
@@ -1322,7 +1523,7 @@ export async function playMovie(movie: MovieRecord, deps: PlayDeps = {}): Promis
   let updated: MovieRecord = {
     ...movie,
     playCount: movie.playCount + 1,
-    lastPlayedAt: (deps.now ?? (() => new Date()))().toISOString(),
+    lastPlayedAt: (deps.now ?? (() => new Date()))().toISOString()
   }
   try {
     writeSidecarNfo(updated)
@@ -1350,17 +1551,19 @@ git add -A && git commit -m "feat: external-player launch with NFO watch-state s
 ### Task 9: Library manager — orchestration
 
 **Files:**
+
 - Create: `src/main/library/manager.ts`
 - Test: `src/main/library/__tests__/manager.test.ts`
 
 **Interfaces:**
+
 - Consumes: `SettingsStore` (Task 2), `discoverVideoFiles`/`ingestFile`/`movieId` (Task 6), `createFetchQueue`/`fetchAndApply` (Task 7), `playMovie` (Task 8), `TmdbClient` (Task 5), `ScanProgress` (Task 2)
 - Produces: `createLibraryManager(opts)` where
 
 ```ts
 interface ManagerOpts {
   settings: SettingsStore
-  makeClient: (apiKey: string) => TmdbClient   // injectable for tests
+  makeClient: (apiKey: string) => TmdbClient // injectable for tests
   emit: (channel: 'movie:updated' | 'scan:progress', payload: MovieRecord | ScanProgress) => void
   downloadImage?: (url: string, dest: string) => Promise<void>
   playDeps?: { openPath?: (p: string) => Promise<string>; now?: () => Date }
@@ -1368,13 +1571,14 @@ interface ManagerOpts {
 ```
 
 returning:
-  - `loadLibrary(): Promise<MovieRecord[]>` — scan every registered folder, ingest all files, enqueue TMDB fetches for `pending` files (only when an API key is set), return the full list immediately
-  - `rescanFolder(folder: string): Promise<void>` — add new files, flag vanished ones `fileMissing`, emit updates
-  - `fixMatch(id: string, tmdbId: number): Promise<void>` — re-fetch against the given id, emit
-  - `retryFetch(id: string): Promise<void>` — re-enqueue a `fetchFailed` movie
-  - `play(id: string): Promise<void>` — delegate to `playMovie`, emit
-  - `getMovies(): MovieRecord[]`
-  - internal invariant: every state change goes through a private `commit(movie)` that updates the in-memory Map **and** calls `emit('movie:updated', movie)`
+
+- `loadLibrary(): Promise<MovieRecord[]>` — scan every registered folder, ingest all files, enqueue TMDB fetches for `pending` files (only when an API key is set), return the full list immediately
+- `rescanFolder(folder: string): Promise<void>` — add new files, flag vanished ones `fileMissing`, emit updates
+- `fixMatch(id: string, tmdbId: number): Promise<void>` — re-fetch against the given id, emit
+- `retryFetch(id: string): Promise<void>` — re-enqueue a `fetchFailed` movie
+- `play(id: string): Promise<void>` — delegate to `playMovie`, emit
+- `getMovies(): MovieRecord[]`
+- internal invariant: every state change goes through a private `commit(movie)` that updates the in-memory Map **and** calls `emit('movie:updated', movie)`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1399,7 +1603,7 @@ beforeEach(() => {
 
 const fakeClient = {
   searchMovies: vi.fn(async () => [{ id: 603, title: 'The Matrix', release_date: '1999-03-30' }]),
-  getMovieDetails: vi.fn(async () => ({ id: 603, title: 'The Matrix', release_date: '1999-03-30' })),
+  getMovieDetails: vi.fn(async () => ({ id: 603, title: 'The Matrix', release_date: '1999-03-30' }))
 } as unknown as TmdbClient
 
 function makeManager() {
@@ -1416,7 +1620,7 @@ function makeManager() {
       if (channel === 'movie:updated') updates.push(payload as MovieRecord)
       else progress.push(payload as ScanProgress)
     },
-    downloadImage: async () => {},
+    downloadImage: async () => {}
   })
   return { manager, settings, updates, progress }
 }
@@ -1529,7 +1733,12 @@ export function createLibraryManager(opts: ManagerOpts) {
       seen.add(record.id)
       if (!existing) commit(record)
       ingested.push(record)
-      opts.emit('scan:progress', { folder, discovered: files.length, ingested: ++done, done: false })
+      opts.emit('scan:progress', {
+        folder,
+        discovered: files.length,
+        ingested: ++done,
+        done: false
+      })
     }
     for (const m of movies.values()) {
       if (m.folderPath === folder && !seen.has(m.id) && !m.fileMissing) {
@@ -1566,7 +1775,7 @@ export function createLibraryManager(opts: ManagerOpts) {
       if (movie) commit(await playMovie(movie, opts.playDeps))
     },
     getMovies: (): MovieRecord[] => [...movies.values()],
-    idle: (): Promise<void> => queue?.idle() ?? Promise.resolve(),
+    idle: (): Promise<void> => queue?.idle() ?? Promise.resolve()
   }
 }
 ```
@@ -1588,11 +1797,13 @@ git add -A && git commit -m "feat: library manager orchestrating scan, fetch, fi
 ### Task 10: IPC, preload bridge & main-process wiring
 
 **Files:**
+
 - Create: `src/main/ipc.ts`
 - Modify: `src/main/index.ts` (template file — replace demo wiring), `src/preload/index.ts`, `src/preload/index.d.ts`
 - Test: manual smoke test (Electron integration; unit coverage already lives in the modules IPC delegates to)
 
 **Interfaces:**
+
 - Consumes: `LibraryManager` (Task 9), `SettingsStore` (Task 2), `createTmdbClient` (Task 5)
 - Produces: `window.api` (the renderer's ONLY door to the system — exact shape below; renderer tasks depend on every name):
 
@@ -1600,7 +1811,7 @@ git add -A && git commit -m "feat: library manager orchestrating scan, fetch, fi
 export interface WindowApi {
   getSettings(): Promise<Settings>
   setApiKey(key: string): Promise<Settings>
-  addFolder(): Promise<Settings | null>        // opens native dialog; null if cancelled
+  addFolder(): Promise<Settings | null> // opens native dialog; null if cancelled
   removeFolder(path: string): Promise<Settings>
   loadLibrary(): Promise<MovieRecord[]>
   rescanFolder(folder: string): Promise<void>
@@ -1639,7 +1850,9 @@ export function registerIpc(settings: SettingsStore, manager: LibraryManager): v
   ipcMain.handle('library:rescan', (_e, folder: string) => manager.rescanFolder(folder))
   ipcMain.handle('movie:play', (_e, id: string) => manager.play(id))
   ipcMain.handle('movie:retry-fetch', (_e, id: string) => manager.retryFetch(id))
-  ipcMain.handle('movie:fix-match', (_e, id: string, tmdbId: number) => manager.fixMatch(id, tmdbId))
+  ipcMain.handle('movie:fix-match', (_e, id: string, tmdbId: number) =>
+    manager.fixMatch(id, tmdbId)
+  )
 
   ipcMain.handle('tmdb:search', (_e, query: string, year: number | null) => {
     const key = settings.read().tmdbApiKey
@@ -1675,7 +1888,7 @@ const settings = createSettingsStore(join(app.getPath('userData'), 'settings.jso
 const manager = createLibraryManager({
   settings,
   makeClient: (key) => createTmdbClient(key),
-  emit: (channel, payload) => emitToAll(channel, payload),
+  emit: (channel, payload) => emitToAll(channel, payload)
 })
 registerIpc(settings, manager)
 ```
@@ -1687,7 +1900,9 @@ import { protocol, net } from 'electron'
 import { pathToFileURL } from 'node:url'
 
 // before app.whenReady():
-protocol.registerSchemesAsPrivileged([{ scheme: 'mw-art', privileges: { standard: false, stream: true } }])
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'mw-art', privileges: { standard: false, stream: true } }
+])
 
 // inside app.whenReady():
 protocol.handle('mw-art', (req) => {
@@ -1713,12 +1928,11 @@ const api = {
   play: (id: string) => ipcRenderer.invoke('movie:play', id),
   retryFetch: (id: string) => ipcRenderer.invoke('movie:retry-fetch', id),
   fixMatch: (id: string, tmdbId: number) => ipcRenderer.invoke('movie:fix-match', id, tmdbId),
-  searchTmdb: (query: string, year: number | null) => ipcRenderer.invoke('tmdb:search', query, year),
+  searchTmdb: (query: string, year: number | null) =>
+    ipcRenderer.invoke('tmdb:search', query, year),
   revealFile: (id: string) => ipcRenderer.invoke('file:reveal', id),
-  onMovieUpdated: (cb: (m: unknown) => void) =>
-    ipcRenderer.on('movie:updated', (_e, m) => cb(m)),
-  onScanProgress: (cb: (p: unknown) => void) =>
-    ipcRenderer.on('scan:progress', (_e, p) => cb(p)),
+  onMovieUpdated: (cb: (m: unknown) => void) => ipcRenderer.on('movie:updated', (_e, m) => cb(m)),
+  onScanProgress: (cb: (p: unknown) => void) => ipcRenderer.on('scan:progress', (_e, p) => cb(p))
 }
 
 contextBridge.exposeInMainWorld('api', api)
@@ -1769,10 +1983,12 @@ git add -A && git commit -m "feat: IPC surface, preload bridge and main-process 
 ### Task 11: Renderer filtering library & Pinia store
 
 **Files:**
+
 - Create: `src/renderer/src/lib/filtering.ts`, `src/renderer/src/stores/library.ts`
 - Test: `src/renderer/src/lib/__tests__/filtering.test.ts`, `src/renderer/src/stores/__tests__/library.test.ts`
 
 **Interfaces:**
+
 - Consumes: `MovieRecord` (Task 2), `window.api` (Task 10)
 - Produces:
 
@@ -1782,8 +1998,8 @@ export interface LibraryFilters {
   search: string
   genre: string | null
   year: number | null
-  certification: string | null   // AU cert
-  minRating: number | null       // 0–10 TMDB scale
+  certification: string | null // AU cert
+  minRating: number | null // 0–10 TMDB scale
   actor: string | null
   watched: 'all' | 'watched' | 'unwatched'
 }
@@ -1808,20 +2024,61 @@ import { filterMovies, sortMovies, EMPTY_FILTERS } from '../filtering'
 import type { MovieRecord } from '../../../../shared/types'
 
 const movie = (over: Partial<MovieRecord>): MovieRecord => ({
-  id: over.title ?? 'id', filePath: '/f', fileSize: 0, folderPath: '/', parsedTitle: '',
-  parsedYear: null, matchStatus: 'matched', tmdbId: 1, title: 'T', originalTitle: null,
-  year: 2000, overview: null, runtime: null, voteAverage: 5, genres: [], cast: [],
-  certifications: {}, certificationAu: null, trailerYoutubeKey: null, playCount: 0,
-  lastPlayedAt: null, fileMissing: false, sidecarWriteFailed: false, fetchFailed: false,
-  posterPath: null, fanartPath: null, ...over,
+  id: over.title ?? 'id',
+  filePath: '/f',
+  fileSize: 0,
+  folderPath: '/',
+  parsedTitle: '',
+  parsedYear: null,
+  matchStatus: 'matched',
+  tmdbId: 1,
+  title: 'T',
+  originalTitle: null,
+  year: 2000,
+  overview: null,
+  runtime: null,
+  voteAverage: 5,
+  genres: [],
+  cast: [],
+  certifications: {},
+  certificationAu: null,
+  trailerYoutubeKey: null,
+  playCount: 0,
+  lastPlayedAt: null,
+  fileMissing: false,
+  sidecarWriteFailed: false,
+  fetchFailed: false,
+  posterPath: null,
+  fanartPath: null,
+  ...over
 })
 
-const matrix = movie({ title: 'The Matrix', year: 1999, genres: ['Action'], voteAverage: 8.2,
-  certificationAu: 'MA15+', cast: [{ name: 'Keanu Reeves', order: 0 }], playCount: 2, lastPlayedAt: '2026-07-01T00:00:00.000Z' })
-const alien = movie({ title: 'Alien', year: 1979, genres: ['Horror'], voteAverage: 8.1,
-  certificationAu: 'M', cast: [{ name: 'Sigourney Weaver', order: 0 }] })
-const up = movie({ title: 'Up', year: 2009, genres: ['Animation'], voteAverage: 7.9,
-  certificationAu: 'PG', cast: [] })
+const matrix = movie({
+  title: 'The Matrix',
+  year: 1999,
+  genres: ['Action'],
+  voteAverage: 8.2,
+  certificationAu: 'MA15+',
+  cast: [{ name: 'Keanu Reeves', order: 0 }],
+  playCount: 2,
+  lastPlayedAt: '2026-07-01T00:00:00.000Z'
+})
+const alien = movie({
+  title: 'Alien',
+  year: 1979,
+  genres: ['Horror'],
+  voteAverage: 8.1,
+  certificationAu: 'M',
+  cast: [{ name: 'Sigourney Weaver', order: 0 }]
+})
+const up = movie({
+  title: 'Up',
+  year: 2009,
+  genres: ['Animation'],
+  voteAverage: 7.9,
+  certificationAu: 'PG',
+  cast: []
+})
 const all = [matrix, alien, up]
 
 describe('filterMovies', () => {
@@ -1840,7 +2097,9 @@ describe('filterMovies', () => {
     expect(filterMovies(all, { ...EMPTY_FILTERS, watched: 'unwatched' })).toEqual([alien, up])
   })
   it('combines filters with AND', () =>
-    expect(filterMovies(all, { ...EMPTY_FILTERS, minRating: 7, genre: 'Action' })).toEqual([matrix]))
+    expect(filterMovies(all, { ...EMPTY_FILTERS, minRating: 7, genre: 'Action' })).toEqual([
+      matrix
+    ]))
 })
 
 describe('sortMovies', () => {
@@ -1873,8 +2132,13 @@ export interface LibraryFilters {
 export type SortKey = 'title' | 'year' | 'rating' | 'lastWatched'
 
 export const EMPTY_FILTERS: LibraryFilters = {
-  search: '', genre: null, year: null, certification: null,
-  minRating: null, actor: null, watched: 'all',
+  search: '',
+  genre: null,
+  year: null,
+  certification: null,
+  minRating: null,
+  actor: null,
+  watched: 'all'
 }
 
 const displayTitle = (m: MovieRecord) => m.title ?? m.parsedTitle
@@ -1922,22 +2186,46 @@ import { useLibraryStore } from '../library'
 import type { MovieRecord } from '../../../../shared/types'
 
 const m = (id: string, over: Partial<MovieRecord> = {}): MovieRecord => ({
-  id, filePath: `/${id}`, fileSize: 0, folderPath: '/', parsedTitle: id, parsedYear: null,
-  matchStatus: 'pending', tmdbId: null, title: null, originalTitle: null, year: null,
-  overview: null, runtime: null, voteAverage: null, genres: [], cast: [], certifications: {},
-  certificationAu: null, trailerYoutubeKey: null, playCount: 0, lastPlayedAt: null,
-  fileMissing: false, sidecarWriteFailed: false, fetchFailed: false, posterPath: null,
-  fanartPath: null, ...over,
+  id,
+  filePath: `/${id}`,
+  fileSize: 0,
+  folderPath: '/',
+  parsedTitle: id,
+  parsedYear: null,
+  matchStatus: 'pending',
+  tmdbId: null,
+  title: null,
+  originalTitle: null,
+  year: null,
+  overview: null,
+  runtime: null,
+  voteAverage: null,
+  genres: [],
+  cast: [],
+  certifications: {},
+  certificationAu: null,
+  trailerYoutubeKey: null,
+  playCount: 0,
+  lastPlayedAt: null,
+  fileMissing: false,
+  sidecarWriteFailed: false,
+  fetchFailed: false,
+  posterPath: null,
+  fanartPath: null,
+  ...over
 })
 
 beforeEach(() => {
   setActivePinia(createPinia())
   vi.stubGlobal('window', {
     api: {
-      loadLibrary: vi.fn(async () => [m('a'), m('b', { matchStatus: 'matched', genres: ['Action'] })]),
+      loadLibrary: vi.fn(async () => [
+        m('a'),
+        m('b', { matchStatus: 'matched', genres: ['Action'] })
+      ]),
       onMovieUpdated: vi.fn(),
-      onScanProgress: vi.fn(),
-    },
+      onScanProgress: vi.fn()
+    }
   })
 })
 
@@ -1953,7 +2241,9 @@ describe('library store', () => {
   it('applyUpdate upserts and getters derive facets', async () => {
     const store = useLibraryStore()
     await store.load()
-    store.applyUpdate(m('a', { matchStatus: 'matched', genres: ['Horror'], cast: [{ name: 'X', order: 0 }] }))
+    store.applyUpdate(
+      m('a', { matchStatus: 'matched', genres: ['Horror'], cast: [{ name: 'X', order: 0 }] })
+    )
     expect(store.pendingCount).toBe(0)
     expect(store.allGenres).toEqual(['Action', 'Horror'])
     expect(store.allActors).toEqual(['X'])
@@ -1966,14 +2256,20 @@ describe('library store', () => {
 ```ts
 import { defineStore } from 'pinia'
 import type { MovieRecord } from '../../../shared/types'
-import { EMPTY_FILTERS, filterMovies, sortMovies, type LibraryFilters, type SortKey } from '../lib/filtering'
+import {
+  EMPTY_FILTERS,
+  filterMovies,
+  sortMovies,
+  type LibraryFilters,
+  type SortKey
+} from '../lib/filtering'
 
 export const useLibraryStore = defineStore('library', {
   state: () => ({
     movies: {} as Record<string, MovieRecord>,
     filters: { ...EMPTY_FILTERS } as LibraryFilters,
     sort: 'title' as SortKey,
-    loaded: false,
+    loaded: false
   }),
   getters: {
     all: (s) => Object.values(s.movies),
@@ -1990,11 +2286,17 @@ export const useLibraryStore = defineStore('library', {
       return [...new Set(this.all.flatMap((m) => m.cast.map((c) => c.name)))].sort()
     },
     allYears(): number[] {
-      return [...new Set(this.all.map((m) => m.year ?? m.parsedYear).filter((y): y is number => y != null))].sort((a, b) => b - a)
+      return [
+        ...new Set(
+          this.all.map((m) => m.year ?? m.parsedYear).filter((y): y is number => y != null)
+        )
+      ].sort((a, b) => b - a)
     },
     allCertifications(): string[] {
-      return [...new Set(this.all.map((m) => m.certificationAu).filter((c): c is string => c != null))].sort()
-    },
+      return [
+        ...new Set(this.all.map((m) => m.certificationAu).filter((c): c is string => c != null))
+      ].sort()
+    }
   },
   actions: {
     async load() {
@@ -2015,8 +2317,8 @@ export const useLibraryStore = defineStore('library', {
     },
     setSort(key: SortKey) {
       this.sort = key
-    },
-  },
+    }
+  }
 })
 ```
 
@@ -2034,11 +2336,13 @@ git add -A && git commit -m "feat: in-memory filtering/sorting and pinia library
 ### Task 12: Library UI — StarRating, MovieCard, FilterBar, LibraryView
 
 **Files:**
+
 - Create: `src/renderer/src/components/StarRating.vue`, `src/renderer/src/components/MovieCard.vue`, `src/renderer/src/components/FilterBar.vue`, `src/renderer/src/views/LibraryView.vue`, `src/renderer/src/router.ts`
 - Modify: `src/renderer/src/App.vue`, `src/renderer/src/main.ts` (install Pinia + router; delete template demo components)
 - Test: `src/renderer/src/components/__tests__/MovieCard.test.ts`, `src/renderer/src/components/__tests__/FilterBar.test.ts`
 
 **Interfaces:**
+
 - Consumes: `useLibraryStore`, `LibraryFilters`, `SortKey` (Task 11), `MovieRecord` (Task 2), `mw-art://` protocol (Task 10)
 - Produces:
   - `StarRating.vue` props: `{ voteAverage: number | null }` — renders `voteAverage / 2` as 5 stars (half-star rounding), `title` attr shows raw score
@@ -2066,13 +2370,35 @@ import MovieCard from '../MovieCard.vue'
 import type { MovieRecord } from '../../../../shared/types'
 
 const base: MovieRecord = {
-  id: 'id1', filePath: '/f.mkv', fileSize: 0, folderPath: '/', parsedTitle: 'Parsed Name',
-  parsedYear: 1999, matchStatus: 'matched', tmdbId: 603, title: 'The Matrix',
-  originalTitle: null, year: 1999, overview: null, runtime: 136, voteAverage: 8.2,
-  genres: ['Action'], cast: [{ name: 'Keanu Reeves', order: 0 }, { name: 'Laurence Fishburne', order: 1 }],
-  certifications: { AU: 'MA15+' }, certificationAu: 'MA15+', trailerYoutubeKey: null,
-  playCount: 0, lastPlayedAt: null, fileMissing: false, sidecarWriteFailed: false,
-  fetchFailed: false, posterPath: '/art/p.jpg', fanartPath: null,
+  id: 'id1',
+  filePath: '/f.mkv',
+  fileSize: 0,
+  folderPath: '/',
+  parsedTitle: 'Parsed Name',
+  parsedYear: 1999,
+  matchStatus: 'matched',
+  tmdbId: 603,
+  title: 'The Matrix',
+  originalTitle: null,
+  year: 1999,
+  overview: null,
+  runtime: 136,
+  voteAverage: 8.2,
+  genres: ['Action'],
+  cast: [
+    { name: 'Keanu Reeves', order: 0 },
+    { name: 'Laurence Fishburne', order: 1 }
+  ],
+  certifications: { AU: 'MA15+' },
+  certificationAu: 'MA15+',
+  trailerYoutubeKey: null,
+  playCount: 0,
+  lastPlayedAt: null,
+  fileMissing: false,
+  sidecarWriteFailed: false,
+  fetchFailed: false,
+  posterPath: '/art/p.jpg',
+  fanartPath: null
 }
 
 describe('MovieCard', () => {
@@ -2087,18 +2413,29 @@ describe('MovieCard', () => {
   })
 
   it('falls back to parsed title and shows pending badge', () => {
-    const w = mount(MovieCard, { props: { movie: { ...base, matchStatus: 'pending', title: null, posterPath: null } } })
+    const w = mount(MovieCard, {
+      props: { movie: { ...base, matchStatus: 'pending', title: null, posterPath: null } }
+    })
     expect(w.text()).toContain('Parsed Name')
     expect(w.find('[data-testid="badge-pending"]').exists()).toBe(true)
   })
 
   it('shows unmatched / missing / unsaved badges', () => {
-    expect(mount(MovieCard, { props: { movie: { ...base, matchStatus: 'unmatched' } } })
-      .find('[data-testid="badge-unmatched"]').exists()).toBe(true)
-    expect(mount(MovieCard, { props: { movie: { ...base, fileMissing: true } } })
-      .find('[data-testid="badge-missing"]').exists()).toBe(true)
-    expect(mount(MovieCard, { props: { movie: { ...base, sidecarWriteFailed: true } } })
-      .find('[data-testid="badge-unsaved"]').exists()).toBe(true)
+    expect(
+      mount(MovieCard, { props: { movie: { ...base, matchStatus: 'unmatched' } } })
+        .find('[data-testid="badge-unmatched"]')
+        .exists()
+    ).toBe(true)
+    expect(
+      mount(MovieCard, { props: { movie: { ...base, fileMissing: true } } })
+        .find('[data-testid="badge-missing"]')
+        .exists()
+    ).toBe(true)
+    expect(
+      mount(MovieCard, { props: { movie: { ...base, sidecarWriteFailed: true } } })
+        .find('[data-testid="badge-unsaved"]')
+        .exists()
+    ).toBe(true)
   })
 
   it('emits open with the movie id on click', async () => {
@@ -2143,7 +2480,12 @@ defineEmits<{ open: [id: string] }>()
 
 const title = computed(() => props.movie.title ?? props.movie.parsedTitle)
 const year = computed(() => props.movie.year ?? props.movie.parsedYear)
-const actors = computed(() => props.movie.cast.slice(0, 2).map((c) => c.name).join(', '))
+const actors = computed(() =>
+  props.movie.cast
+    .slice(0, 2)
+    .map((c) => c.name)
+    .join(', ')
+)
 const lastWatched = computed(() => {
   if (!props.movie.lastPlayedAt) return 'never'
   const days = Math.floor((Date.now() - Date.parse(props.movie.lastPlayedAt)) / 86_400_000)
@@ -2157,14 +2499,53 @@ const lastWatched = computed(() => {
     @click="$emit('open', movie.id)"
   >
     <div class="relative aspect-[2/3] bg-neutral-700">
-      <img v-if="artSrc(movie.posterPath)" :src="artSrc(movie.posterPath)!" :alt="title" class="h-full w-full object-cover" />
-      <div v-else class="flex h-full items-center justify-center p-2 text-center text-sm text-neutral-400">{{ title }}</div>
-      <span v-if="movie.matchStatus === 'pending'" data-testid="badge-pending" class="absolute left-1 top-1 animate-pulse rounded bg-sky-600 px-1.5 py-0.5 text-xs text-white">fetching…</span>
-      <span v-if="movie.matchStatus === 'unmatched'" data-testid="badge-unmatched" class="absolute left-1 top-1 rounded bg-amber-600 px-1.5 py-0.5 text-xs text-white">needs match</span>
-      <span v-if="movie.fetchFailed" data-testid="badge-fetch-failed" class="absolute left-1 top-8 rounded bg-red-700 px-1.5 py-0.5 text-xs text-white">fetch failed</span>
-      <span v-if="movie.fileMissing" data-testid="badge-missing" class="absolute right-1 top-1 rounded bg-red-600 px-1.5 py-0.5 text-xs text-white">file missing</span>
-      <span v-if="movie.sidecarWriteFailed" data-testid="badge-unsaved" class="absolute right-1 top-8 rounded bg-orange-600 px-1.5 py-0.5 text-xs text-white">not saved</span>
-      <span v-if="movie.certificationAu" class="absolute bottom-1 right-1 rounded bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white">{{ movie.certificationAu }}</span>
+      <img
+        v-if="artSrc(movie.posterPath)"
+        :src="artSrc(movie.posterPath)!"
+        :alt="title"
+        class="h-full w-full object-cover"
+      />
+      <div
+        v-else
+        class="flex h-full items-center justify-center p-2 text-center text-sm text-neutral-400"
+      >
+        {{ title }}
+      </div>
+      <span
+        v-if="movie.matchStatus === 'pending'"
+        data-testid="badge-pending"
+        class="absolute left-1 top-1 animate-pulse rounded bg-sky-600 px-1.5 py-0.5 text-xs text-white"
+        >fetching…</span
+      >
+      <span
+        v-if="movie.matchStatus === 'unmatched'"
+        data-testid="badge-unmatched"
+        class="absolute left-1 top-1 rounded bg-amber-600 px-1.5 py-0.5 text-xs text-white"
+        >needs match</span
+      >
+      <span
+        v-if="movie.fetchFailed"
+        data-testid="badge-fetch-failed"
+        class="absolute left-1 top-8 rounded bg-red-700 px-1.5 py-0.5 text-xs text-white"
+        >fetch failed</span
+      >
+      <span
+        v-if="movie.fileMissing"
+        data-testid="badge-missing"
+        class="absolute right-1 top-1 rounded bg-red-600 px-1.5 py-0.5 text-xs text-white"
+        >file missing</span
+      >
+      <span
+        v-if="movie.sidecarWriteFailed"
+        data-testid="badge-unsaved"
+        class="absolute right-1 top-8 rounded bg-orange-600 px-1.5 py-0.5 text-xs text-white"
+        >not saved</span
+      >
+      <span
+        v-if="movie.certificationAu"
+        class="absolute bottom-1 right-1 rounded bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white"
+        >{{ movie.certificationAu }}</span
+      >
     </div>
     <div class="space-y-0.5 p-2 text-sm">
       <div class="truncate font-medium text-white" :title="title">{{ title }}</div>
@@ -2196,12 +2577,33 @@ beforeEach(() => setActivePinia(createPinia()))
 
 const seed = (store: ReturnType<typeof useLibraryStore>) => {
   const m = (id: string, over: Partial<MovieRecord>): MovieRecord => ({
-    id, filePath: `/${id}`, fileSize: 0, folderPath: '/', parsedTitle: id, parsedYear: null,
-    matchStatus: 'matched', tmdbId: 1, title: id, originalTitle: null, year: 2000,
-    overview: null, runtime: null, voteAverage: 7, genres: [], cast: [], certifications: {},
-    certificationAu: null, trailerYoutubeKey: null, playCount: 0, lastPlayedAt: null,
-    fileMissing: false, sidecarWriteFailed: false, fetchFailed: false, posterPath: null,
-    fanartPath: null, ...over,
+    id,
+    filePath: `/${id}`,
+    fileSize: 0,
+    folderPath: '/',
+    parsedTitle: id,
+    parsedYear: null,
+    matchStatus: 'matched',
+    tmdbId: 1,
+    title: id,
+    originalTitle: null,
+    year: 2000,
+    overview: null,
+    runtime: null,
+    voteAverage: 7,
+    genres: [],
+    cast: [],
+    certifications: {},
+    certificationAu: null,
+    trailerYoutubeKey: null,
+    playCount: 0,
+    lastPlayedAt: null,
+    fileMissing: false,
+    sidecarWriteFailed: false,
+    fetchFailed: false,
+    posterPath: null,
+    fanartPath: null,
+    ...over
   })
   store.applyUpdate(m('a', { genres: ['Action'], certificationAu: 'M' }))
   store.applyUpdate(m('b', { genres: ['Horror'], certificationAu: 'R18+' }))
@@ -2236,7 +2638,10 @@ import { useLibraryStore } from '../stores/library'
 import type { SortKey } from '../lib/filtering'
 const store = useLibraryStore()
 const sortOptions: Array<[SortKey, string]> = [
-  ['title', 'Title'], ['year', 'Year'], ['rating', 'Rating'], ['lastWatched', 'Last watched'],
+  ['title', 'Title'],
+  ['year', 'Year'],
+  ['rating', 'Rating'],
+  ['lastWatched', 'Last watched']
 ]
 </script>
 
@@ -2249,45 +2654,96 @@ const sortOptions: Array<[SortKey, string]> = [
       class="w-48 rounded bg-neutral-700 px-2 py-1 text-white placeholder-neutral-400"
       @input="store.setFilter({ search: ($event.target as HTMLInputElement).value })"
     />
-    <select data-testid="filter-genre" :value="store.filters.genre ?? ''" class="rounded bg-neutral-700 px-2 py-1 text-white"
-      @change="store.setFilter({ genre: ($event.target as HTMLSelectElement).value || null })">
+    <select
+      data-testid="filter-genre"
+      :value="store.filters.genre ?? ''"
+      class="rounded bg-neutral-700 px-2 py-1 text-white"
+      @change="store.setFilter({ genre: ($event.target as HTMLSelectElement).value || null })"
+    >
       <option value="">All genres</option>
       <option v-for="g in store.allGenres" :key="g" :value="g">{{ g }}</option>
     </select>
-    <select data-testid="filter-year" :value="store.filters.year ?? ''" class="rounded bg-neutral-700 px-2 py-1 text-white"
-      @change="store.setFilter({ year: ($event.target as HTMLSelectElement).value ? Number(($event.target as HTMLSelectElement).value) : null })">
+    <select
+      data-testid="filter-year"
+      :value="store.filters.year ?? ''"
+      class="rounded bg-neutral-700 px-2 py-1 text-white"
+      @change="
+        store.setFilter({
+          year: ($event.target as HTMLSelectElement).value
+            ? Number(($event.target as HTMLSelectElement).value)
+            : null
+        })
+      "
+    >
       <option value="">All years</option>
       <option v-for="y in store.allYears" :key="y" :value="y">{{ y }}</option>
     </select>
-    <select data-testid="filter-certification" :value="store.filters.certification ?? ''" class="rounded bg-neutral-700 px-2 py-1 text-white"
-      @change="store.setFilter({ certification: ($event.target as HTMLSelectElement).value || null })">
+    <select
+      data-testid="filter-certification"
+      :value="store.filters.certification ?? ''"
+      class="rounded bg-neutral-700 px-2 py-1 text-white"
+      @change="
+        store.setFilter({ certification: ($event.target as HTMLSelectElement).value || null })
+      "
+    >
       <option value="">All ratings</option>
       <option v-for="c in store.allCertifications" :key="c" :value="c">{{ c }}</option>
     </select>
-    <select data-testid="filter-minrating" :value="store.filters.minRating ?? ''" class="rounded bg-neutral-700 px-2 py-1 text-white"
-      @change="store.setFilter({ minRating: ($event.target as HTMLSelectElement).value ? Number(($event.target as HTMLSelectElement).value) : null })">
+    <select
+      data-testid="filter-minrating"
+      :value="store.filters.minRating ?? ''"
+      class="rounded bg-neutral-700 px-2 py-1 text-white"
+      @change="
+        store.setFilter({
+          minRating: ($event.target as HTMLSelectElement).value
+            ? Number(($event.target as HTMLSelectElement).value)
+            : null
+        })
+      "
+    >
       <option value="">Any score</option>
       <option v-for="r in [9, 8, 7, 6, 5]" :key="r" :value="r">★ {{ r / 2 }}+</option>
     </select>
-    <select data-testid="filter-actor" :value="store.filters.actor ?? ''" class="max-w-40 rounded bg-neutral-700 px-2 py-1 text-white"
-      @change="store.setFilter({ actor: ($event.target as HTMLSelectElement).value || null })">
+    <select
+      data-testid="filter-actor"
+      :value="store.filters.actor ?? ''"
+      class="max-w-40 rounded bg-neutral-700 px-2 py-1 text-white"
+      @change="store.setFilter({ actor: ($event.target as HTMLSelectElement).value || null })"
+    >
       <option value="">All actors</option>
       <option v-for="a in store.allActors" :key="a" :value="a">{{ a }}</option>
     </select>
-    <select data-testid="filter-watched" :value="store.filters.watched" class="rounded bg-neutral-700 px-2 py-1 text-white"
-      @change="store.setFilter({ watched: ($event.target as HTMLSelectElement).value as 'all' | 'watched' | 'unwatched' })">
+    <select
+      data-testid="filter-watched"
+      :value="store.filters.watched"
+      class="rounded bg-neutral-700 px-2 py-1 text-white"
+      @change="
+        store.setFilter({
+          watched: ($event.target as HTMLSelectElement).value as 'all' | 'watched' | 'unwatched'
+        })
+      "
+    >
       <option value="all">All</option>
       <option value="watched">Watched</option>
       <option value="unwatched">Unwatched</option>
     </select>
     <span class="ml-auto flex items-center gap-1 text-neutral-400">
       Sort:
-      <select data-testid="sort" :value="store.sort" class="rounded bg-neutral-700 px-2 py-1 text-white"
-        @change="store.setSort(($event.target as HTMLSelectElement).value as SortKey)">
+      <select
+        data-testid="sort"
+        :value="store.sort"
+        class="rounded bg-neutral-700 px-2 py-1 text-white"
+        @change="store.setSort(($event.target as HTMLSelectElement).value as SortKey)"
+      >
         <option v-for="[k, label] in sortOptions" :key="k" :value="k">{{ label }}</option>
       </select>
     </span>
-    <button class="rounded bg-neutral-700 px-2 py-1 text-neutral-300 hover:bg-neutral-600" @click="store.resetFilters()">Clear</button>
+    <button
+      class="rounded bg-neutral-700 px-2 py-1 text-neutral-300 hover:bg-neutral-600"
+      @click="store.resetFilters()"
+    >
+      Clear
+    </button>
   </div>
 </template>
 ```
@@ -2307,8 +2763,8 @@ export const router = createRouter({
   routes: [
     { path: '/', component: LibraryView },
     { path: '/movie/:id', component: () => import('./views/MovieDetailView.vue') },
-    { path: '/settings', component: () => import('./views/SettingsView.vue') },
-  ],
+    { path: '/settings', component: () => import('./views/SettingsView.vue') }
+  ]
 })
 ```
 
@@ -2353,8 +2809,16 @@ const empty = computed(() => store.loaded && store.all.length === 0)
         {{ hasFolders ? 'Manage folders' : 'Add your first movie folder' }}
       </RouterLink>
     </div>
-    <div v-else class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-      <MovieCard v-for="m in store.list" :key="m.id" :movie="m" @open="router.push(`/movie/${$event}`)" />
+    <div
+      v-else
+      class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+    >
+      <MovieCard
+        v-for="m in store.list"
+        :key="m.id"
+        :movie="m"
+        @open="router.push(`/movie/${$event}`)"
+      />
     </div>
   </div>
 </template>
@@ -2363,14 +2827,17 @@ const empty = computed(() => store.loaded && store.all.length === 0)
 `src/renderer/src/App.vue` (replace template demo):
 
 ```vue
-<script setup lang="ts">
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <div class="min-h-screen bg-neutral-900 text-white">
-    <header class="sticky top-0 z-10 flex items-center gap-4 border-b border-neutral-800 bg-neutral-900/95 px-4 py-3">
+    <header
+      class="sticky top-0 z-10 flex items-center gap-4 border-b border-neutral-800 bg-neutral-900/95 px-4 py-3"
+    >
       <RouterLink to="/" class="text-lg font-semibold">🎬 Movie World</RouterLink>
-      <RouterLink to="/settings" class="ml-auto text-sm text-neutral-300 hover:text-white">Settings</RouterLink>
+      <RouterLink to="/settings" class="ml-auto text-sm text-neutral-300 hover:text-white"
+        >Settings</RouterLink
+      >
     </header>
     <main class="p-4"><RouterView /></main>
   </div>
@@ -2404,10 +2871,12 @@ git add -A && git commit -m "feat: library grid with movie cards, filter bar and
 ### Task 13: Movie detail view & fix-match dialog
 
 **Files:**
+
 - Create: `src/renderer/src/views/MovieDetailView.vue` (replace stub), `src/renderer/src/components/FixMatchDialog.vue`
 - Test: `src/renderer/src/components/__tests__/FixMatchDialog.test.ts`
 
 **Interfaces:**
+
 - Consumes: `useLibraryStore` (Task 11), `window.api.searchTmdb/fixMatch/play/retryFetch/revealFile` (Task 10), `artSrc` (Task 12), `StarRating` (Task 12)
 - Produces: `FixMatchDialog.vue` props `{ movie: MovieRecord }`, emits `close`; test-ids: `fix-search-input`, `fix-search-year`, `fix-candidate` (one per result), `fix-id-input`, `fix-id-submit`
 
@@ -2423,22 +2892,42 @@ import FixMatchDialog from '../FixMatchDialog.vue'
 import type { MovieRecord } from '../../../../shared/types'
 
 const movie: MovieRecord = {
-  id: 'id1', filePath: '/f.mkv', fileSize: 0, folderPath: '/', parsedTitle: 'Matrix',
-  parsedYear: 1999, matchStatus: 'unmatched', tmdbId: null, title: null, originalTitle: null,
-  year: null, overview: null, runtime: null, voteAverage: null, genres: [], cast: [],
-  certifications: {}, certificationAu: null, trailerYoutubeKey: null, playCount: 0,
-  lastPlayedAt: null, fileMissing: false, sidecarWriteFailed: false, fetchFailed: false,
-  posterPath: null, fanartPath: null,
+  id: 'id1',
+  filePath: '/f.mkv',
+  fileSize: 0,
+  folderPath: '/',
+  parsedTitle: 'Matrix',
+  parsedYear: 1999,
+  matchStatus: 'unmatched',
+  tmdbId: null,
+  title: null,
+  originalTitle: null,
+  year: null,
+  overview: null,
+  runtime: null,
+  voteAverage: null,
+  genres: [],
+  cast: [],
+  certifications: {},
+  certificationAu: null,
+  trailerYoutubeKey: null,
+  playCount: 0,
+  lastPlayedAt: null,
+  fileMissing: false,
+  sidecarWriteFailed: false,
+  fetchFailed: false,
+  posterPath: null,
+  fanartPath: null
 }
 
 beforeEach(() => {
   vi.stubGlobal('window', {
     api: {
       searchTmdb: vi.fn(async () => [
-        { id: 603, title: 'The Matrix', release_date: '1999-03-30', poster_path: '/p.jpg' },
+        { id: 603, title: 'The Matrix', release_date: '1999-03-30', poster_path: '/p.jpg' }
       ]),
-      fixMatch: vi.fn(async () => {}),
-    },
+      fixMatch: vi.fn(async () => {})
+    }
   })
 })
 
@@ -2471,7 +2960,13 @@ describe('FixMatchDialog', () => {
 import { onMounted, ref } from 'vue'
 import type { MovieRecord } from '../../../shared/types'
 
-interface Candidate { id: number; title: string; release_date?: string; poster_path?: string | null; overview?: string }
+interface Candidate {
+  id: number
+  title: string
+  release_date?: string
+  poster_path?: string | null
+  overview?: string
+}
 
 const props = defineProps<{ movie: MovieRecord }>()
 const emit = defineEmits<{ close: [] }>()
@@ -2500,32 +2995,81 @@ onMounted(search)
 </script>
 
 <template>
-  <div class="fixed inset-0 z-20 flex items-center justify-center bg-black/70" @click.self="emit('close')">
-    <div class="max-h-[80vh] w-[560px] overflow-y-auto rounded-lg bg-neutral-800 p-4 text-sm text-white">
+  <div
+    class="fixed inset-0 z-20 flex items-center justify-center bg-black/70"
+    @click.self="emit('close')"
+  >
+    <div
+      class="max-h-[80vh] w-[560px] overflow-y-auto rounded-lg bg-neutral-800 p-4 text-sm text-white"
+    >
       <h2 class="mb-3 text-lg font-semibold">Fix match</h2>
       <div class="mb-3 flex gap-2">
-        <input data-testid="fix-search-input" v-model="query" class="flex-1 rounded bg-neutral-700 px-2 py-1" @keyup.enter="search" />
-        <input data-testid="fix-search-year" v-model.number="year" type="number" placeholder="Year" class="w-24 rounded bg-neutral-700 px-2 py-1" @keyup.enter="search" />
-        <button class="rounded bg-sky-600 px-3 py-1 hover:bg-sky-500" @click="search">Search</button>
+        <input
+          data-testid="fix-search-input"
+          v-model="query"
+          class="flex-1 rounded bg-neutral-700 px-2 py-1"
+          @keyup.enter="search"
+        />
+        <input
+          data-testid="fix-search-year"
+          v-model.number="year"
+          type="number"
+          placeholder="Year"
+          class="w-24 rounded bg-neutral-700 px-2 py-1"
+          @keyup.enter="search"
+        />
+        <button class="rounded bg-sky-600 px-3 py-1 hover:bg-sky-500" @click="search">
+          Search
+        </button>
       </div>
       <p v-if="searching" class="text-neutral-400">Searching…</p>
-      <p v-else-if="!results.length" class="text-neutral-400">No results — adjust the search or paste a TMDB id below.</p>
+      <p v-else-if="!results.length" class="text-neutral-400">
+        No results — adjust the search or paste a TMDB id below.
+      </p>
       <ul class="space-y-2">
-        <li v-for="r in results" :key="r.id" data-testid="fix-candidate"
-          class="flex cursor-pointer gap-3 rounded bg-neutral-700/60 p-2 hover:bg-neutral-600" @click="apply(r.id)">
-          <img v-if="r.poster_path" :src="`https://image.tmdb.org/t/p/w92${r.poster_path}`" class="h-20 w-14 rounded object-cover" />
+        <li
+          v-for="r in results"
+          :key="r.id"
+          data-testid="fix-candidate"
+          class="flex cursor-pointer gap-3 rounded bg-neutral-700/60 p-2 hover:bg-neutral-600"
+          @click="apply(r.id)"
+        >
+          <img
+            v-if="r.poster_path"
+            :src="`https://image.tmdb.org/t/p/w92${r.poster_path}`"
+            class="h-20 w-14 rounded object-cover"
+          />
           <div>
-            <div class="font-medium">{{ r.title }} <span class="text-neutral-400">({{ r.release_date?.slice(0, 4) ?? '—' }})</span></div>
+            <div class="font-medium">
+              {{ r.title }}
+              <span class="text-neutral-400">({{ r.release_date?.slice(0, 4) ?? '—' }})</span>
+            </div>
             <div class="line-clamp-2 text-xs text-neutral-400">{{ r.overview }}</div>
           </div>
         </li>
       </ul>
       <div class="mt-4 flex items-center gap-2 border-t border-neutral-700 pt-3">
         <span class="text-neutral-400">TMDB id:</span>
-        <input data-testid="fix-id-input" v-model="rawId" class="w-28 rounded bg-neutral-700 px-2 py-1" placeholder="e.g. 603" />
-        <button data-testid="fix-id-submit" class="rounded bg-sky-600 px-3 py-1 hover:bg-sky-500"
-          :disabled="!/^\d+$/.test(rawId)" @click="apply(Number(rawId))">Use id</button>
-        <button class="ml-auto rounded bg-neutral-700 px-3 py-1 hover:bg-neutral-600" @click="emit('close')">Cancel</button>
+        <input
+          data-testid="fix-id-input"
+          v-model="rawId"
+          class="w-28 rounded bg-neutral-700 px-2 py-1"
+          placeholder="e.g. 603"
+        />
+        <button
+          data-testid="fix-id-submit"
+          class="rounded bg-sky-600 px-3 py-1 hover:bg-sky-500"
+          :disabled="!/^\d+$/.test(rawId)"
+          @click="apply(Number(rawId))"
+        >
+          Use id
+        </button>
+        <button
+          class="ml-auto rounded bg-neutral-700 px-3 py-1 hover:bg-neutral-600"
+          @click="emit('close')"
+        >
+          Cancel
+        </button>
       </div>
     </div>
   </div>
@@ -2553,9 +3097,11 @@ const fixing = ref(false)
 const movie = computed(() => store.movies[String(route.params.id)])
 const title = computed(() => movie.value?.title ?? movie.value?.parsedTitle ?? '')
 const fileName = computed(() => movie.value?.filePath.split('/').at(-1) ?? '')
-const sizeGb = computed(() => movie.value ? (movie.value.fileSize / 1024 ** 3).toFixed(2) + ' GB' : '')
+const sizeGb = computed(() =>
+  movie.value ? (movie.value.fileSize / 1024 ** 3).toFixed(2) + ' GB' : ''
+)
 const lastWatched = computed(() =>
-  movie.value?.lastPlayedAt ? new Date(movie.value.lastPlayedAt).toLocaleString() : 'never',
+  movie.value?.lastPlayedAt ? new Date(movie.value.lastPlayedAt).toLocaleString() : 'never'
 )
 </script>
 
@@ -2565,16 +3111,38 @@ const lastWatched = computed(() =>
   </div>
   <div v-else>
     <div class="relative -m-4 mb-4 h-64 overflow-hidden">
-      <img v-if="artSrc(movie.fanartPath)" :src="artSrc(movie.fanartPath)!" class="h-full w-full object-cover opacity-40" />
+      <img
+        v-if="artSrc(movie.fanartPath)"
+        :src="artSrc(movie.fanartPath)!"
+        class="h-full w-full object-cover opacity-40"
+      />
       <div class="absolute inset-0 bg-gradient-to-t from-neutral-900" />
-      <button class="absolute left-4 top-4 rounded bg-black/60 px-3 py-1 text-sm" @click="router.back()">← Back</button>
+      <button
+        class="absolute left-4 top-4 rounded bg-black/60 px-3 py-1 text-sm"
+        @click="router.back()"
+      >
+        ← Back
+      </button>
     </div>
     <div class="mx-auto flex max-w-4xl gap-6">
-      <img v-if="artSrc(movie.posterPath)" :src="artSrc(movie.posterPath)!" class="-mt-32 h-72 w-48 shrink-0 rounded-lg object-cover shadow-xl" />
+      <img
+        v-if="artSrc(movie.posterPath)"
+        :src="artSrc(movie.posterPath)!"
+        class="-mt-32 h-72 w-48 shrink-0 rounded-lg object-cover shadow-xl"
+      />
       <div class="min-w-0 space-y-3">
-        <h1 class="text-2xl font-bold">{{ title }} <span class="font-normal text-neutral-400">({{ movie.year ?? movie.parsedYear ?? '—' }})</span></h1>
+        <h1 class="text-2xl font-bold">
+          {{ title }}
+          <span class="font-normal text-neutral-400"
+            >({{ movie.year ?? movie.parsedYear ?? '—' }})</span
+          >
+        </h1>
         <div class="flex flex-wrap items-center gap-3 text-sm text-neutral-300">
-          <span v-if="movie.certificationAu" class="rounded border border-neutral-500 px-1.5 py-0.5 text-xs">{{ movie.certificationAu }}</span>
+          <span
+            v-if="movie.certificationAu"
+            class="rounded border border-neutral-500 px-1.5 py-0.5 text-xs"
+            >{{ movie.certificationAu }}</span
+          >
           <StarRating :vote-average="movie.voteAverage" />
           <span v-if="movie.runtime">{{ movie.runtime }} min</span>
           <span>{{ movie.genres.join(', ') }}</span>
@@ -2584,18 +3152,45 @@ const lastWatched = computed(() =>
           Cast: {{ movie.cast.map((c) => c.name).join(', ') }}
         </p>
         <div class="flex flex-wrap gap-2 pt-1">
-          <button class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium hover:bg-emerald-500"
-            :disabled="movie.fileMissing" @click="window.api.play(movie.id)">▶ Play</button>
-          <button v-if="movie.fetchFailed" class="rounded bg-sky-700 px-3 py-2 text-sm hover:bg-sky-600"
-            @click="window.api.retryFetch(movie.id)">Retry fetch</button>
-          <button class="rounded bg-neutral-700 px-3 py-2 text-sm hover:bg-neutral-600" @click="fixing = true">Fix match</button>
-          <button class="rounded bg-neutral-700 px-3 py-2 text-sm hover:bg-neutral-600" @click="window.api.revealFile(movie.id)">Reveal in Finder</button>
+          <button
+            class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium hover:bg-emerald-500"
+            :disabled="movie.fileMissing"
+            @click="window.api.play(movie.id)"
+          >
+            ▶ Play
+          </button>
+          <button
+            v-if="movie.fetchFailed"
+            class="rounded bg-sky-700 px-3 py-2 text-sm hover:bg-sky-600"
+            @click="window.api.retryFetch(movie.id)"
+          >
+            Retry fetch
+          </button>
+          <button
+            class="rounded bg-neutral-700 px-3 py-2 text-sm hover:bg-neutral-600"
+            @click="fixing = true"
+          >
+            Fix match
+          </button>
+          <button
+            class="rounded bg-neutral-700 px-3 py-2 text-sm hover:bg-neutral-600"
+            @click="window.api.revealFile(movie.id)"
+          >
+            Reveal in Finder
+          </button>
         </div>
-        <p class="text-xs text-neutral-500">Watched {{ movie.playCount }}×, last: {{ lastWatched }} · {{ fileName }} · {{ sizeGb }}</p>
-        <div v-if="movie.trailerYoutubeKey" class="aspect-video w-full max-w-2xl overflow-hidden rounded-lg">
+        <p class="text-xs text-neutral-500">
+          Watched {{ movie.playCount }}×, last: {{ lastWatched }} · {{ fileName }} · {{ sizeGb }}
+        </p>
+        <div
+          v-if="movie.trailerYoutubeKey"
+          class="aspect-video w-full max-w-2xl overflow-hidden rounded-lg"
+        >
           <iframe
             :src="`https://www.youtube-nocookie.com/embed/${movie.trailerYoutubeKey}`"
-            class="h-full w-full" frameborder="0" allowfullscreen
+            class="h-full w-full"
+            frameborder="0"
+            allowfullscreen
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           />
         </div>
@@ -2622,10 +3217,12 @@ git add -A && git commit -m "feat: movie detail view with trailer embed and fix-
 ### Task 14: Settings view & first-run experience
 
 **Files:**
+
 - Create: `src/renderer/src/views/SettingsView.vue` (replace stub)
 - Test: `src/renderer/src/views/__tests__/SettingsView.test.ts`
 
 **Interfaces:**
+
 - Consumes: `window.api.getSettings/setApiKey/addFolder/removeFolder/rescanFolder/onScanProgress` (Task 10)
 - Produces: test-ids `apikey-input`, `apikey-save`, `folder-add`, `folder-row` (per folder), `folder-remove`, `folder-rescan`
 
@@ -2647,8 +3244,8 @@ beforeEach(() => {
       addFolder: vi.fn(async () => ({ folders: ['/Movies', '/More'], tmdbApiKey: null })),
       removeFolder: vi.fn(async () => ({ folders: [], tmdbApiKey: null })),
       rescanFolder: vi.fn(async () => {}),
-      onScanProgress: vi.fn(),
-    },
+      onScanProgress: vi.fn()
+    }
   })
 })
 
@@ -2715,12 +3312,22 @@ async function removeFolder(path: string): Promise<void> {
     <section>
       <h2 class="mb-2 text-lg font-semibold">TMDB API key</h2>
       <p class="mb-2 text-sm text-neutral-400">
-        Get a free key at themoviedb.org → Settings → API. Without it, movies are indexed but no metadata is fetched.
+        Get a free key at themoviedb.org → Settings → API. Without it, movies are indexed but no
+        metadata is fetched.
       </p>
       <div class="flex gap-2">
-        <input data-testid="apikey-input" v-model="keyInput" type="password"
-          class="flex-1 rounded bg-neutral-700 px-2 py-1 text-sm" placeholder="TMDB API key" />
-        <button data-testid="apikey-save" class="rounded bg-sky-600 px-4 py-1 text-sm hover:bg-sky-500" @click="saveKey">
+        <input
+          data-testid="apikey-input"
+          v-model="keyInput"
+          type="password"
+          class="flex-1 rounded bg-neutral-700 px-2 py-1 text-sm"
+          placeholder="TMDB API key"
+        />
+        <button
+          data-testid="apikey-save"
+          class="rounded bg-sky-600 px-4 py-1 text-sm hover:bg-sky-500"
+          @click="saveKey"
+        >
           {{ saved ? 'Saved ✓' : 'Save' }}
         </button>
       </div>
@@ -2728,19 +3335,37 @@ async function removeFolder(path: string): Promise<void> {
     <section>
       <h2 class="mb-2 text-lg font-semibold">Movie folders</h2>
       <ul class="mb-3 space-y-2">
-        <li v-for="f in settings.folders" :key="f" data-testid="folder-row"
-          class="flex items-center gap-2 rounded bg-neutral-800 px-3 py-2 text-sm">
+        <li
+          v-for="f in settings.folders"
+          :key="f"
+          data-testid="folder-row"
+          class="flex items-center gap-2 rounded bg-neutral-800 px-3 py-2 text-sm"
+        >
           <span class="min-w-0 flex-1 truncate">{{ f }}</span>
           <span v-if="progress[f] && !progress[f].done" class="text-xs text-sky-300">
             scanning {{ progress[f].ingested }}/{{ progress[f].discovered }}…
           </span>
-          <button data-testid="folder-rescan" class="rounded bg-neutral-700 px-2 py-1 text-xs hover:bg-neutral-600"
-            @click="api.rescanFolder(f)">Rescan</button>
-          <button data-testid="folder-remove" class="rounded bg-red-800 px-2 py-1 text-xs hover:bg-red-700"
-            @click="removeFolder(f)">Remove</button>
+          <button
+            data-testid="folder-rescan"
+            class="rounded bg-neutral-700 px-2 py-1 text-xs hover:bg-neutral-600"
+            @click="api.rescanFolder(f)"
+          >
+            Rescan
+          </button>
+          <button
+            data-testid="folder-remove"
+            class="rounded bg-red-800 px-2 py-1 text-xs hover:bg-red-700"
+            @click="removeFolder(f)"
+          >
+            Remove
+          </button>
         </li>
       </ul>
-      <button data-testid="folder-add" class="rounded bg-sky-600 px-4 py-2 text-sm hover:bg-sky-500" @click="addFolder">
+      <button
+        data-testid="folder-add"
+        class="rounded bg-sky-600 px-4 py-2 text-sm hover:bg-sky-500"
+        @click="addFolder"
+      >
         + Add folder…
       </button>
       <p class="mt-2 text-xs text-neutral-500">
@@ -2765,6 +3390,7 @@ git add -A && git commit -m "feat: settings view with api key, folder management
 ### Task 15: End-to-end verification & packaging
 
 **Files:**
+
 - Modify: `package.json` / `electron-builder.yml` (template provides one), `README.md` (create)
 
 - [ ] **Step 1: Full-suite gate**
@@ -2822,4 +3448,3 @@ git add -A && git commit -m "chore: packaging config, README and end-to-end veri
 - **Spec coverage:** every spec section maps to a task — sidecars/NFO (4), scan (6), TMDB+matching+trailer (5, 7), fix-match (13), playback+watch-state (8), live IPC updates (9, 10), filter/sort UI (11, 12), detail+trailer embed (13), settings+first-run (14), error handling (badges in 12, retry in 7/13, key-missing banners in 12/14), packaging (15).
 - **Known judgment calls for the implementer:** exact fast-xml-parser options may need small adjustments to satisfy the round-trip test (the test is the contract, not the listed options); the electron-vite template's file names occasionally drift between versions — keep the template's structure and slot the code in.
 - **Verification:** Task 15's manual walkthrough is mandatory before calling this done (per Definition of Done: visually verify UI changes).
-

@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
-**Files:** src/main/library/scanner.ts, src/main/library/__tests__/scanner.test.ts
+**Files:** src/main/library/scanner.ts, src/main/library/**tests**/scanner.test.ts
 **Depends on:** REQ-004, REQ-005
 
 ## Task

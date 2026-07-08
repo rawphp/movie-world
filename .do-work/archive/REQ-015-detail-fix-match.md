@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 1
 **Size:** M
-**Files:** src/renderer/src/views/MovieDetailView.vue, src/renderer/src/components/FixMatchDialog.vue, src/renderer/src/components/__tests__/FixMatchDialog.test.ts
+**Files:** src/renderer/src/views/MovieDetailView.vue, src/renderer/src/components/FixMatchDialog.vue, src/renderer/src/components/**tests**/FixMatchDialog.test.ts
 **Depends on:** REQ-014
 
 ## Task

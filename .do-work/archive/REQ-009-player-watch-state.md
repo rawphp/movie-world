@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 1
 **Size:** S
-**Files:** src/main/player.ts, src/main/__tests__/player.test.ts
+**Files:** src/main/player.ts, src/main/**tests**/player.test.ts
 **Depends on:** REQ-005
 
 ## Task

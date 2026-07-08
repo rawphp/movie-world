@@ -6,7 +6,7 @@
 
 - The whole enrichment layer assumes the user supplies a personal TMDB v3 key. Without one, the scan still indexes files but every card stays `pending` indefinitely — so first-run UX has to make key entry unmissable, or the app looks broken on launch. (Triggered by design "No/invalid TMDB API key → banner" + first-run empty state.)
 - Match quality is entirely a function of the filename parser. Scene-release names, foreign/anime titles, or files sitting in a flat folder rather than `Title (Year)/` will parse poorly and land as `unmatched`. The parser (plan Task 3) is the single biggest determinant of how good the library looks, yet it's scoped as one small task. (Triggered by scan flow step 3 + Task 3.)
-- Non-obvious stakeholders: Kodi / Jellyfin / TinyMediaManager read and write the *same* NFO + artwork files. If Movie World's NFO schema drifts (missing tags, non-standard `<mpaa>` format, unexpected `<uniqueid>` shape), another tool sharing the library can be corrupted by us or corrupt us. NFO compatibility is an external contract, not just an internal format. (Triggered by design "directly readable by Kodi/Jellyfin/TinyMediaManager.")
+- Non-obvious stakeholders: Kodi / Jellyfin / TinyMediaManager read and write the _same_ NFO + artwork files. If Movie World's NFO schema drifts (missing tags, non-standard `<mpaa>` format, unexpected `<uniqueid>` shape), another tool sharing the library can be corrupted by us or corrupt us. NFO compatibility is an external contract, not just an internal format. (Triggered by design "directly readable by Kodi/Jellyfin/TinyMediaManager.")
 
 ## Challenger — Risks & Edge Cases
 
