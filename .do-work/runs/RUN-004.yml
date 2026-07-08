@@ -1,0 +1,29 @@
+run_id: RUN-004
+req: REQ-021
+ur: UR-004
+agent_id: "Toms-MacBook-Pro.local.78084"
+model: "gpt-5"
+branch: "req/REQ-021"
+started_at: "2026-07-08T22:50:36Z"
+ended_at: "2026-07-08T23:18:29Z"
+result: "pending-validation"
+review_outcome: "passed"
+proof_status: "unproven"
+cost_estimate: "estimate"
+cost_estimate_num: 0.25
+pr_url: ""
+commands:
+  - "npx vitest run src/renderer/src/views/__tests__/MovieDetailView.test.ts"
+  - "npx vitest run"
+  - "npm run typecheck"
+  - "npx eslint . --max-warnings 0"
+  - "npm run build"
+tests:
+  - "focused MovieDetailView test: 1 test file passed, 3 tests passed"
+  - "npx vitest run: 19 test files passed, 89 tests passed"
+  - "npm run typecheck: passed"
+  - "npx eslint . --max-warnings 0: passed"
+  - "npm run build: passed"
+changed_files:
+  - "src/renderer/src/views/MovieDetailView.vue"
+  - "src/renderer/src/views/__tests__/MovieDetailView.test.ts"

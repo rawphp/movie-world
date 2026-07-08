@@ -1,15 +1,7 @@
 # REQ-021: Detail page — wider content + fanart page background with central shade
 
-<!-- claimed-start -->
-
-**Claimed by:** Toms-MacBook-Pro.local.78084
-**Claimed at:** 2026-07-08T22:50:36Z
-**Heartbeat:** 2026-07-08T22:56:26Z
-<!-- claimed-end -->
-
 **UR:** UR-004
-**Status:** stopped
-**Reason:** verification-failing
+**Status:** pending-validation
 **Created:** 2026-07-09
 **Layer:** renderer
 **Entry point:** Click a movie card in the library → route `/movie/:id` renders `MovieDetailView.vue` (src/renderer/src/router.ts)
@@ -19,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
-**Files:** src/renderer/src/views/MovieDetailView.vue, src/renderer/src/views/**tests**/MovieDetailView.test.ts
+**Files:** src/renderer/src/views/MovieDetailView.vue, src/renderer/src/views/__tests__/MovieDetailView.test.ts
 **Depends on:**
 
 ## Task
@@ -39,13 +31,13 @@ Advisory design reference: `docs/design/movie_detail_modal_the_matrix/` (`code.h
 
 ## Acceptance Criteria
 
-- [ ] The detail body container uses a wider max-width than `max-w-5xl` (at least `max-w-7xl`), so at a 1440px-wide window the content columns are visibly wider than before.
-- [ ] When the movie has fanart, the whole detail view (not just the hero strip) shows the fanart as a background layer sourced through `artSrc` (`mw-art:` URL), with a dark scrim/gradient overlay centered behind the content area.
-- [ ] The background layer sits behind all foreground content in stacking order and has `pointer-events: none` (or equivalent), so Play/Fix match/trailer/Reveal remain fully interactive.
-- [ ] When the movie has no fanart, the page falls back to the poster image or the existing solid dark background — no blank/white background and no layout breakage.
-- [ ] The hero header area does not show a clashing doubled-image treatment — the previous hero backdrop is either removed or visually merged with the full-page background.
-- [ ] A component test `src/renderer/src/views/__tests__/MovieDetailView.test.ts` mounts the view and asserts: (a) a background element with an `mw-art:` source (or style) is present when `fanartPath` is set, (b) the fallback renders when `fanartPath` is null, (c) the body container carries the wider max-width class.
-- [ ] Full suite stays green: `npx vitest run` passes 100%.
+- [x] The detail body container uses a wider max-width than `max-w-5xl` (at least `max-w-7xl`), so at a 1440px-wide window the content columns are visibly wider than before.
+- [x] When the movie has fanart, the whole detail view (not just the hero strip) shows the fanart as a background layer sourced through `artSrc` (`mw-art:` URL), with a dark scrim/gradient overlay centered behind the content area.
+- [x] The background layer sits behind all foreground content in stacking order and has `pointer-events: none` (or equivalent), so Play/Fix match/trailer/Reveal remain fully interactive.
+- [x] When the movie has no fanart, the page falls back to the poster image or the existing solid dark background — no blank/white background and no layout breakage.
+- [x] The hero header area does not show a clashing doubled-image treatment — the previous hero backdrop is either removed or visually merged with the full-page background.
+- [x] A component test `src/renderer/src/views/__tests__/MovieDetailView.test.ts` mounts the view and asserts: (a) a background element with an `mw-art:` source (or style) is present when `fanartPath` is set, (b) the fallback renders when `fanartPath` is null, (c) the body container carries the wider max-width class.
+- [x] Full suite stays green: `npx vitest run` passes 100%.
 
 ## Verification Steps
 
@@ -78,3 +70,8 @@ Advisory design reference: `docs/design/movie_detail_modal_the_matrix/` (`code.h
 ## Assets
 
 - .do-work/user-requests/UR-004/assets/screenshot-1.png — screenshot of the current detail page showing the narrow content column and black background
+
+## Outputs
+
+- src/renderer/src/views/MovieDetailView.vue — Adds full-page artwork background treatment, central scrim, wider detail layout, and wider trailer column.
+- src/renderer/src/views/__tests__/MovieDetailView.test.ts — Adds component tests for fanart background, poster fallback, non-interactive background layer, and max-w-7xl body width.
