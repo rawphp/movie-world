@@ -1,7 +1,13 @@
 # REQ-021: Detail page — wider content + fanart page background with central shade
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.78084
+**Claimed at:** 2026-07-08T22:50:36Z
+**Heartbeat:** 2026-07-08T22:50:36Z
+<!-- claimed-end -->
+
 **UR:** UR-004
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-09
 **Layer:** renderer
 **Entry point:** Click a movie card in the library → route `/movie/:id` renders `MovieDetailView.vue` (src/renderer/src/router.ts)
