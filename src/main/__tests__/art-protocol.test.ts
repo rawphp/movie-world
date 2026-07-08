@@ -8,7 +8,8 @@ import {
   buildCsp,
   serveArtFile,
   contentTypeFor,
-  MW_ART_SCHEME
+  MW_ART_SCHEME,
+  shouldApplyRendererCsp
 } from '../art-protocol'
 
 describe('decodeArtUrl', () => {
@@ -39,6 +40,25 @@ describe('buildCsp', () => {
   it('loosens script-src for HMR only in dev', () => {
     expect(buildCsp(true)).toContain("'unsafe-eval'")
     expect(buildCsp(false)).not.toContain("'unsafe-eval'")
+  })
+})
+
+describe('shouldApplyRendererCsp', () => {
+  it('applies packaged CSP only to file-backed renderer responses', () => {
+    expect(
+      shouldApplyRendererCsp('file:///Applications/MovieWorld/out/renderer/index.html', false)
+    ).toBe(true)
+    expect(shouldApplyRendererCsp('https://www.youtube.com/embed/eogpIG53Cis', false)).toBe(false)
+  })
+
+  it('applies dev CSP only to the configured renderer origin', () => {
+    const rendererUrl = 'http://localhost:5173'
+    expect(shouldApplyRendererCsp('http://localhost:5173/src/main.ts', true, rendererUrl)).toBe(
+      true
+    )
+    expect(
+      shouldApplyRendererCsp('https://www.youtube.com/embed/eogpIG53Cis', true, rendererUrl)
+    ).toBe(false)
   })
 })
 
