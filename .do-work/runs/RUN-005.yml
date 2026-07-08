@@ -13,8 +13,14 @@ cost_estimate: "tier-weighted estimate: sonnet clean attempt"
 cost_estimate_num: 0.25
 pr_url: ""
 commands:
-  []
+  - "npx vitest run src/renderer/src/views/__tests__/MovieDetailView.test.ts"
+  - "npx vitest run"
+  - "npm run typecheck"
+  - "npx eslint . --max-warnings 0"
+  - "npm run build"
 tests:
-  []
+  - "npx vitest run src/renderer/src/views/__tests__/MovieDetailView.test.ts: passed"
+  - "npx vitest run: passed"
 changed_files:
-  []
+  - "src/renderer/src/views/MovieDetailView.vue"
+  - "src/renderer/src/views/__tests__/MovieDetailView.test.ts"
