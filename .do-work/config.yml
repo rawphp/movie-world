@@ -1,0 +1,18 @@
+# do-work configuration
+# Edit this file to customize agent behavior.
+# Full schema and defaults: agents/config.md (canonical template)
+
+project:
+  name: "movie-world"
+
+# Electron app layers, mirroring the process boundaries in the design spec and
+# the src/ file structure in the plan:
+#   shared    — src/shared/* domain types consumed by every process
+#   main      — src/main/* filesystem/network/TMDB/player/manager logic
+#   preload   — src/preload/* contextBridge window.api surface
+#   renderer  — src/renderer/* Vue UI, Pinia store, filtering
+#   packaging — scaffold, tooling, electron-builder, README
+layers: [shared, main, preload, renderer, packaging]
+
+test:
+  suite_command: "npx vitest run"

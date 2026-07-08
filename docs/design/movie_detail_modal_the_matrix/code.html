@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Movie World - Personal Collection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0B0B0C;
+            color: #e5e2e3;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-panel {
+            background: rgba(22, 22, 23, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+        .poster-shadow {
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-surface": "#e5e2e3",
+                      "on-secondary": "#00363e",
+                      "on-secondary-fixed-variant": "#184d57",
+                      "surface-variant": "#353436",
+                      "outline": "#859397",
+                      "primary-fixed": "#a2eeff",
+                      "primary-container": "#22d3ee",
+                      "surface-container-high": "#2a2a2b",
+                      "tertiary-container": "#ffb13b",
+                      "surface-container-highest": "#353436",
+                      "on-primary-fixed": "#001f25",
+                      "on-tertiary-fixed": "#2a1800",
+                      "on-error-container": "#ffdad6",
+                      "surface-dim": "#131314",
+                      "on-primary": "#00363e",
+                      "on-background": "#e5e2e3",
+                      "on-secondary-fixed": "#001f25",
+                      "background": "#131314",
+                      "primary": "#8aebff",
+                      "on-surface-variant": "#bbc9cd",
+                      "on-surface": "#e5e2e3",
+                      "on-primary-container": "#005763",
+                      "on-secondary-container": "#8fc0cc",
+                      "secondary": "#9dcfda",
+                      "on-error": "#690005",
+                      "on-tertiary-fixed-variant": "#643f00",
+                      "surface-tint": "#2fd9f4",
+                      "inverse-on-surface": "#313031",
+                      "secondary-container": "#1b5059",
+                      "inverse-primary": "#006877",
+                      "surface-container-lowest": "#0e0e0f",
+                      "tertiary-fixed": "#ffddb5",
+                      "error-container": "#93000a",
+                      "tertiary-fixed-dim": "#ffb957",
+                      "primary-fixed-dim": "#2fd9f4",
+                      "on-tertiary-container": "#6e4600",
+                      "error": "#ffb4ab",
+                      "on-primary-fixed-variant": "#004e5a",
+                      "secondary-fixed": "#b8ebf7",
+                      "surface": "#131314",
+                      "surface-bright": "#3a393a",
+                      "secondary-fixed-dim": "#9dcfda",
+                      "outline-variant": "#3c494c",
+                      "surface-container-low": "#1c1b1c",
+                      "surface-container": "#201f20",
+                      "tertiary": "#ffd6a3",
+                      "on-tertiary": "#462b00"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-sm": "4px",
+                      "unit": "8px",
+                      "container-margin": "24px",
+                      "stack-lg": "32px",
+                      "stack-md": "12px",
+                      "gutter": "16px"
+              },
+              "fontFamily": {
+                      "body-md": ["Inter"],
+                      "body-sm": ["Inter"],
+                      "display-lg": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "label-md": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "headline-sm": ["Inter"]
+              },
+              "fontSize": {
+                      "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "body-sm": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-sm": ["10px", {"lineHeight": "1.0", "letterSpacing": "0.12em", "fontWeight": "600"}],
+                      "label-md": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                      "headline-md": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "headline-sm": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl flex justify-between items-center px-container-margin py-unit w-full transition-all duration-300">
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md font-bold text-on-surface tracking-tight">🎬 Movie World</span>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex gap-8">
+<a class="text-primary font-bold font-body-md text-body-md hover:text-primary transition-colors duration-200" href="#">Library</a>
+<a class="text-on-surface-variant font-body-md text-body-md hover:text-primary transition-colors duration-200" href="#">Discover</a>
+<a class="text-on-surface-variant font-body-md text-body-md hover:text-primary transition-colors duration-200" href="#">Collections</a>
+</nav>
+<button class="p-2 rounded-full hover:bg-surface-container-high transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="settings">settings</span>
+</button>
+</div>
+</header>
+<main class="pt-24 pb-20 px-container-margin max-w-[1440px] mx-auto min-h-screen">
+<!-- Status Banner -->
+<div class="mb-stack-lg flex items-center justify-between bg-primary-container/10 border-none rounded-xl px-gutter py-4 backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-500" id="status-banner">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-container animate-pulse" data-icon="sync">sync</span>
+<span class="font-body-md text-body-md text-primary">Fetching metadata for 12 movies...</span>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface" onclick="document.getElementById('status-banner').remove()">
+<span class="material-symbols-outlined text-[20px]" data-icon="close">close</span>
+</button>
+</div>
+<!-- Filter Bar -->
+<section class="mb-stack-lg flex items-center gap-stack-md bg-surface-container-low/50 p-2 rounded-full backdrop-blur-xl border-none overflow-x-auto hide-scrollbar">
+<!-- Search -->
+<div class="flex items-center bg-surface-container-high rounded-full px-4 py-2 min-w-[240px]">
+<span class="material-symbols-outlined text-on-surface-variant mr-2" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-sm w-full placeholder:text-on-surface-variant/50" placeholder="Search collection..." type="text"/>
+</div>
+<!-- Filters -->
+<div class="flex items-center gap-2">
+<button class="bg-primary-container text-on-primary-container px-4 py-2 rounded-full font-label-md text-label-md hover:opacity-90 transition-all">Horror</button>
+<button class="bg-surface-container-high text-on-surface-variant px-4 py-2 rounded-full font-label-md text-label-md hover:text-on-surface transition-all">Year</button>
+<div class="h-6 w-px bg-outline-variant/30"></div>
+<div class="flex gap-1">
+<button class="bg-surface-container-high text-on-surface-variant px-3 py-2 rounded-full font-label-md text-label-md hover:text-on-surface">G</button>
+<button class="bg-surface-container-high text-on-surface-variant px-3 py-2 rounded-full font-label-md text-label-md hover:text-on-surface">PG</button>
+<button class="bg-surface-container-high text-on-surface-variant px-3 py-2 rounded-full font-label-md text-label-md hover:text-on-surface">M</button>
+<button class="bg-surface-container-high text-on-surface-variant px-3 py-2 rounded-full font-label-md text-label-md hover:text-on-surface">MA15+</button>
+<button class="bg-surface-container-high text-on-surface-variant px-3 py-2 rounded-full font-label-md text-label-md hover:text-on-surface">R18+</button>
+</div>
+<div class="h-6 w-px bg-outline-variant/30"></div>
+<button class="bg-surface-container-high text-on-surface-variant px-4 py-2 rounded-full font-label-md text-label-md hover:text-on-surface">Min Stars</button>
+<button class="bg-surface-container-high text-on-surface-variant px-4 py-2 rounded-full font-label-md text-label-md hover:text-on-surface">Actor</button>
+<button class="bg-surface-container-high text-on-surface-variant px-4 py-2 rounded-full font-label-md text-label-md hover:text-on-surface">Watched</button>
+<div class="h-6 w-px bg-outline-variant/30"></div>
+<button class="flex items-center gap-1 bg-surface-container-high text-on-surface-variant px-4 py-2 rounded-full font-label-md text-label-md hover:text-on-surface">
+                    Sort: Title <span class="material-symbols-outlined text-[16px]" data-icon="keyboard_arrow_down">keyboard_arrow_down</span>
+</button>
+<button class="text-primary font-label-md text-label-md px-4 py-2 hover:opacity-70 transition-all">Clear</button>
+</div>
+</section>
+<!-- Movie Grid -->
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-x-gutter gap-y-stack-lg">
+<!-- Matrix (Normal) -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden poster-shadow mb-unit transition-transform duration-300 group-hover:scale-[1.02]">
+<img class="w-full h-full object-cover" data-alt="Official movie poster for The Matrix from 1999, featuring a sleek, dark cyberpunk aesthetic with falling green digital rain code and the main characters in black trench coats and sunglasses. The image reflects the high-end Cinematic Quietude style with deep blacks and neon green highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHKcPeLfsm-0cCCfQIGbjqwBeMGEAi_9PHMb41lzdbXQqYS1jdl2CiWTDMgwY_4XU9IcWFZOJHTZDdIXwWw-1CtDe2AM_JhZXjd4PFSFgIS0-sgUeuI86Njn_u67ptiBYw-LwmA-viKkF324_Hu9yAgfI_5yf030p2sqYPCSFpbzwFM0I16hmBkj8809gPMHib17rxTjtvgy-nItyIlm7U9tPqz_7EORvkApCvillyfpH7sLav-tYusQ"/>
+<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded font-label-sm text-label-sm text-on-surface">MA15+</div>
+</div>
+<div class="px-1">
+<h3 class="font-body-md text-body-md truncate font-bold">The Matrix</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-on-surface-variant font-label-md text-label-md">1999</span>
+<div class="flex items-center text-tertiary-container">
+<span class="material-symbols-outlined text-[14px] fill-icon" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="ml-1 font-label-md text-label-md">4.5</span>
+</div>
+</div>
+<p class="text-on-surface-variant/60 font-label-sm text-label-sm truncate mt-1">Keanu Reeves</p>
+</div>
+</div>
+<!-- Alien (Fetching) -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden poster-shadow mb-unit transition-transform duration-300 group-hover:scale-[1.02] bg-surface-container">
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-outline/20 text-5xl" data-icon="movie">movie</span>
+</div>
+<div class="absolute top-3 left-3 bg-primary-container/20 backdrop-blur-md border border-primary-container/30 px-2 py-1 rounded-full flex items-center gap-1.5 animate-pulse">
+<div class="w-1.5 h-1.5 rounded-full bg-primary-container"></div>
+<span class="font-label-sm text-label-sm text-primary uppercase">Fetching...</span>
+</div>
+<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded font-label-sm text-label-sm text-on-surface">M</div>
+</div>
+<div class="px-1">
+<h3 class="font-body-md text-body-md truncate font-bold">Alien</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-on-surface-variant font-label-md text-label-md">1979</span>
+<span class="text-on-surface-variant/40 font-label-md text-label-md italic">Pending</span>
+</div>
+<p class="text-on-surface-variant/60 font-label-sm text-label-sm truncate mt-1">Sigourney Weaver</p>
+</div>
+</div>
+<!-- Heat (Needs Match) -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden poster-shadow mb-unit transition-transform duration-300 group-hover:scale-[1.02] bg-surface-container">
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-outline/20 text-5xl" data-icon="image">image</span>
+</div>
+<div class="absolute top-3 left-3 bg-tertiary-container/20 backdrop-blur-md border border-tertiary-container/30 px-2 py-1 rounded-full flex items-center gap-1.5">
+<div class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></div>
+<span class="font-label-sm text-label-sm text-tertiary-container uppercase">Needs Match</span>
+</div>
+<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded font-label-sm text-label-sm text-on-surface">R18+</div>
+</div>
+<div class="px-1">
+<h3 class="font-body-md text-body-md truncate font-bold">Heat</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-on-surface-variant font-label-md text-label-md">1995</span>
+<span class="text-on-surface-variant/40 font-label-md text-label-md">Unrated</span>
+</div>
+<p class="text-on-surface-variant/60 font-label-sm text-label-sm truncate mt-1">Robert De Niro, Al Pacino</p>
+</div>
+</div>
+<!-- Parasite (File Missing) -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden poster-shadow mb-unit transition-transform duration-300 group-hover:scale-[1.02] opacity-50">
+<img class="w-full h-full object-cover" data-alt="A hauntingly beautiful minimalist poster for the movie Parasite from 2019, featuring the iconic modern house facade with a stark horizontal line across the eyes of the family members. The color palette is composed of muted teals, greys, and deep shadows, fitting a luxury dark-mode cinematic interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFBGfIoZmZ9tEvB4LYes4tKZpvFLFABBW4nsUQamIWnYNY647rt3CZChEmplSuZoIANUnyCVBfl8ofPI4EskASxox3IAtgrjverUYpF-FqC0nWjjdsxhimUVu0IB4aMUftuLo6RP9k5OIc6D9W7GR4ifJsomALW0282F3EikyXzRVIY5IGB2-Q3xF608JwA_8ejNqTNGzJdMdTLkwL0tLhW9bjEo09y73IRj93akqZWDubqRc_B-tMSg"/>
+<div class="absolute top-3 right-3 bg-error-container/40 backdrop-blur-md border border-error/30 px-2 py-1 rounded-full flex items-center gap-1.5">
+<div class="w-1.5 h-1.5 rounded-full bg-error"></div>
+<span class="font-label-sm text-label-sm text-error uppercase">File Missing</span>
+</div>
+<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded font-label-sm text-label-sm text-on-surface">MA15+</div>
+</div>
+<div class="px-1 opacity-50">
+<h3 class="font-body-md text-body-md truncate font-bold">Parasite</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-on-surface-variant font-label-md text-label-md">2019</span>
+<div class="flex items-center text-tertiary-container">
+<span class="material-symbols-outlined text-[14px] fill-icon" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="ml-1 font-label-md text-label-md">5.0</span>
+</div>
+</div>
+<p class="text-on-surface-variant/60 font-label-sm text-label-sm truncate mt-1">Song Kang-ho</p>
+</div>
+</div>
+<!-- Up (Not Saved) -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden poster-shadow mb-unit transition-transform duration-300 group-hover:scale-[1.02]">
+<img class="w-full h-full object-cover" data-alt="A high-resolution artistic poster for Pixar's Up from 2009, showing the floating house with thousands of colorful balloons against a soft, cinematic blue sky. The image maintains a clean, minimalist edge with vibrant pops of color that contrast against the dark background of the application interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5JjZYIfgzN9nSZLuNP68Xj1VRL0fgCUYb03ZOXbyXWIz7MyDFdmq8Wr1HUABztONlBLYMcOomsUvbRsIVAvZFGbWWmJ6erIuETQhPOUDCKM-0YHyY4IYXR3_LoVbZhMzfBVEOPSrD63NSQwn_K2JlNatlbZ3nLJ5tTpGhan3dpOdmgfi7aA9gXTA9ayPu9WZzaXbbn7GkUASMKzkUdgi56Q2nQ-OSbjMqSipnMoIhDoYhSZ2SvUKeGg"/>
+<div class="absolute top-3 left-3 bg-on-tertiary-container/20 backdrop-blur-md border border-tertiary/30 px-2 py-1 rounded-full flex items-center gap-1.5">
+<div class="w-1.5 h-1.5 rounded-full bg-tertiary"></div>
+<span class="font-label-sm text-label-sm text-tertiary uppercase">Not Saved</span>
+</div>
+<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded font-label-sm text-label-sm text-on-surface">G</div>
+</div>
+<div class="px-1">
+<h3 class="font-body-md text-body-md truncate font-bold">Up</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-on-surface-variant font-label-md text-label-md">2009</span>
+<div class="flex items-center text-tertiary-container">
+<span class="material-symbols-outlined text-[14px] fill-icon" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="ml-1 font-label-md text-label-md">4.8</span>
+</div>
+</div>
+<p class="text-on-surface-variant/60 font-label-sm text-label-sm truncate mt-1">Ed Asner</p>
+</div>
+</div>
+<!-- Blade Runner (Normal) -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden poster-shadow mb-unit transition-transform duration-300 group-hover:scale-[1.02]">
+<img class="w-full h-full object-cover" data-alt="A cinematic, moody movie poster for Blade Runner from 1982. The visual style features deep atmospheric smoke, neon pink and blue lighting in a futuristic rainy city setting. Harrison Ford is pictured in silhouette. High contrast, premium gallery aesthetic designed for a dark minimalist movie library interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDE0APBzx2Vno2bjcNCZMMlfQ-USb7tNYu-Cxaf42aHy-0NYCXTMw4aCjDeh7S4NAy9PZGbv_9Sag5yX_xGDP7GxLK0g_gKT5oAyhm_htsAPIBnFUZhF5iPr4zNYq_D2LyvRwegXZMwWKYtPB7R3ZjWIk0MEfxw8dLPGeA-8lIv6kYe09ZzSKj1AfN5krc0kbu1TC4QRqacsPSuraBdulfQStCPTZ7xZSltiBL0ZZth9sZ7Cob-FvpYJQ"/>
+<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded font-label-sm text-label-sm text-on-surface">MA15+</div>
+</div>
+<div class="px-1">
+<h3 class="font-body-md text-body-md truncate font-bold">Blade Runner</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-on-surface-variant font-label-md text-label-md">1982</span>
+<div class="flex items-center text-tertiary-container">
+<span class="material-symbols-outlined text-[14px] fill-icon" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="ml-1 font-label-md text-label-md">4.0</span>
+</div>
+</div>
+<p class="text-on-surface-variant/60 font-label-sm text-label-sm truncate mt-1">Harrison Ford</p>
+</div>
+</div>
+<!-- More cards for grid balance -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden poster-shadow mb-unit transition-transform duration-300 group-hover:scale-[1.02]">
+<img class="w-full h-full object-cover" data-alt="Minimalist movie poster for The Shining from 1980, featuring the iconic yellow background and stylized maze imagery. The lighting is crisp and the composition is symmetrical, adhering to a high-end cinematic curation tool aesthetic with zero visible interface noise." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxckTRZB8i1hIQhrLBYUJBHYDliMAYx4RsRWBAFPEQGvzZtqd5tMOHO0hUWqwT-PJX4jvsKQTHOMJGbbgveAa-Os0osTcnc1srqAxmbJ8cYk7fAqgg4SZLQFSRD-yveKfAwE9Yia0fL81G1Dftt2tBxQ2ssqy7o_bVwvNhDJW4dfRbBIEzs8KcMvVk07kwacHsWagDbBE5FQK3CLWz-WuNt_f4Kycb6IffAMMwunJrH3X-R7_ZR3RnMw"/>
+<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded font-label-sm text-label-sm text-on-surface">MA15+</div>
+</div>
+<div class="px-1">
+<h3 class="font-body-md text-body-md truncate font-bold">The Shining</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-on-surface-variant font-label-md text-label-md">1980</span>
+<div class="flex items-center text-tertiary-container">
+<span class="material-symbols-outlined text-[14px] fill-icon" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="ml-1 font-label-md text-label-md">4.7</span>
+</div>
+</div>
+<p class="text-on-surface-variant/60 font-label-sm text-label-sm truncate mt-1">Jack Nicholson</p>
+</div>
+</div>
+<div class="group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden poster-shadow mb-unit transition-transform duration-300 group-hover:scale-[1.02]">
+<img class="w-full h-full object-cover" data-alt="Atmospheric movie poster for Inception from 2010. The design uses a complex architectural theme with buildings folding over each other, set in a palette of cool blues and urban greys. The imagery is sharp and high-definition, perfect for a professional movie collection app for collectors." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDOIzrxBzUolw7NnEjwascUKHGrJQpQwFIboujh44ZAL2N1BFUfaFxmrmJgwAAt9EHRR2Sp_lIKifVf0gEj5HZ2MUVj9Nayu_Q9_o3RGDR6WH6mq5sCT34l9h8JpWsJGXDViInJNVWJa1ATP91U2JDP8WZ9sdbEJ0bxe2Ckhz5b-jdVfBdAvO8T3Lz8VxhjM29235D9WULfvQuLSHIL500ToJCOTIfZHHYmsYEByNnc8EcAtdWlx9uNA"/>
+<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded font-label-sm text-label-sm text-on-surface">M</div>
+</div>
+<div class="px-1">
+<h3 class="font-body-md text-body-md truncate font-bold">Inception</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-on-surface-variant font-label-md text-label-md">2010</span>
+<div class="flex items-center text-tertiary-container">
+<span class="material-symbols-outlined text-[14px] fill-icon" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="ml-1 font-label-md text-label-md">4.8</span>
+</div>
+</div>
+<p class="text-on-surface-variant/60 font-label-sm text-label-sm truncate mt-1">Leonardo DiCaprio</p>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Hidden on desktop as per logic, but included for completeness) -->
+<footer class="md:hidden fixed bottom-0 w-full z-50 bg-background/90 backdrop-blur-2xl flex justify-around items-center h-16 px-gutter w-full shadow-[0_-20px_40px_rgba(0,0,0,0.4)]">
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full p-3 scale-90 duration-150">
+<span class="material-symbols-outlined" data-icon="movie" style="font-variation-settings: 'FILL' 1;">movie</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined" data-icon="folder_special">folder_special</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</div>
+</footer>
+<script>
+        // Micro-interactions for scrolling
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 10) {
+                header.classList.add('py-2', 'bg-background/95');
+                header.classList.remove('py-unit', 'bg-background/80');
+            } else {
+                header.classList.remove('py-2', 'bg-background/95');
+                header.classList.add('py-unit', 'bg-background/80');
+            }
+        });
+    </script>
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300" id="movie-modal">
+<!-- Backdrop Blur/Dim -->
+<div class="absolute inset-0 bg-background/90 backdrop-blur-xl" onclick="document.getElementById('movie-modal').remove()"></div>
+<!-- Modal Container -->
+<div class="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto hide-scrollbar bg-surface-container-low rounded-xl shadow-2xl flex flex-col">
+<!-- Hero Section -->
+<div class="relative h-64 md:h-96 w-full">
+<img alt="The Matrix Hero" class="w-full h-full object-cover opacity-40" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHKcPeLfsm-0cCCfQIGbjqwBeMGEAi_9PHMb41lzdbXQqYS1jdl2CiWTDMgwY_4XU9IcWFZOJHTZDdIXwWw-1CtDe2AM_JhZXjd4PFSFgIS0-sgUeuI86Njn_u67ptiBYw-LwmA-viKkF324_Hu9yAgfI_5yf030p2sqYPCSFpbzwFM0I16hmBkj8809gPMHib17rxTjtvgy-nItyIlm7U9tPqz_7EORvkApCvillyfpH7sLav-tYusQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low via-transparent to-transparent"></div>
+<!-- Close Button -->
+<button class="absolute top-4 right-4 p-2 rounded-full bg-black/20 hover:bg-black/40 text-on-surface transition-colors" onclick="document.getElementById('movie-modal').remove()">
+<span class="material-symbols-outlined">close</span>
+</button>
+<!-- Title Overlay -->
+<div class="absolute bottom-0 left-0 p-8 w-full">
+<h1 class="text-display-lg font-display-lg text-on-surface mb-2">The Matrix <span class="text-on-surface-variant font-normal">(1999)</span></h1>
+<div class="flex flex-wrap items-center gap-4 text-label-md font-label-md text-on-surface-variant">
+<div class="flex items-center text-tertiary">
+<span class="material-symbols-outlined text-[16px] fill-icon mr-1">star</span>
+<span>4.5/5</span>
+</div>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>2h 16m</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="px-2 py-0.5 bg-surface-container-highest rounded text-on-surface">MA15+</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>Sci-Fi, Action</span>
+</div>
+</div>
+</div>
+<!-- Content Grid -->
+<div class="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-8 p-8">
+<!-- Left Column: Poster & Tech -->
+<div class="flex flex-col gap-6">
+<div class="aspect-[2/3] rounded-xl overflow-hidden poster-shadow">
+<img alt="The Matrix Poster" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHKcPeLfsm-0cCCfQIGbjqwBeMGEAi_9PHMb41lzdbXQqYS1jdl2CiWTDMgwY_4XU9IcWFZOJHTZDdIXwWw-1CtDe2AM_JhZXjd4PFSFgIS0-sgUeuI86Njn_u67ptiBYw-LwmA-viKkF324_Hu9yAgfI_5yf030p2sqYPCSFpbzwFM0I16hmBkj8809gPMHib17rxTjtvgy-nItyIlm7U9tPqz_7EORvkApCvillyfpH7sLav-tYusQ"/>
+</div>
+<div class="bg-surface-container p-4 rounded-xl flex flex-col gap-3">
+<div class="flex justify-between items-center">
+<span class="text-label-sm text-on-surface-variant uppercase">File Size</span>
+<span class="text-body-sm font-bold">4.2 GB</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-label-sm text-on-surface-variant uppercase">Resolution</span>
+<span class="text-body-sm font-bold">4K</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-label-sm text-on-surface-variant uppercase">Audio</span>
+<span class="text-body-sm font-bold">Dolby Atmos</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-label-sm text-on-surface-variant uppercase">Added</span>
+<span class="text-body-sm font-bold">May 14, 2024</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Narrative & Actions -->
+<div class="flex flex-col gap-8">
+<div class="flex gap-4">
+<button class="flex items-center gap-2 bg-primary-container text-on-primary-container px-8 py-3 rounded-full font-headline-sm hover:opacity-90 transition-all active:scale-95">
+<span class="material-symbols-outlined fill-icon">play_arrow</span>
+            Play
+          </button>
+<button class="flex items-center gap-2 bg-surface-container-highest text-on-surface px-6 py-3 rounded-full font-label-md hover:bg-surface-bright transition-all">
+<span class="material-symbols-outlined">bookmark</span>
+            Watchlist
+          </button>
+</div>
+<div class="flex flex-col gap-4">
+<h2 class="text-headline-sm text-on-surface">Synopsis</h2>
+<p class="text-body-md text-on-surface-variant leading-relaxed">
+            A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.
+          </p>
+</div>
+<div class="grid grid-cols-2 gap-8">
+<div class="flex flex-col gap-2">
+<h2 class="text-label-sm text-on-surface-variant uppercase">Director</h2>
+<p class="text-body-md">Lana Wachowski, Lilly Wachowski</p>
+</div>
+<div class="flex flex-col gap-2">
+<h2 class="text-label-sm text-on-surface-variant uppercase">Stars</h2>
+<p class="text-body-md">Keanu Reeves, Laurence Fishburne, Carrie-Anne Moss</p>
+</div>
+</div>
+<div class="mt-auto pt-8 border-t border-outline-variant/20 flex gap-6">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors text-label-md">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+            Edit Metadata
+          </button>
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-error transition-colors text-label-md">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+            Remove from Library
+          </button>
+</div>
+</div>
+</div>
+</div>
+</div></body></html>
