@@ -3,11 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <title>Electron</title>
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
-    />
+    <!--
+      CSP is set at runtime by the main process (buildCsp in src/main/art-protocol.ts,
+      applied via session.onHeadersReceived in src/main/index.ts). It is intentionally
+      NOT declared here: a static meta CSP would intersect with the header policy and,
+      being stricter, silently override it — blocking the mw-art: poster scheme and the
+      https://www.youtube.com trailer frame the header policy allows. Single source of
+      truth = buildCsp. See https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+    -->
   </head>
 
   <body>

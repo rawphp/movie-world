@@ -1,3 +1,6 @@
+import { existsSync, readFileSync } from 'node:fs'
+import { extname } from 'node:path'
+
 /** Custom scheme used to serve on-disk artwork to the sandboxed renderer. */
 export const MW_ART_SCHEME = 'mw-art'
 
@@ -17,6 +20,45 @@ export function decodeArtUrl(url: string): string {
       ? url.slice(SHORT_PREFIX.length)
       : url
   return decodeURIComponent(raw)
+}
+
+/**
+ * Map an on-disk file path to an image Content-Type from its extension.
+ * Matched-movie artwork is `.jpg`/`.jpeg`; `.png`/`.webp` are supported for
+ * completeness. Unknown extensions fall back to `application/octet-stream`.
+ */
+export function contentTypeFor(filePath: string): string {
+  switch (extname(filePath).toLowerCase()) {
+    case '.jpg':
+    case '.jpeg':
+      return 'image/jpeg'
+    case '.png':
+      return 'image/png'
+    case '.webp':
+      return 'image/webp'
+    default:
+      return 'application/octet-stream'
+  }
+}
+
+/**
+ * Serve the on-disk bytes for a `mw-art://` request URL as a Web `Response`.
+ *
+ * This deliberately reads the file directly with `fs` and has no compile-time
+ * dependency on Electron's `net`/`protocol`, so it is unit-testable and — more
+ * importantly — it removes the `net.fetch(pathToFileURL(...))` failure mode that
+ * left matched-movie posters rendering as broken-image icons (REQ-018). A
+ * missing or undecodable path returns a 404 Response; an existing file returns
+ * a 200 Response carrying its exact bytes and a correct image `Content-Type`.
+ */
+export function serveArtFile(url: string): Response {
+  const filePath = decodeArtUrl(url)
+  if (!filePath || !existsSync(filePath)) return new Response(null, { status: 404 })
+  const body = readFileSync(filePath)
+  return new Response(body, {
+    status: 200,
+    headers: { 'Content-Type': contentTypeFor(filePath) }
+  })
 }
 
 /**

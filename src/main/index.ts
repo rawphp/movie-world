@@ -1,14 +1,12 @@
-import { app, shell, BrowserWindow, session, protocol, net } from 'electron'
+import { app, shell, BrowserWindow, session, protocol } from 'electron'
 import { join } from 'node:path'
-import { existsSync } from 'node:fs'
-import { pathToFileURL } from 'node:url'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { createSettingsStore } from './settings'
 import { createLibraryManager } from './library/manager'
 import { createTmdbClient } from './tmdb/client'
 import { registerIpc, emitToAll } from './ipc'
-import { MW_ART_SCHEME, decodeArtUrl, buildCsp } from './art-protocol'
+import { MW_ART_SCHEME, serveArtFile, buildCsp } from './art-protocol'
 
 // Must run before app is ready so the renderer treats mw-art:// as a real scheme.
 protocol.registerSchemesAsPrivileged([
@@ -59,13 +57,10 @@ app.whenReady().then(() => {
   })
 
   // Serve on-disk poster/fanart to the sandboxed renderer.
-  // Renderer requests `mw-art://<encodeURIComponent(absPath)>`; resolve to the
-  // file and stream its bytes, or a 404-equivalent when the file is absent.
-  protocol.handle(MW_ART_SCHEME, (req) => {
-    const filePath = decodeArtUrl(req.url)
-    if (!filePath || !existsSync(filePath)) return new Response(null, { status: 404 })
-    return net.fetch(pathToFileURL(filePath).toString())
-  })
+  // Renderer requests `mw-art://<encodeURIComponent(absPath)>`; serveArtFile
+  // reads the bytes directly and returns them with a correct image
+  // Content-Type, or a 404 Response when the file is absent (REQ-018).
+  protocol.handle(MW_ART_SCHEME, (req) => serveArtFile(req.url))
 
   // Content-Security-Policy for the renderer: permit mw-art: artwork images and
   // the https://www.youtube.com trailer iframe (posters/trailer fail otherwise).
