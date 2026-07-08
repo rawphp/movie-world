@@ -45,59 +45,85 @@ function retry(): void {
     </button>
   </div>
 
-  <div
-    v-else
-    class="relative -mx-6 -my-6 min-h-[calc(100vh-4rem)] overflow-hidden bg-neutral-950 px-6 py-6"
-  >
-    <div class="pointer-events-none fixed inset-0 z-0 bg-neutral-950" aria-hidden="true">
+  <div v-else class="relative -mx-6 -my-6 min-h-[calc(100vh-4rem)] bg-neutral-950 text-neutral-100">
+    <section
+      data-testid="detail-hero"
+      class="relative h-[45vh] min-h-[360px] overflow-hidden bg-neutral-950"
+    >
       <div
-        data-testid="detail-art-background"
-        class="pointer-events-none absolute inset-0 scale-[1.02] bg-cover bg-center opacity-45 blur-[1px]"
-        :class="backgroundArt ? '' : 'bg-neutral-950'"
+        v-if="backgroundArt"
+        data-testid="detail-hero-art"
+        class="pointer-events-none absolute inset-0 bg-cover bg-center"
         :style="backgroundArt ? { backgroundImage: `url('${backgroundArt}')` } : undefined"
       />
-      <div class="pointer-events-none absolute inset-0 bg-neutral-950/55" />
       <div
-        class="pointer-events-none absolute inset-y-0 left-1/2 w-[min(1180px,88vw)] -translate-x-1/2 bg-neutral-950/85 shadow-[0_0_150px_110px_rgba(10,10,11,0.92)]"
+        v-else
+        data-testid="detail-hero-fallback"
+        class="pointer-events-none absolute inset-0 bg-neutral-950"
       />
       <div
-        class="pointer-events-none absolute inset-0 bg-gradient-to-b from-neutral-950/30 via-transparent to-neutral-950"
+        class="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-b from-transparent to-neutral-950"
+        aria-hidden="true"
       />
-    </div>
+      <div
+        class="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-r from-neutral-950/90 via-neutral-950/45 to-transparent md:w-2/3"
+        aria-hidden="true"
+      />
 
-    <!-- Header: title metadata over the shared page artwork background -->
-    <div class="relative z-10 mx-auto mb-8 max-w-7xl pt-2">
-      <button
-        class="rounded-full bg-black/60 px-3 py-1 text-sm text-white shadow-lg shadow-black/30 hover:bg-black/80"
-        @click="router.push('/')"
-      >
-        ← Back
-      </button>
-      <div class="mt-40 max-w-4xl">
-        <h1 class="text-3xl font-bold text-white drop-shadow-lg">
-          {{ title }}
-          <span class="font-normal text-neutral-300">({{ year ?? '—' }})</span>
-        </h1>
-        <div class="mt-2 flex flex-wrap items-center gap-3 text-sm text-neutral-100 drop-shadow">
-          <StarRating :vote-average="movie.voteAverage" />
-          <span v-if="movie.runtime">· {{ movie.runtime }} min</span>
-          <span
-            v-if="movie.certificationAu"
-            class="rounded border border-neutral-400 px-1.5 py-0.5 text-xs"
-            >{{ movie.certificationAu }}</span
-          >
-          <span v-if="movie.genres.length">· {{ movie.genres.join(' · ') }}</span>
+      <div class="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-between px-6 py-6">
+        <button
+          class="w-fit rounded-full bg-black/45 px-3 py-1 text-sm text-white shadow-lg shadow-black/30 hover:bg-black/70"
+          @click="router.push('/')"
+        >
+          ← Back
+        </button>
+
+        <div class="max-w-4xl pb-8">
+          <h1 class="text-3xl font-bold text-white drop-shadow-lg">
+            {{ title }}
+            <span class="font-normal text-neutral-300">({{ year ?? '—' }})</span>
+          </h1>
+          <div class="mt-2 flex flex-wrap items-center gap-3 text-sm text-neutral-100 drop-shadow">
+            <StarRating :vote-average="movie.voteAverage" />
+            <span v-if="movie.runtime">· {{ movie.runtime }} min</span>
+            <span
+              v-if="movie.certificationAu"
+              class="rounded border border-neutral-400 px-1.5 py-0.5 text-xs"
+              >{{ movie.certificationAu }}</span
+            >
+            <span v-if="movie.genres.length">· {{ movie.genres.join(' · ') }}</span>
+          </div>
+          <div class="mt-5 flex flex-wrap items-center gap-2">
+            <button
+              class="inline-flex items-center gap-1 rounded-full bg-sky-600 px-5 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
+              :disabled="movie.fileMissing"
+              @click="play"
+            >
+              ▶ Play
+            </button>
+            <button
+              class="rounded-full bg-neutral-900/80 px-4 py-2 text-sm text-neutral-100 ring-1 ring-white/10 hover:bg-neutral-800"
+              @click="fixing = true"
+            >
+              Fix match
+            </button>
+            <button
+              v-if="movie.fetchFailed"
+              class="rounded-full bg-neutral-900/80 px-4 py-2 text-sm text-neutral-100 ring-1 ring-white/10 hover:bg-neutral-800"
+              @click="retry"
+            >
+              Retry fetch
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Two-column body -->
     <div
       data-testid="detail-body"
-      class="relative z-10 mx-auto grid max-w-7xl gap-6 md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)]"
+      class="relative z-10 mx-auto grid max-w-7xl gap-6 bg-neutral-950 px-6 pb-10 md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)]"
     >
-      <!-- Left: poster + tech-info card -->
-      <div class="space-y-4">
+      <div class="space-y-4 md:-mt-24">
         <img
           v-if="poster"
           :src="poster"
@@ -111,43 +137,18 @@ function retry(): void {
           {{ title }}
         </div>
 
-        <div class="space-y-1 rounded-lg bg-neutral-800 p-3 text-xs text-neutral-300">
-          <div class="flex justify-between gap-2">
-            <span class="text-neutral-500">File Size</span>
-            <span>{{ sizeGb }}</span>
-          </div>
-          <div class="break-all text-neutral-400">{{ movie.filePath }}</div>
-          <button class="mt-1 text-sky-400 hover:text-sky-300" @click="reveal">
-            Reveal in Finder
-          </button>
+        <div
+          data-testid="detail-file-info"
+          class="flex flex-wrap items-center gap-2 text-xs text-neutral-400"
+          :title="movie.filePath"
+        >
+          <span>{{ sizeGb }}</span>
+          <span aria-hidden="true">·</span>
+          <button class="text-sky-400 hover:text-sky-300" @click="reveal">Reveal in Finder</button>
         </div>
       </div>
 
-      <!-- Right: actions, synopsis, cast, trailer -->
-      <div class="min-w-0 space-y-5">
-        <div class="flex flex-wrap items-center gap-2">
-          <button
-            class="inline-flex items-center gap-1 rounded-full bg-sky-600 px-5 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
-            :disabled="movie.fileMissing"
-            @click="play"
-          >
-            ▶ Play
-          </button>
-          <button
-            class="rounded-full bg-neutral-700 px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-600"
-            @click="fixing = true"
-          >
-            Fix match
-          </button>
-          <button
-            v-if="movie.fetchFailed"
-            class="rounded-full bg-neutral-700 px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-600"
-            @click="retry"
-          >
-            Retry fetch
-          </button>
-        </div>
-
+      <div class="min-w-0 space-y-5 py-8">
         <p class="text-xs text-neutral-500">
           Watched {{ movie.playCount }}× · last played: {{ lastWatched }}
         </p>
@@ -168,7 +169,8 @@ function retry(): void {
           <h2 class="mb-2 text-lg font-semibold text-white">Trailer</h2>
           <div
             v-if="movie.trailerYoutubeKey"
-            class="aspect-video w-full max-w-4xl overflow-hidden rounded-lg bg-black shadow-2xl shadow-black/40"
+            data-testid="detail-trailer-frame"
+            class="aspect-video w-full max-w-2xl overflow-hidden rounded-lg bg-black shadow-2xl shadow-black/40"
           >
             <iframe
               :src="`https://www.youtube.com/embed/${movie.trailerYoutubeKey}`"
