@@ -64,23 +64,59 @@ beforeEach(() => {
 })
 
 describe('MovieDetailView', () => {
-  it('renders fanart as a non-interactive full-page background layer', () => {
+  it('renders fanart as a non-interactive hero-band artwork layer', () => {
     const wrapper = mountWithMovie(makeMovie())
 
-    const background = wrapper.get('[data-testid="detail-art-background"]')
+    const hero = wrapper.get('[data-testid="detail-hero"]')
+    const background = wrapper.get('[data-testid="detail-hero-art"]')
 
+    expect(hero.classes()).toContain('h-[45vh]')
     expect(background.attributes('style')).toContain('mw-art://')
     expect(background.attributes('style')).toContain(encodeURIComponent('/art/fanart.jpg'))
     expect(background.classes()).toContain('pointer-events-none')
+    expect(background.classes()).not.toContain('blur-[1px]')
   })
 
   it('falls back to poster artwork when fanart is unavailable', () => {
     const wrapper = mountWithMovie(makeMovie({ fanartPath: null }))
 
-    const background = wrapper.get('[data-testid="detail-art-background"]')
+    const background = wrapper.get('[data-testid="detail-hero-art"]')
 
     expect(background.attributes('style')).toContain('mw-art://')
     expect(background.attributes('style')).toContain(encodeURIComponent('/art/poster.jpg'))
+  })
+
+  it('uses a solid fallback hero surface when no artwork is available', () => {
+    const wrapper = mountWithMovie(makeMovie({ fanartPath: null, posterPath: null }))
+
+    const fallback = wrapper.get('[data-testid="detail-hero-fallback"]')
+
+    expect(fallback.classes()).toContain('bg-neutral-950')
+    expect(fallback.classes()).toContain('pointer-events-none')
+  })
+
+  it('renders compact file info without permanently showing the full path', () => {
+    const movie = makeMovie({
+      filePath: '/movies/Example (2024)/Example (2024).mkv',
+      fileSize: 2.33 * 1024 ** 3
+    })
+    const wrapper = mountWithMovie(movie)
+
+    const fileInfo = wrapper.get('[data-testid="detail-file-info"]')
+
+    expect(fileInfo.text()).toContain('2.33 GB')
+    expect(fileInfo.text()).toContain('Reveal in Finder')
+    expect(wrapper.text()).not.toContain(movie.filePath)
+    expect(fileInfo.attributes('title')).toBe(movie.filePath)
+  })
+
+  it('caps the trailer embed at a modest 16:9 width', () => {
+    const wrapper = mountWithMovie(makeMovie({ trailerYoutubeKey: 'abc123' }))
+
+    const trailer = wrapper.get('[data-testid="detail-trailer-frame"]')
+
+    expect(trailer.classes()).toContain('aspect-video')
+    expect(trailer.classes()).toContain('max-w-2xl')
   })
 
   it('uses a wider body container than max-w-5xl', () => {
