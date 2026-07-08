@@ -1,7 +1,8 @@
-appId: com.electron.app
-productName: tmp-scaffold
+appId: com.tomkaczocha.movieworld
+productName: Movie World
 directories:
   buildResources: build
+  output: dist
 files:
   - '!**/.vscode/*'
   - '!src/*'
@@ -11,33 +12,19 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
-win:
-  executableName: tmp-scaffold
-nsis:
-  artifactName: ${name}-${version}-setup.${ext}
-  shortcutName: ${productName}
-  uninstallDisplayName: ${productName}
-  createDesktopShortcut: always
 mac:
+  category: public.app-category.entertainment
   entitlementsInherit: build/entitlements.mac.plist
-  extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
-    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
-    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  # Unsigned build for personal use: no code signing, no notarization.
+  # First launch requires right-click -> Open to bypass Gatekeeper.
+  identity: null
   notarize: false
-dmg:
-  artifactName: ${name}-${version}.${ext}
-linux:
   target:
-    - AppImage
-    - snap
-    - deb
-  maintainer: electronjs.org
-  category: Utility
-appImage:
-  artifactName: ${name}-${version}.${ext}
+    - dmg
+    - dir
+  extendInfo:
+    - NSDocumentsFolderUsageDescription: Movie World reads and writes movie files and .nfo sidecars in the folders you add to your library.
+    - NSDownloadsFolderUsageDescription: Movie World reads movie files from folders you add to your library.
+dmg:
+  artifactName: ${productName}-${version}.${ext}
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://example.com/auto-updates
