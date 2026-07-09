@@ -6,7 +6,13 @@ import { createSettingsStore } from './settings'
 import { createLibraryManager } from './library/manager'
 import { createTmdbClient } from './tmdb/client'
 import { registerIpc, emitToAll } from './ipc'
-import { MW_ART_SCHEME, serveArtFile, buildCsp, shouldApplyRendererCsp } from './art-protocol'
+import {
+  MW_ART_SCHEME,
+  serveArtFile,
+  buildCsp,
+  shouldApplyRendererCsp,
+  withYoutubeRefererHeaders
+} from './art-protocol'
 import { wireWindowStartupEvents } from './window-lifecycle'
 
 // Must run before app is ready so the renderer treats mw-art:// as a real scheme.
@@ -64,6 +70,15 @@ app.whenReady().then(() => {
   // reads the bytes directly and returns them with a correct image
   // Content-Type, or a 404 Response when the file is absent (REQ-018).
   protocol.handle(MW_ART_SCHEME, (req) => serveArtFile(req.url))
+
+  // YouTube rejects packaged file:// renderer embeds with Error 153 unless the
+  // embed request carries a web origin. Keep the injected identity scoped to
+  // YouTube hosts only.
+  session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+    callback({
+      requestHeaders: withYoutubeRefererHeaders(details.url, details.requestHeaders)
+    })
+  })
 
   // Content-Security-Policy for the renderer: permit mw-art: artwork images and
   // the https://www.youtube.com trailer iframe. Keep this scoped to renderer
