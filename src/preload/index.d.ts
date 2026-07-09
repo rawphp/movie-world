@@ -1,4 +1,10 @@
-import type { Keybindings, MovieRecord, ScanProgress, Settings } from '../shared/types'
+import type {
+  Keybindings,
+  LibraryLoadResult,
+  MovieRecord,
+  ScanProgress,
+  Settings
+} from '../shared/types'
 import type { TmdbSearchResult } from '../main/tmdb/client'
 
 declare global {
@@ -9,7 +15,7 @@ declare global {
       setKeybindings(kb: Keybindings): Promise<Settings>
       addFolder(): Promise<Settings | null>
       removeFolder(path: string): Promise<Settings>
-      loadLibrary(): Promise<MovieRecord[]>
+      loadLibrary(): Promise<LibraryLoadResult>
       rescanFolder(folder: string): Promise<void>
       play(id: string): Promise<void>
       retryFetch(id: string): Promise<void>

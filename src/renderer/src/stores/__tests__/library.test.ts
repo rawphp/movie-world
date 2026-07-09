@@ -2,7 +2,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useLibraryStore } from '../library'
-import type { MovieRecord } from '../../../../shared/types'
+import type { LibraryLoadResult, MovieRecord, ScanProgress } from '../../../../shared/types'
+
+let progressCb: ((p: ScanProgress) => void) | null = null
 
 const m = (id: string, over: Partial<MovieRecord> = {}): MovieRecord => ({
   id,
@@ -36,14 +38,29 @@ const m = (id: string, over: Partial<MovieRecord> = {}): MovieRecord => ({
 
 beforeEach(() => {
   setActivePinia(createPinia())
+  progressCb = null
   vi.stubGlobal('window', {
     api: {
-      loadLibrary: vi.fn(async () => [
-        m('a'),
-        m('b', { matchStatus: 'matched', genres: ['Action'], certificationAu: 'M', year: 2001 })
-      ]),
+      loadLibrary: vi.fn(async (): Promise<LibraryLoadResult> => ({
+        movies: [
+          m('a'),
+          m('b', {
+            matchStatus: 'matched',
+            genres: ['Action'],
+            certificationAu: 'M',
+            year: 2001
+          })
+        ],
+        status: {
+          firstViewFromCache: true,
+          backgroundScanRunning: true,
+          unavailableFolders: []
+        }
+      })),
       onMovieUpdated: vi.fn(),
-      onScanProgress: vi.fn()
+      onScanProgress: vi.fn((cb: (p: ScanProgress) => void) => {
+        progressCb = cb
+      })
     }
   })
 })
@@ -56,6 +73,9 @@ describe('library store', () => {
     expect(store.loaded).toBe(true)
     expect(store.pendingCount).toBe(1)
     expect(window.api.onMovieUpdated).toHaveBeenCalledOnce()
+    expect(window.api.onScanProgress).toHaveBeenCalledOnce()
+    expect(store.firstViewFromCache).toBe(true)
+    expect(store.backgroundScanRunning).toBe(true)
   })
 
   it('a second load() does not double-subscribe', async () => {
@@ -82,6 +102,34 @@ describe('library store', () => {
     expect(store.allActors).toEqual(['X'])
     expect(store.allYears).toEqual([2001, 1999])
     expect(store.allCertifications).toEqual(['M', 'PG'])
+  })
+
+  it('records unavailable cached folders from scan progress', async () => {
+    const store = useLibraryStore()
+    await store.load()
+
+    progressCb?.({
+      folder: '/',
+      discovered: 0,
+      ingested: 0,
+      done: true,
+      unavailable: true
+    })
+
+    expect(store.backgroundScanRunning).toBe(false)
+    expect(store.unavailableFolders).toEqual(['/'])
+    expect(store.cacheStatusMessage).toContain('offline')
+  })
+
+  it('clears cached-first status after background scans finish successfully', async () => {
+    const store = useLibraryStore()
+    await store.load()
+
+    progressCb?.({ folder: '/', discovered: 2, ingested: 2, done: true })
+
+    expect(store.backgroundScanRunning).toBe(false)
+    expect(store.unavailableFolders).toEqual([])
+    expect(store.cacheStatusMessage).toBeNull()
   })
 
   it('setFilter, setSort and resetFilters drive the list getter', async () => {

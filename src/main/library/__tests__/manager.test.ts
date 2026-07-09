@@ -6,7 +6,7 @@ import { createLibraryManager, type LibraryManager } from '../manager'
 import { createSettingsStore } from '../../settings'
 import { movieId } from '../scanner'
 import { createLibraryCache } from '../cache'
-import type { MovieRecord, ScanProgress } from '../../../shared/types'
+import type { LibraryLoadResult, MovieRecord, ScanProgress } from '../../../shared/types'
 import type { TmdbClient } from '../../tmdb/client'
 
 let dir: string
@@ -101,8 +101,10 @@ describe('library manager', () => {
     const cached = makeMovie()
     await createLibraryCache(appDataPath).write([cached])
 
+    const settings = createSettingsStore(join(dir, 'settings.json'))
+    settings.addFolder(moviesDir)
     const manager = createLibraryManager({
-      settings: createSettingsStore(join(dir, 'settings.json')),
+      settings,
       makeClient: () => fakeClient,
       emit: () => {},
       appDataPath,
@@ -113,9 +115,51 @@ describe('library manager', () => {
     })
     const loaded = await manager.loadLibrary()
 
-    expect(loaded).toEqual([cached])
+    expect(loaded).toEqual({
+      movies: [cached],
+      status: {
+        firstViewFromCache: true,
+        backgroundScanRunning: true,
+        backgroundScanFolders: [moviesDir],
+        unavailableFolders: []
+      }
+    })
     resolve([])
     await manager.idle()
+  })
+
+  it('reports offline startup folders through scan progress without clearing cached records', async () => {
+    const missingFolder = join(dir, 'offline-drive')
+    const settings = createSettingsStore(join(dir, 'settings.json'))
+    settings.addFolder(missingFolder)
+    const appDataPath = join(dir, 'app-data')
+    const cached = makeMovie({
+      filePath: join(missingFolder, 'Cached.Movie.2020.mkv'),
+      folderPath: missingFolder,
+      fileMissing: false
+    })
+    await createLibraryCache(appDataPath).write([cached])
+    const progress: ScanProgress[] = []
+    const manager = createLibraryManager({
+      settings,
+      makeClient: () => fakeClient,
+      emit: (channel, payload) => {
+        if (channel === 'scan:progress') progress.push(payload as ScanProgress)
+      },
+      appDataPath
+    })
+
+    const loaded = await manager.loadLibrary()
+    await manager.idle()
+
+    expect((loaded as LibraryLoadResult).movies).toEqual([cached])
+    expect(progress).toContainEqual({
+      folder: missingFolder,
+      discovered: 0,
+      ingested: 0,
+      done: true,
+      unavailable: true
+    })
   })
 
   it('runs startup scans in the background and emits update and progress events', async () => {
@@ -154,14 +198,22 @@ describe('library manager', () => {
       }
     })
 
-    await expect(manager.loadLibrary()).resolves.toEqual([])
+    await expect(manager.loadLibrary()).resolves.toMatchObject({
+      movies: [],
+      status: { firstViewFromCache: false, backgroundScanRunning: true }
+    })
     expect(updates).toHaveLength(0)
 
     discovered.resolve([file])
     await manager.idle()
 
     expect(updates.some((m) => m.filePath === file)).toBe(true)
-    expect(progress.at(-1)).toMatchObject({ folder: moviesDir, discovered: 1, ingested: 1, done: true })
+    expect(progress.at(-1)).toMatchObject({
+      folder: moviesDir,
+      discovered: 1,
+      ingested: 1,
+      done: true
+    })
   })
 
   it('keeps cached records visible when a startup folder is offline', async () => {
@@ -188,7 +240,7 @@ describe('library manager', () => {
     const loaded = await manager.loadLibrary()
     await manager.idle()
 
-    expect(loaded).toEqual([cached])
+    expect(loaded.movies).toEqual([cached])
     expect(manager.getMovies()).toEqual([cached])
     expect(updates.some((m) => m.fileMissing)).toBe(false)
   })
@@ -202,7 +254,7 @@ describe('library manager', () => {
 
     const { manager, updates } = makeManager()
     const initial = await manager.loadLibrary()
-    expect(initial).toEqual([])
+    expect(initial.movies).toEqual([])
     await manager.idle()
     expect(updates.at(-1)!.matchStatus).toBe('matched')
     expect(manager.getMovies()[0].tmdbId).toBe(603)

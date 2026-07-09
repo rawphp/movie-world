@@ -57,4 +57,17 @@ export interface ScanProgress {
   discovered: number
   ingested: number
   done: boolean
+  unavailable?: boolean
+}
+
+export interface LibraryLoadStatus {
+  firstViewFromCache: boolean
+  backgroundScanRunning: boolean
+  backgroundScanFolders?: string[]
+  unavailableFolders: string[]
+}
+
+export interface LibraryLoadResult {
+  movies: MovieRecord[]
+  status: LibraryLoadStatus
 }
