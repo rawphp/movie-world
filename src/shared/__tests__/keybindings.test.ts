@@ -36,7 +36,11 @@ describe('keybinding utilities', () => {
 
   it('rejects events with extra modifiers held', () => {
     expect(
-      matchesCombo(keyEvent('ArrowRight', { metaKey: true, shiftKey: true }), 'Mod+ArrowRight', true)
+      matchesCombo(
+        keyEvent('ArrowRight', { metaKey: true, shiftKey: true }),
+        'Mod+ArrowRight',
+        true
+      )
     ).toBe(false)
   })
 

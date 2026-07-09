@@ -30,7 +30,11 @@ export function createSettingsStore(file: string): SettingsStore {
     return next
   }
   function setKeybindings(kb: Keybindings): Settings {
-    if (!isValidCombo(kb.prevMovie) || !isValidCombo(kb.nextMovie) || kb.prevMovie === kb.nextMovie) {
+    if (
+      !isValidCombo(kb.prevMovie) ||
+      !isValidCombo(kb.nextMovie) ||
+      kb.prevMovie === kb.nextMovie
+    ) {
       throw new Error('Invalid keybindings')
     }
 

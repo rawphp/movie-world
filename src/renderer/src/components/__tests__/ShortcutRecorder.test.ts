@@ -18,7 +18,9 @@ describe('ShortcutRecorder', () => {
     const wrapper = mount(ShortcutRecorder, { props: { combo: 'Alt+n' } })
 
     await wrapper.get('[data-testid="shortcut-recorder"]').trigger('click')
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt', altKey: true, cancelable: true }))
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Alt', altKey: true, cancelable: true })
+    )
     await nextTick()
     expect(wrapper.emitted('update:combo')).toBeUndefined()
     expect(wrapper.text()).toContain('Press a combination')

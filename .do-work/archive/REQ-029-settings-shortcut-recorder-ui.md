@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
-**Files:** src/renderer/src/components/ShortcutRecorder.vue, src/renderer/src/components/__tests__/ShortcutRecorder.test.ts, src/renderer/src/views/SettingsView.vue, src/renderer/src/views/__tests__/SettingsView.test.ts
+**Files:** src/renderer/src/components/ShortcutRecorder.vue, src/renderer/src/components/**tests**/ShortcutRecorder.test.ts, src/renderer/src/views/SettingsView.vue, src/renderer/src/views/**tests**/SettingsView.test.ts
 **Depends on:** REQ-024, REQ-028
 
 ## Task
@@ -55,6 +55,6 @@ Add a "Keyboard shortcuts" section to SettingsView with a key-capture recorder:
 ## Outputs
 
 - src/renderer/src/components/ShortcutRecorder.vue — Added key-capture shortcut recorder with readable combo display, validation, cancel handling, and captured keydown behavior.
-- src/renderer/src/components/__tests__/ShortcutRecorder.test.ts — Added focused recorder coverage for valid recording, modifier-only ignores, Escape cancel, invalid combos, and event capture.
+- src/renderer/src/components/**tests**/ShortcutRecorder.test.ts — Added focused recorder coverage for valid recording, modifier-only ignores, Escape cancel, invalid combos, and event capture.
 - src/renderer/src/views/SettingsView.vue — Added Keyboard shortcuts settings section with previous/next recorders, duplicate validation, reset to defaults, and setKeybindings persistence.
-- src/renderer/src/views/__tests__/SettingsView.test.ts — Added SettingsView coverage for initial shortcut rendering, persistence, duplicate rejection, and reset behavior.
+- src/renderer/src/views/**tests**/SettingsView.test.ts — Added SettingsView coverage for initial shortcut rendering, persistence, duplicate rejection, and reset behavior.

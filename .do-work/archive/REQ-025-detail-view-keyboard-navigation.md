@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
-**Files:** src/renderer/src/views/MovieDetailView.vue, src/renderer/src/lib/movie-nav.ts, src/renderer/src/lib/__tests__/movie-nav.test.ts, src/renderer/src/views/__tests__/MovieDetailView.test.ts
+**Files:** src/renderer/src/views/MovieDetailView.vue, src/renderer/src/lib/movie-nav.ts, src/renderer/src/lib/**tests**/movie-nav.test.ts, src/renderer/src/views/**tests**/MovieDetailView.test.ts
 **Depends on:** REQ-024, REQ-027
 
 ## Task
@@ -64,6 +64,6 @@ Brief: keyboard combination in the detail view navigates to the previous/next mo
 ## Outputs
 
 - src/renderer/src/lib/movie-nav.ts — Added pure adjacentMovieId helper for previous/next list navigation with wrap and fallback behavior.
-- src/renderer/src/lib/__tests__/movie-nav.test.ts — Added focused unit coverage for adjacentMovieId edge cases.
+- src/renderer/src/lib/**tests**/movie-nav.test.ts — Added focused unit coverage for adjacentMovieId edge cases.
 - src/renderer/src/views/MovieDetailView.vue — Wired settings-backed keydown navigation, suppression for dialogs/editable targets, unmount cleanup, and guarded async listener registration after unmount.
-- src/renderer/src/views/__tests__/MovieDetailView.test.ts — Added component coverage for navigation, suppression, listener cleanup, custom settings keybindings, and async unmount race regression.
+- src/renderer/src/views/**tests**/MovieDetailView.test.ts — Added component coverage for navigation, suppression, listener cleanup, custom settings keybindings, and async unmount race regression.

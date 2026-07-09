@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** M
-**Files:** src/main/settings.ts, src/main/ipc.ts, src/main/__tests__/settings.test.ts
+**Files:** src/main/settings.ts, src/main/ipc.ts, src/main/**tests**/settings.test.ts
 **Depends on:** REQ-024
 
 ## Task
@@ -57,4 +57,4 @@ Brief: the keyboard combination must be editable in settings. Settings persisten
 
 - src/main/settings.ts — Added keybinding deep-merge reads, validated setKeybindings persistence, and invalid/duplicate rejection.
 - src/main/ipc.ts — Registered settings:set-keybindings IPC handler delegating to the settings store.
-- src/main/__tests__/settings.test.ts — Added settings-store and IPC coverage for keybinding defaults, persistence, rejection, and delegation.
+- src/main/**tests**/settings.test.ts — Added settings-store and IPC coverage for keybinding defaults, persistence, rejection, and delegation.

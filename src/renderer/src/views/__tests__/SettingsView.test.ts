@@ -13,7 +13,7 @@ const makeApi = (initial: Settings): void => {
   // Assign only window.api so jsdom's Event constructors (needed by trigger) survive.
   window.api = {
     getSettings: vi.fn(async () => initial),
-  setApiKey: vi.fn(async (k: string) => ({
+    setApiKey: vi.fn(async (k: string) => ({
       folders: initial.folders,
       tmdbApiKey: k,
       keybindings: initial.keybindings

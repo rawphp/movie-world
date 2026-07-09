@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** M
-**Files:** src/shared/types.ts, src/shared/keybindings.ts, src/shared/__tests__/keybindings.test.ts, src/shared/__tests__/smoke.test.ts, src/main/settings.ts, src/main/__tests__/settings.test.ts, src/renderer/src/views/SettingsView.vue, src/renderer/src/views/__tests__/SettingsView.test.ts
+**Files:** src/shared/types.ts, src/shared/keybindings.ts, src/shared/**tests**/keybindings.test.ts, src/shared/**tests**/smoke.test.ts, src/main/settings.ts, src/main/**tests**/settings.test.ts, src/renderer/src/views/SettingsView.vue, src/renderer/src/views/**tests**/SettingsView.test.ts
 **Depends on:**
 
 ## Task
@@ -64,9 +64,9 @@ Brief requires an editable keyboard combination for previous/next detail-view na
 
 - src/shared/types.ts — Added required Keybindings and Settings.keybindings shared domain types.
 - src/shared/keybindings.ts — Added default keybindings plus combo serialization, matching, and validation helpers.
-- src/shared/__tests__/keybindings.test.ts — Added focused Vitest coverage for defaults, matching, serialization, and validation.
-- src/shared/__tests__/smoke.test.ts — Updated shared Settings fixture for the required keybindings field.
+- src/shared/**tests**/keybindings.test.ts — Added focused Vitest coverage for defaults, matching, serialization, and validation.
+- src/shared/**tests**/smoke.test.ts — Updated shared Settings fixture for the required keybindings field.
 - src/main/settings.ts — Added DEFAULT_KEYBINDINGS to settings defaults so the required Settings shape is always constructed.
-- src/main/__tests__/settings.test.ts — Updated settings-store expectations for the expanded Settings shape.
+- src/main/**tests**/settings.test.ts — Updated settings-store expectations for the expanded Settings shape.
 - src/renderer/src/views/SettingsView.vue — Updated the local Settings initializer for the expanded Settings shape.
-- src/renderer/src/views/__tests__/SettingsView.test.ts — Updated SettingsView API fixtures for the expanded Settings shape.
+- src/renderer/src/views/**tests**/SettingsView.test.ts — Updated SettingsView API fixtures for the expanded Settings shape.

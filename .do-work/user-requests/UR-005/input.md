@@ -11,18 +11,20 @@ acknowledged_partials: []
 ---
 
 <!-- capture-summary-start -->
+
 ## Capture summary (2026-07-09)
 
-| Item | Value |
-|---|---|
-| Classification | feature |
-| Layers in scope | shared, main, preload, renderer, packaging |
+| Item            | Value                                            |
+| --------------- | ------------------------------------------------ |
+| Classification  | feature                                          |
+| Layers in scope | shared, main, preload, renderer, packaging       |
 | Layer decisions | shared: no, main: no, preload: no, packaging: no |
-| REQs generated | 1 |
+| REQs generated  | 1                                                |
 
-| REQ | Layer | Integration confidence |
-|---|---|---|
-| REQ-022 | renderer | high |
+| REQ     | Layer    | Integration confidence |
+| ------- | -------- | ---------------------- |
+| REQ-022 | renderer | high                   |
+
 <!-- capture-summary-end -->
 
 # UR-005: User Request

@@ -57,7 +57,11 @@ const makeMovie = (overrides: Partial<MovieRecord> = {}): MovieRecord => ({
 
 function mountWithMovie(
   movie: MovieRecord,
-  options: { list?: MovieRecord[]; keybindings?: Keybindings; settingsPromise?: Promise<unknown> } = {}
+  options: {
+    list?: MovieRecord[]
+    keybindings?: Keybindings
+    settingsPromise?: Promise<unknown>
+  } = {}
 ): ReturnType<typeof mount> {
   setActivePinia(createPinia())
   const settings = {

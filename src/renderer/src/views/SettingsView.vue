@@ -63,7 +63,10 @@ async function saveShortcut(action: keyof Keybindings, combo: string): Promise<v
   }
 
   if (combo === settings.value.keybindings[otherAction]) {
-    shortcutErrors.value = { ...shortcutErrors.value, [action]: 'Already used by another shortcut.' }
+    shortcutErrors.value = {
+      ...shortcutErrors.value,
+      [action]: 'Already used by another shortcut.'
+    }
     return
   }
 

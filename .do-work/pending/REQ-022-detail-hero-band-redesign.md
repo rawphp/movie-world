@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
-**Files:** src/renderer/src/views/MovieDetailView.vue, src/renderer/src/views/__tests__/MovieDetailView.test.ts
+**Files:** src/renderer/src/views/MovieDetailView.vue, src/renderer/src/views/**tests**/MovieDetailView.test.ts
 **Depends on:**
 
 ## Task
@@ -87,4 +87,4 @@ Advisory design reference: `docs/design/movie_detail_modal_the_matrix/` and toke
 ## Outputs
 
 - src/renderer/src/views/MovieDetailView.vue — Replaced full-page dark backdrop with hero-band artwork, solid body, compact file info, poster overlap, and capped trailer
-- src/renderer/src/views/__tests__/MovieDetailView.test.ts — Updated component coverage for hero artwork, fallback, compact file info, trailer sizing, and width preservation
+- src/renderer/src/views/**tests**/MovieDetailView.test.ts — Updated component coverage for hero artwork, fallback, compact file info, trailer sizing, and width preservation

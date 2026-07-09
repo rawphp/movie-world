@@ -49,7 +49,8 @@ function isEditableTarget(target: EventTarget | null): boolean {
 
   return (
     target.isContentEditable ||
-    target.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]') != null
+    target.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]') !=
+      null
   )
 }
 

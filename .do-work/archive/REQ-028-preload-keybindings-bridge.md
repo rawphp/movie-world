@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** S
-**Files:** src/preload/__tests__/index.test.ts, src/preload/index.d.ts, src/preload/index.ts
+**Files:** src/preload/**tests**/index.test.ts, src/preload/index.d.ts, src/preload/index.ts
 **Depends on:** REQ-024, REQ-027
 
 ## Task
@@ -56,4 +56,4 @@ Brief: the keyboard combination must be editable in settings. The renderer canno
 
 - src/preload/index.ts — Added setKeybindings bridge method invoking settings:set-keybindings with the provided Keybindings payload.
 - src/preload/index.d.ts — Added Keybindings import and typed Window api setKeybindings(kb) as Promise<Settings>.
-- src/preload/__tests__/index.test.ts — Added focused Vitest coverage proving the preload API exposes setKeybindings on the correct IPC channel.
+- src/preload/**tests**/index.test.ts — Added focused Vitest coverage proving the preload API exposes setKeybindings on the correct IPC channel.

@@ -17,24 +17,26 @@ acknowledged_partials: []
 ---
 
 <!-- capture-summary-start -->
+
 ## Capture summary (2026-07-09)
 
-| Item | Value |
-|---|---|
-| Classification | feature |
+| Item            | Value                                      |
+| --------------- | ------------------------------------------ |
+| Classification  | feature                                    |
 | Layers in scope | shared, main, preload, renderer, packaging |
-| Layer decisions | packaging: no |
-| REQs generated | 7 |
+| Layer decisions | packaging: no                              |
+| REQs generated  | 7                                          |
 
-| REQ | Layer | Integration confidence |
-|---|---|---|
-| REQ-023 | none (path-unit) | n/a |
-| REQ-024 | shared | high |
-| REQ-025 | renderer | high |
-| REQ-026 | none (path-unit) | n/a |
-| REQ-027 | main | high |
-| REQ-028 | preload | high |
-| REQ-029 | renderer | high |
+| REQ     | Layer            | Integration confidence |
+| ------- | ---------------- | ---------------------- |
+| REQ-023 | none (path-unit) | n/a                    |
+| REQ-024 | shared           | high                   |
+| REQ-025 | renderer         | high                   |
+| REQ-026 | none (path-unit) | n/a                    |
+| REQ-027 | main             | high                   |
+| REQ-028 | preload          | high                   |
+| REQ-029 | renderer         | high                   |
+
 <!-- capture-summary-end -->
 
 # UR-006: User Request

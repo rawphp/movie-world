@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
-**Files:** src/renderer/src/views/MovieDetailView.vue, src/renderer/src/views/__tests__/MovieDetailView.test.ts
+**Files:** src/renderer/src/views/MovieDetailView.vue, src/renderer/src/views/**tests**/MovieDetailView.test.ts
 **Depends on:**
 
 ## Task
@@ -74,4 +74,4 @@ Advisory design reference: `docs/design/movie_detail_modal_the_matrix/` (`code.h
 ## Outputs
 
 - src/renderer/src/views/MovieDetailView.vue — Adds full-page artwork background treatment, central scrim, wider detail layout, and wider trailer column.
-- src/renderer/src/views/__tests__/MovieDetailView.test.ts — Adds component tests for fanart background, poster fallback, non-interactive background layer, and max-w-7xl body width.
+- src/renderer/src/views/**tests**/MovieDetailView.test.ts — Adds component tests for fanart background, poster fallback, non-interactive background layer, and max-w-7xl body width.
