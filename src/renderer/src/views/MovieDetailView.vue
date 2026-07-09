@@ -17,6 +17,7 @@ const api = window.api
 const fixing = ref(false)
 const keybindings = ref<Keybindings | null>(null)
 const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform)
+let mounted = false
 
 const movie = computed(() => store.movies[String(route.params.id)])
 const title = computed(() => movie.value?.title ?? movie.value?.parsedTitle ?? '')
@@ -78,11 +79,19 @@ function onKeydown(event: KeyboardEvent): void {
 }
 
 onMounted(async () => {
-  keybindings.value = (await api.getSettings()).keybindings
+  mounted = true
+  const settings = await api.getSettings()
+
+  if (!mounted) {
+    return
+  }
+
+  keybindings.value = settings.keybindings
   window.addEventListener('keydown', onKeydown)
 })
 
 onUnmounted(() => {
+  mounted = false
   window.removeEventListener('keydown', onKeydown)
 })
 </script>

@@ -9,6 +9,16 @@ import type { Keybindings, MovieRecord } from '../../../../shared/types'
 let routeId = 'movie-1'
 const push = vi.fn()
 const getSettings = vi.fn()
+const defaultKeybindings: Keybindings = { prevMovie: 'Mod+ArrowLeft', nextMovie: 'Mod+ArrowRight' }
+
+function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((r) => {
+    resolve = r
+  })
+
+  return { promise, resolve }
+}
 
 vi.mock('vue-router', () => ({
   useRoute: () => ({ params: { id: routeId } }),
@@ -47,14 +57,15 @@ const makeMovie = (overrides: Partial<MovieRecord> = {}): MovieRecord => ({
 
 function mountWithMovie(
   movie: MovieRecord,
-  options: { list?: MovieRecord[]; keybindings?: Keybindings } = {}
+  options: { list?: MovieRecord[]; keybindings?: Keybindings; settingsPromise?: Promise<unknown> } = {}
 ): ReturnType<typeof mount> {
   setActivePinia(createPinia())
-  getSettings.mockResolvedValue({
+  const settings = {
     folders: [],
     tmdbApiKey: null,
-    keybindings: options.keybindings ?? { prevMovie: 'Mod+ArrowLeft', nextMovie: 'Mod+ArrowRight' }
-  })
+    keybindings: options.keybindings ?? defaultKeybindings
+  }
+  getSettings.mockReturnValue(options.settingsPromise ?? Promise.resolve(settings))
   window.api = {
     getSettings,
     play: vi.fn(async () => {}),
@@ -231,6 +242,32 @@ describe('MovieDetailView', () => {
     await flushPromises()
 
     wrapper.unmount()
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: ']', altKey: true, bubbles: true }))
+
+    expect(push).not.toHaveBeenCalled()
+  })
+
+  it('does not leave a keydown listener when settings resolve after unmount', async () => {
+    const current = makeMovie({ id: 'movie-1', title: 'Alpha' })
+    const next = makeMovie({ id: 'movie-2', title: 'Beta' })
+    const settings = deferred<{
+      folders: string[]
+      tmdbApiKey: null
+      keybindings: Keybindings
+    }>()
+    const wrapper = mountWithMovie(current, {
+      list: [current, next],
+      settingsPromise: settings.promise
+    })
+
+    wrapper.unmount()
+    settings.resolve({
+      folders: [],
+      tmdbApiKey: null,
+      keybindings: { prevMovie: 'Alt+[', nextMovie: 'Alt+]' }
+    })
+    await flushPromises()
+
     window.dispatchEvent(new KeyboardEvent('keydown', { key: ']', altKey: true, bubbles: true }))
 
     expect(push).not.toHaveBeenCalled()
