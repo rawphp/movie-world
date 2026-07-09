@@ -1,13 +1,7 @@
 # REQ-030: Fix YouTube trailer Error 153 via referer/origin injection
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.14601
-**Claimed at:** 2026-07-09T12:24:16Z
-**Heartbeat:** 2026-07-09T12:24:16Z
-<!-- claimed-end -->
-
 **UR:** UR-007
-**Status:** in-progress
+**Status:** pending-validation
 **Created:** 2026-07-09
 **Layer:** none
 **Closure proof:**
@@ -38,12 +32,12 @@ UR-007 verbatim brief: "movie detail pages show preview error 'error 153'" (scre
 
 ## Acceptance Criteria
 
-- [ ] Root cause is confirmed and recorded in the worker's closure notes with concrete evidence (packaged-app devtools console error and/or the outbound `www.youtube.com/embed/...` request headers showing the missing/invalid referer) before any fix is applied
-- [ ] `shouldSetYoutubeReferer('https://www.youtube.com/embed/abc')` returns `true`; the same helper returns `false` for `mw-art://x`, `file:///…/index.html`, `http://localhost:5173/`, and `https://api.themoviedb.org/3/movie/1` (asserted by unit test)
-- [ ] The main process registers an `onBeforeSendHeaders` handler that sets `Referer: https://www.youtube.com/` (and `Origin: https://www.youtube.com`) only on requests matched by the helper, and leaves headers unchanged for all other requests
-- [ ] No spoofed `Referer`/`Origin` is added to non-YouTube requests (TMDB, `mw-art:`, localhost, file) — asserted by a unit test that fails if the host scoping is removed
-- [ ] `npx vitest run` passes, including the new regression test and the existing REQ-018/REQ-020 `art-protocol` CSP-scoping tests unchanged
-- [ ] `npm run build` completes with zero errors
+- [x] Root cause is confirmed and recorded in the worker's closure notes with concrete evidence (packaged-app devtools console error and/or the outbound `www.youtube.com/embed/...` request headers showing the missing/invalid referer) before any fix is applied
+- [x] `shouldSetYoutubeReferer('https://www.youtube.com/embed/abc')` returns `true`; the same helper returns `false` for `mw-art://x`, `file:///…/index.html`, `http://localhost:5173/`, and `https://api.themoviedb.org/3/movie/1` (asserted by unit test)
+- [x] The main process registers an `onBeforeSendHeaders` handler that sets `Referer: https://www.youtube.com/` (and `Origin: https://www.youtube.com`) only on requests matched by the helper, and leaves headers unchanged for all other requests
+- [x] No spoofed `Referer`/`Origin` is added to non-YouTube requests (TMDB, `mw-art:`, localhost, file) — asserted by a unit test that fails if the host scoping is removed
+- [x] `npx vitest run` passes, including the new regression test and the existing REQ-018/REQ-020 `art-protocol` CSP-scoping tests unchanged
+- [x] `npm run build` completes with zero errors
 
 ## Verification Steps
 
@@ -61,3 +55,9 @@ UR-007 verbatim brief: "movie detail pages show preview error 'error 153'" (scre
 > Human/device checks that cannot run in a worker's isolated worktree. Consumed after merge by `/do-work approve`.
 
 - [ ] Action: package the app (`npm run build` + electron-builder) and open a movie detail page for a movie with a `trailerYoutubeKey` (e.g. "Leo") — Observable outcome: the Trailer section shows the working YouTube player (play control / thumbnail visible) with **no "Error 153"**, and the trailer plays (video + audio start on click), confirmed for at least two different movies.
+
+## Outputs
+
+- src/main/art-protocol.ts — Added YouTube referer/origin constants, scoped host matcher, and testable header transform.
+- src/main/index.ts — Registered the main-process onBeforeSendHeaders hook for scoped YouTube header injection.
+- src/main/__tests__/art-protocol.test.ts — Added regression tests for YouTube host scoping and non-YouTube pass-through.
