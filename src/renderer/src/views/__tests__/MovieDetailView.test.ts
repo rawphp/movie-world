@@ -169,6 +169,20 @@ describe('MovieDetailView', () => {
     expect(trailer.classes()).toContain('max-w-2xl')
   })
 
+  it('offers an external YouTube fallback when a trailer key exists', () => {
+    const wrapper = mountWithMovie(makeMovie({ trailerYoutubeKey: '0CYVGN98ZLA' }))
+
+    const trailer = wrapper.get('[data-testid="detail-trailer-frame"]')
+    const fallback = wrapper.get('[data-testid="detail-trailer-youtube-link"]')
+
+    expect(trailer.find('iframe').attributes('src')).toBe(
+      'https://www.youtube.com/embed/0CYVGN98ZLA'
+    )
+    expect(fallback.attributes('href')).toBe('https://www.youtube.com/watch?v=0CYVGN98ZLA')
+    expect(fallback.attributes('target')).toBe('_blank')
+    expect(fallback.attributes('rel')).toContain('noopener')
+  })
+
   it('uses a wider body container than max-w-5xl', () => {
     const wrapper = mountWithMovie(makeMovie())
 
