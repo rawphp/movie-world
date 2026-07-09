@@ -1,10 +1,10 @@
 # REQ-030: Fix YouTube trailer Error 153 via referer/origin injection
 
 **UR:** UR-007
-**Status:** pending-validation
+**Status:** done
 **Created:** 2026-07-09
 **Layer:** none
-**Closure proof:**
+**Closure proof:** upgrade: pending/ removal — human validation moved outside the system
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
@@ -50,7 +50,7 @@ UR-007 verbatim brief: "movie detail pages show preview error 'error 153'" (scre
 3. **build** `npm run build`
    - Expected: production build completes with zero errors.
 
-## Post-merge validation
+## Manual checks (advisory)
 
 > Human/device checks that cannot run in a worker's isolated worktree. Consumed after merge by `/do-work approve`.
 

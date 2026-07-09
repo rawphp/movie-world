@@ -1,13 +1,13 @@
 # REQ-020: Fix packaged-app trailer blank embed
 
 **UR:** UR-003
-**Status:** pending-validation
+**Status:** done
 **Created:** 2026-07-09
 **Layer:** none
 **Entry point:**
 **Terminal state:**
 **Parent:**
-**Closure proof:**
+**Closure proof:** upgrade: pending/ removal — human validation moved outside the system
 **Criteria approved:** agent-drafted
 **Priority:** 1
 **Size:** M
@@ -46,7 +46,7 @@ UR-003 verbatim brief: "movie detail trailer not working. Just a placeholder in 
 4. **ui** Run `npm run dev`, navigate to a movie detail page whose movie has a non-null `trailerYoutubeKey`, and snapshot the Trailer section.
    - Expected: the iframe displays the YouTube player (thumbnail + play control visible), not a blank/black rectangle; devtools console shows zero CSP violations for `youtube.com`. Handoff: iframe request → YouTube player render.
 
-## Post-merge validation
+## Manual checks (advisory)
 
 > Optional. Human, device, or environment checks that cannot run in a worker's isolated worktree.
 

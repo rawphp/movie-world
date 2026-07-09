@@ -1,13 +1,13 @@
 # REQ-023: Detail-view keyboard navigation path
 
 **UR:** UR-006
-**Status:** pending-validation
+**Status:** done
 **Created:** 2026-07-09
 **Layer:** none
 **Entry point:** User is on `/movie/:id` (MovieDetailView) and presses the bound previous/next keyboard combination (default Cmd/Ctrl+← / Cmd/Ctrl+→)
 **Terminal state:** The detail view shows the adjacent movie in the displayed library order (active filters + current sort, i.e. `store.list`), wrapping from first→last and last→first
 **Parent:**
-**Closure proof:**
+**Closure proof:** upgrade: pending/ removal — human validation moved outside the system
 **Criteria approved:** agent-drafted
 **Priority:** 1
 **Size:** S
@@ -38,7 +38,7 @@ Brief: "when I'm in a movie detail view, if I press a keyboard combination, it s
 2. **build** `npm run build`
    - Expected: clean build, no TypeScript errors across shared/main/preload/renderer
 
-## Post-merge validation
+## Manual checks (advisory)
 
 - [ ] Action: launch the app (`npm run dev`), open any movie's detail view and press Cmd+→ (macOS) — Observable outcome: the detail view switches to the next movie of the library grid order without losing scroll/window state
 - [ ] Action: apply a genre filter in the library, open a movie from the filtered grid, press Cmd+→ repeatedly — Observable outcome: only movies matching the filter appear, and after the last one it wraps to the first

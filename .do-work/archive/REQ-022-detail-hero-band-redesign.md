@@ -1,13 +1,13 @@
 # REQ-022: Detail page — hero-band redesign (visible artwork, solid body)
 
 **UR:** UR-005
-**Status:** pending-validation
+**Status:** done
 **Created:** 2026-07-09
 **Layer:** renderer
 **Entry point:** Click a movie card in the library → route `/movie/:id` renders `MovieDetailView.vue` (src/renderer/src/router.ts)
 **Terminal state:** The detail page shows the fanart at near-full opacity in a top hero band (title/meta/actions overlaid in its lower-left), fading into a solid neutral-950 body where synopsis/stars/trailer sit on a clean surface — no full-page dimmed backdrop, no "content floating in darkness"
 **Parent:**
-**Closure proof:**
+**Closure proof:** upgrade: pending/ removal — human validation moved outside the system
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
@@ -66,7 +66,7 @@ Advisory design reference: `docs/design/movie_detail_modal_the_matrix/` and toke
 5. **build** `npm run build`
    - Expected: typecheck + electron-vite build complete without errors (handoff: template → compiled renderer bundle).
 
-## Post-merge validation
+## Manual checks (advisory)
 
 - [ ] Run `npm run dev` and open a movie with fanart (e.g. A Man Called Otto) — Observable outcome: the artwork is clearly visible in the top hero band (recognisable imagery, not a murky dark wash); title and buttons are legible over the left scrim; the body below sits on a solid dark surface with nothing "floating in darkness"; the whole page reads as one composition, not a spotlit island.
 - [ ] Open a movie without fanart — Observable outcome: hero shows the poster or solid dark fallback with identical layout, nothing blank or broken.

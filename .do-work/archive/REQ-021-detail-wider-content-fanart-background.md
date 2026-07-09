@@ -1,13 +1,13 @@
 # REQ-021: Detail page — wider content + fanart page background with central shade
 
 **UR:** UR-004
-**Status:** pending-validation
+**Status:** done
 **Created:** 2026-07-09
 **Layer:** renderer
 **Entry point:** Click a movie card in the library → route `/movie/:id` renders `MovieDetailView.vue` (src/renderer/src/router.ts)
 **Terminal state:** The detail page renders the movie's fanart as the full-page background with a dark shade centered behind the content keeping everything legible, and the body content column is visibly wider than today's `max-w-5xl`
 **Parent:**
-**Closure proof:**
+**Closure proof:** upgrade: pending/ removal — human validation moved outside the system
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
@@ -54,7 +54,7 @@ Advisory design reference: `docs/design/movie_detail_modal_the_matrix/` (`code.h
 5. **build** `npm run build`
    - Expected: typecheck + electron-vite build complete without errors (handoff: template → compiled renderer bundle).
 
-## Post-merge validation
+## Manual checks (advisory)
 
 - [ ] Run `npm run dev` and open a movie that has fanart (e.g. Absolutely Anything) — Observable outcome: the artwork fills the page background with a central shade; synopsis/stars/trailer sit on a comfortably wider column; text is easy to read and the page does not feel overcrowded — artwork visible toward the edges, content clearly dominant (the brief's "well balanced" call is a human judgment).
 - [ ] Open a movie without fanart/poster — Observable outcome: page shows the dark fallback background with identical layout, nothing blank or broken.

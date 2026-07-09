@@ -1,13 +1,13 @@
 # REQ-026: Editable shortcuts settings path
 
 **UR:** UR-006
-**Status:** pending-validation
+**Status:** done
 **Created:** 2026-07-09
 **Layer:** none
 **Entry point:** User opens `/settings` (SettingsView) and clicks a binding in the new "Keyboard shortcuts" section
 **Terminal state:** The recorded combination is persisted to the settings file on disk, returned by `settings:get`, and immediately used by the detail view for prev/next navigation without an app restart
 **Parent:**
-**Closure proof:**
+**Closure proof:** upgrade: pending/ removal — human validation moved outside the system
 **Criteria approved:** agent-drafted
 **Priority:** 1
 **Size:** S
@@ -38,7 +38,7 @@ Brief: "keyboard combination should be editable in settings". Clarified: editing
 2. **build** `npm run build`
    - Expected: clean build across main/preload/renderer
 
-## Post-merge validation
+## Manual checks (advisory)
 
 - [ ] Action: launch the app, open Settings, click the "Next movie" binding and press Alt+N — Observable outcome: the binding chip shows the new combo, and pressing Alt+N in a movie detail view navigates to the next movie without restarting the app
 - [ ] Action: quit and relaunch the app, reopen Settings — Observable outcome: the edited combo survived the restart (persisted to settings.json)
