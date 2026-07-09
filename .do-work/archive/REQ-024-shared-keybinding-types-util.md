@@ -1,23 +1,17 @@
 # REQ-024: Shared keybinding types, defaults and combo util
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.21785
-**Claimed at:** 2026-07-09T01:47:32Z
-**Heartbeat:** 2026-07-09T01:47:32Z
-<!-- claimed-end -->
-
 **UR:** UR-006
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-09
 **Layer:** shared
 **Entry point:**
 **Terminal state:**
 **Parent:** REQ-023
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:ca51224
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** M
-**Files:** src/shared/types.ts, src/shared/keybindings.ts, src/shared/__tests__/keybindings.test.ts
+**Files:** src/shared/types.ts, src/shared/keybindings.ts, src/shared/__tests__/keybindings.test.ts, src/shared/__tests__/smoke.test.ts, src/main/settings.ts, src/main/__tests__/settings.test.ts, src/renderer/src/views/SettingsView.vue, src/renderer/src/views/__tests__/SettingsView.test.ts
 **Depends on:**
 
 ## Task
@@ -40,12 +34,12 @@ Brief requires an editable keyboard combination for previous/next detail-view na
 
 ## Acceptance Criteria
 
-- [ ] `Settings` in `src/shared/types.ts` includes `keybindings: Keybindings` and the project still typechecks
-- [ ] `matchesCombo` returns true for a `metaKey+ArrowRight` event against `Mod+ArrowRight` when `isMac` is true, and false when `isMac` is false (Ctrl expected instead)
-- [ ] `matchesCombo` returns false when extra modifiers are held (e.g. `Shift+Meta+ArrowRight` vs `Mod+ArrowRight`)
-- [ ] `comboFromEvent` returns `null` for a modifier-only keydown (e.g. `key === 'Meta'`) and a correctly ordered combo string for `ctrlKey+shiftKey+key 'p'`
-- [ ] `isValidCombo` returns false for `''`, `'Mod'`, `'Escape'`, `'Mod+q'`, `'Mod+w'` and true for `'Mod+ArrowLeft'`, `']'`
-- [ ] Unit tests in `src/shared/__tests__/keybindings.test.ts` cover all of the above and pass
+- [x] `Settings` in `src/shared/types.ts` includes `keybindings: Keybindings` and the project still typechecks
+- [x] `matchesCombo` returns true for a `metaKey+ArrowRight` event against `Mod+ArrowRight` when `isMac` is true, and false when `isMac` is false (Ctrl expected instead)
+- [x] `matchesCombo` returns false when extra modifiers are held (e.g. `Shift+Meta+ArrowRight` vs `Mod+ArrowRight`)
+- [x] `comboFromEvent` returns `null` for a modifier-only keydown (e.g. `key === 'Meta'`) and a correctly ordered combo string for `ctrlKey+shiftKey+key 'p'`
+- [x] `isValidCombo` returns false for `''`, `'Mod'`, `'Escape'`, `'Mod+q'`, `'Mod+w'` and true for `'Mod+ArrowLeft'`, `']'`
+- [x] Unit tests in `src/shared/__tests__/keybindings.test.ts` cover all of the above and pass
 
 ## Verification Steps
 
@@ -65,3 +59,14 @@ Brief requires an editable keyboard combination for previous/next detail-view na
 **Data dependencies:** Extends the `Settings` interface at `src/shared/types.ts:42` (currently `folders` + `tmdbApiKey`).
 
 **Service dependencies:** None — pure types and pure functions; no runtime services.
+
+## Outputs
+
+- src/shared/types.ts — Added required Keybindings and Settings.keybindings shared domain types.
+- src/shared/keybindings.ts — Added default keybindings plus combo serialization, matching, and validation helpers.
+- src/shared/__tests__/keybindings.test.ts — Added focused Vitest coverage for defaults, matching, serialization, and validation.
+- src/shared/__tests__/smoke.test.ts — Updated shared Settings fixture for the required keybindings field.
+- src/main/settings.ts — Added DEFAULT_KEYBINDINGS to settings defaults so the required Settings shape is always constructed.
+- src/main/__tests__/settings.test.ts — Updated settings-store expectations for the expanded Settings shape.
+- src/renderer/src/views/SettingsView.vue — Updated the local Settings initializer for the expanded Settings shape.
+- src/renderer/src/views/__tests__/SettingsView.test.ts — Updated SettingsView API fixtures for the expanded Settings shape.

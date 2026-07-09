@@ -1,0 +1,29 @@
+run_id: RUN-006
+req: REQ-024
+ur: UR-006
+agent_id: "Toms-MacBook-Pro.local.21785"
+model: "sonnet"
+branch: "req/REQ-024"
+started_at: "2026-07-09T01:47:32Z"
+ended_at: "2026-07-09T01:59:30Z"
+result: "done"
+review_outcome: "passed"
+proof_status: "unproven"
+cost_estimate: "tier-weighted estimate"
+cost_estimate_num: 0.05
+pr_url: ""
+commands:
+  - "npx vitest run src/shared/__tests__/keybindings.test.ts"
+  - "npx vitest run"
+  - "npx vue-tsc --noEmit -p tsconfig.web.json 2>/dev/null || npm run typecheck"
+tests:
+  - "npx vitest run src/shared/__tests__/keybindings.test.ts"
+  - "npx vitest run"
+  - "npx vue-tsc --noEmit -p tsconfig.web.json 2>/dev/null || npm run typecheck"
+changed_files:
+  - "src/main/__tests__/settings.test.ts"
+  - "src/main/settings.ts"
+  - "src/renderer/src/views/SettingsView.vue"
+  - "src/renderer/src/views/__tests__/SettingsView.test.ts"
+  - "src/shared/__tests__/smoke.test.ts"
+  - "src/shared/types.ts"
