@@ -1,13 +1,14 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import MovieDetailView from '../MovieDetailView.vue'
 import { useLibraryStore } from '../../stores/library'
-import type { MovieRecord } from '../../../../shared/types'
+import type { Keybindings, MovieRecord } from '../../../../shared/types'
 
 let routeId = 'movie-1'
 const push = vi.fn()
+const getSettings = vi.fn()
 
 vi.mock('vue-router', () => ({
   useRoute: () => ({ params: { id: routeId } }),
@@ -44,16 +45,28 @@ const makeMovie = (overrides: Partial<MovieRecord> = {}): MovieRecord => ({
   ...overrides
 })
 
-function mountWithMovie(movie: MovieRecord): ReturnType<typeof mount> {
+function mountWithMovie(
+  movie: MovieRecord,
+  options: { list?: MovieRecord[]; keybindings?: Keybindings } = {}
+): ReturnType<typeof mount> {
   setActivePinia(createPinia())
+  getSettings.mockResolvedValue({
+    folders: [],
+    tmdbApiKey: null,
+    keybindings: options.keybindings ?? { prevMovie: 'Mod+ArrowLeft', nextMovie: 'Mod+ArrowRight' }
+  })
   window.api = {
+    getSettings,
     play: vi.fn(async () => {}),
     revealFile: vi.fn(async () => {}),
-    retryFetch: vi.fn(async () => {})
+    retryFetch: vi.fn(async () => {}),
+    searchTmdb: vi.fn(async () => [])
   } as unknown as Window['api']
 
   const store = useLibraryStore()
-  store.movies[movie.id] = movie
+  for (const item of options.list ?? [movie]) {
+    store.movies[item.id] = item
+  }
   routeId = movie.id
 
   return mount(MovieDetailView)
@@ -61,6 +74,7 @@ function mountWithMovie(movie: MovieRecord): ReturnType<typeof mount> {
 
 beforeEach(() => {
   push.mockReset()
+  getSettings.mockReset()
 })
 
 describe('MovieDetailView', () => {
@@ -126,5 +140,99 @@ describe('MovieDetailView', () => {
 
     expect(body.classes()).toContain('max-w-7xl')
     expect(body.classes()).not.toContain('max-w-5xl')
+  })
+
+  it('uses settings keybindings to navigate to the next movie in store list order', async () => {
+    const current = makeMovie({ id: 'movie-2', title: 'Beta' })
+    const next = makeMovie({ id: 'movie-3', title: 'Gamma' })
+    const wrapper = mountWithMovie(current, {
+      list: [makeMovie({ id: 'movie-1', title: 'Alpha' }), current, next],
+      keybindings: { prevMovie: 'Alt+[', nextMovie: 'Alt+]' }
+    })
+    await flushPromises()
+
+    const event = new KeyboardEvent('keydown', {
+      key: ']',
+      altKey: true,
+      bubbles: true,
+      cancelable: true
+    })
+    window.dispatchEvent(event)
+
+    expect(getSettings).toHaveBeenCalled()
+    expect(push).toHaveBeenCalledWith({ name: 'movie', params: { id: next.id } })
+    expect(event.defaultPrevented).toBe(true)
+    wrapper.unmount()
+  })
+
+  it('suppresses configured navigation while fixing or typing in form targets', async () => {
+    const current = makeMovie({ id: 'movie-1', title: 'Alpha' })
+    const next = makeMovie({ id: 'movie-2', title: 'Beta' })
+    const fixingWrapper = mountWithMovie(current, {
+      list: [current, next],
+      keybindings: { prevMovie: 'Alt+[', nextMovie: 'Alt+]' }
+    })
+    await flushPromises()
+
+    await fixingWrapper.get('button:nth-of-type(2)').trigger('click')
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: ']', altKey: true, bubbles: true }))
+    fixingWrapper.unmount()
+
+    expect(push).not.toHaveBeenCalled()
+    push.mockReset()
+
+    const inputWrapper = mountWithMovie(current, {
+      list: [current, next],
+      keybindings: { prevMovie: 'Alt+[', nextMovie: 'Alt+]' }
+    })
+    await flushPromises()
+
+    for (const tag of ['input', 'textarea', 'select']) {
+      const target = document.createElement(tag)
+      document.body.appendChild(target)
+      target.dispatchEvent(new KeyboardEvent('keydown', { key: ']', altKey: true, bubbles: true }))
+      target.remove()
+    }
+
+    const editable = document.createElement('div')
+    editable.setAttribute('contenteditable', 'true')
+    document.body.appendChild(editable)
+    editable.dispatchEvent(new KeyboardEvent('keydown', { key: ']', altKey: true, bubbles: true }))
+    editable.remove()
+
+    expect(push).not.toHaveBeenCalled()
+    inputWrapper.unmount()
+  })
+
+  it('does not navigate or prevent default on non-matching keydowns', async () => {
+    const current = makeMovie({ id: 'movie-1', title: 'Alpha' })
+    const next = makeMovie({ id: 'movie-2', title: 'Beta' })
+    const wrapper = mountWithMovie(current, {
+      list: [current, next],
+      keybindings: { prevMovie: 'Alt+[', nextMovie: 'Alt+]' }
+    })
+    await flushPromises()
+
+    const event = new KeyboardEvent('keydown', { key: ']', ctrlKey: true, bubbles: true })
+    window.dispatchEvent(event)
+
+    expect(push).not.toHaveBeenCalled()
+    expect(event.defaultPrevented).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('removes the keydown listener on unmount', async () => {
+    const current = makeMovie({ id: 'movie-1', title: 'Alpha' })
+    const next = makeMovie({ id: 'movie-2', title: 'Beta' })
+    const wrapper = mountWithMovie(current, {
+      list: [current, next],
+      keybindings: { prevMovie: 'Alt+[', nextMovie: 'Alt+]' }
+    })
+    await flushPromises()
+
+    wrapper.unmount()
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: ']', altKey: true, bubbles: true }))
+
+    expect(push).not.toHaveBeenCalled()
   })
 })
