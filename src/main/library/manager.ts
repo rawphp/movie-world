@@ -4,12 +4,21 @@ import type { SettingsStore } from '../settings'
 import type { TmdbClient } from '../tmdb/client'
 import { createFetchQueue, fetchAndApply, downloadImageToFile } from '../tmdb/fetcher'
 import { playMovie } from '../player'
-import { discoverVideoFiles, ingestFile } from './scanner'
+import {
+  discoverVideoFiles as defaultDiscoverVideoFiles,
+  ingestFile as defaultIngestFile
+} from './scanner'
+import { createLibraryCache } from './cache'
 
 interface ManagerOpts {
   settings: SettingsStore
   makeClient: (apiKey: string) => TmdbClient
   emit: (channel: 'movie:updated' | 'scan:progress', payload: MovieRecord | ScanProgress) => void
+  appDataPath?: string
+  scanDeps?: {
+    discoverVideoFiles?: typeof defaultDiscoverVideoFiles
+    ingestFile?: typeof defaultIngestFile
+  }
   downloadImage?: (url: string, dest: string) => Promise<void>
   playDeps?: { openPath?: (p: string) => Promise<string>; now?: () => Date }
 }
@@ -26,7 +35,11 @@ export interface LibraryManager {
 
 export function createLibraryManager(opts: ManagerOpts): LibraryManager {
   const movies = new Map<string, MovieRecord>()
+  const cache = opts.appDataPath ? createLibraryCache(opts.appDataPath) : null
+  const discoverVideoFiles = opts.scanDeps?.discoverVideoFiles ?? defaultDiscoverVideoFiles
+  const ingestFile = opts.scanDeps?.ingestFile ?? defaultIngestFile
   const downloadImage = opts.downloadImage ?? downloadImageToFile
+  const startupScans = new Set<Promise<void>>()
 
   function client(): TmdbClient | null {
     const key = opts.settings.read().tmdbApiKey
@@ -36,6 +49,20 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
   function commit(movie: MovieRecord): void {
     movies.set(movie.id, movie)
     opts.emit('movie:updated', movie)
+    void persistCache().catch(() => undefined)
+  }
+
+  async function persistCache(): Promise<void> {
+    await cache?.write([...movies.values()])
+  }
+
+  async function hydrateFromCache(): Promise<MovieRecord[]> {
+    if (!cache) return []
+    const folders = new Set(opts.settings.read().folders)
+    const cached = (await cache.read()).filter((movie) => folders.has(movie.folderPath))
+    movies.clear()
+    for (const movie of cached) movies.set(movie.id, movie)
+    return cached
   }
 
   // Queue is rebuilt lazily so a newly-entered API key takes effect.
@@ -47,17 +74,28 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
     return queue
   }
 
-  async function scanOne(folder: string): Promise<MovieRecord[]> {
-    if (!existsSync(folder)) return []
+  async function scanOne(folder: string, { markMissing }: { markMissing: boolean }): Promise<MovieRecord[]> {
+    if (!existsSync(folder)) {
+      if (markMissing) {
+        for (const m of movies.values()) {
+          if (m.folderPath === folder && !m.fileMissing) commit({ ...m, fileMissing: true })
+        }
+        await persistCache()
+      }
+      opts.emit('scan:progress', { folder, discovered: 0, ingested: 0, done: true })
+      return []
+    }
     const files = await discoverVideoFiles(folder)
     const seen = new Set<string>()
     const ingested: MovieRecord[] = []
     let done = 0
     for (const file of files) {
       const existing = [...movies.values()].find((m) => m.filePath === file)
-      const record = existing ?? (await ingestFile(file, folder))
+      const record = existing
+        ? { ...existing, fileMissing: false }
+        : await ingestFile(file, folder, { appDataPath: opts.appDataPath })
       seen.add(record.id)
-      if (!existing) commit(record)
+      if (!existing || existing.fileMissing) commit(record)
       ingested.push(record)
       opts.emit('scan:progress', {
         folder,
@@ -66,24 +104,41 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
         done: false
       })
     }
-    for (const m of movies.values()) {
-      if (m.folderPath === folder && !seen.has(m.id) && !m.fileMissing) {
-        commit({ ...m, fileMissing: true })
+    if (markMissing) {
+      for (const m of movies.values()) {
+        if (m.folderPath === folder && !seen.has(m.id) && !m.fileMissing) {
+          commit({ ...m, fileMissing: true })
+        }
       }
     }
+    await persistCache()
     opts.emit('scan:progress', { folder, discovered: files.length, ingested: done, done: true })
     const q = ensureQueue()
     if (q) for (const m of ingested) if (m.matchStatus === 'pending') q.enqueue(m)
     return ingested
   }
 
+  function scheduleStartupScan(folder: string): void {
+    const scan: Promise<void> = scanOne(folder, { markMissing: false })
+      .then(() => undefined, () => undefined)
+      .finally(() => {
+        startupScans.delete(scan)
+      })
+    startupScans.add(scan)
+  }
+
+  async function waitForStartupScans(): Promise<void> {
+    while (startupScans.size > 0) await Promise.all([...startupScans])
+  }
+
   return {
     async loadLibrary(): Promise<MovieRecord[]> {
-      for (const folder of opts.settings.read().folders) await scanOne(folder)
-      return [...movies.values()]
+      const cached = await hydrateFromCache()
+      for (const folder of opts.settings.read().folders) scheduleStartupScan(folder)
+      return cached
     },
     rescanFolder: async (folder: string): Promise<void> => {
-      await scanOne(folder)
+      await scanOne(folder, { markMissing: true })
     },
     async fixMatch(id: string, tmdbId: number): Promise<void> {
       const movie = movies.get(id)
@@ -101,6 +156,9 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
       if (movie) commit(await playMovie(movie, opts.playDeps))
     },
     getMovies: (): MovieRecord[] => [...movies.values()],
-    idle: (): Promise<void> => queue?.idle() ?? Promise.resolve()
+    idle: async (): Promise<void> => {
+      await waitForStartupScans()
+      await (queue?.idle() ?? Promise.resolve())
+    }
   }
 }
