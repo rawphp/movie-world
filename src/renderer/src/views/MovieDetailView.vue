@@ -40,6 +40,20 @@ const trailerWatchUrl = computed(() =>
     ? `https://www.youtube.com/watch?v=${movie.value.trailerYoutubeKey}`
     : ''
 )
+const trailerEmbedUrl = computed(() => {
+  if (!movie.value?.trailerYoutubeKey) {
+    return ''
+  }
+
+  const origin = 'https://www.youtube-nocookie.com'
+  const params = new URLSearchParams({
+    origin,
+    rel: '0',
+    playsinline: '1'
+  })
+
+  return `${origin}/embed/${movie.value.trailerYoutubeKey}?${params.toString()}`
+})
 
 function play(): void {
   if (movie.value) void api.play(movie.value.id)
@@ -242,10 +256,11 @@ onUnmounted(() => {
             class="aspect-video w-full max-w-2xl overflow-hidden rounded-lg bg-black shadow-2xl shadow-black/40"
           >
             <iframe
-              :src="`https://www.youtube.com/embed/${movie.trailerYoutubeKey}`"
+              :src="trailerEmbedUrl"
               :title="`${title} trailer`"
               class="h-full w-full"
               frameborder="0"
+              referrerpolicy="strict-origin-when-cross-origin"
               allowfullscreen
               allow="
                 accelerometer;

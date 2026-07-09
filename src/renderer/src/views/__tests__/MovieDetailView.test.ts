@@ -176,7 +176,7 @@ describe('MovieDetailView', () => {
     const fallback = wrapper.get('[data-testid="detail-trailer-youtube-link"]')
 
     expect(trailer.find('iframe').attributes('src')).toBe(
-      'https://www.youtube.com/embed/0CYVGN98ZLA'
+      'https://www.youtube-nocookie.com/embed/0CYVGN98ZLA?origin=https%3A%2F%2Fwww.youtube-nocookie.com&rel=0&playsinline=1'
     )
     expect(fallback.attributes('href')).toBe('https://www.youtube.com/watch?v=0CYVGN98ZLA')
     expect(fallback.attributes('target')).toBe('_blank')

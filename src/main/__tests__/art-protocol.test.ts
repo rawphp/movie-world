@@ -38,7 +38,9 @@ describe('buildCsp', () => {
     const csp = buildCsp(false)
     expect(csp).toMatch(/img-src[^;]*mw-art:/)
     expect(csp).toMatch(/frame-src[^;]*https:\/\/www\.youtube\.com/)
+    expect(csp).toMatch(/frame-src[^;]*https:\/\/www\.youtube-nocookie\.com/)
     expect(csp).toMatch(/child-src[^;]*https:\/\/www\.youtube\.com/)
+    expect(csp).toMatch(/child-src[^;]*https:\/\/www\.youtube-nocookie\.com/)
   })
 
   it('loosens script-src for HMR only in dev', () => {
@@ -86,6 +88,14 @@ describe('YouTube embed referer injection', () => {
       Accept: 'text/html',
       Referer: YOUTUBE_EMBED_REFERER,
       Origin: YOUTUBE_EMBED_ORIGIN
+    })
+
+    expect(
+      withYoutubeRefererHeaders('https://www.youtube-nocookie.com/embed/abc', baseHeaders)
+    ).toEqual({
+      Accept: 'text/html',
+      Referer: 'https://www.youtube-nocookie.com/',
+      Origin: 'https://www.youtube-nocookie.com'
     })
 
     const nonYoutubeUrls = [

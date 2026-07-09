@@ -5,10 +5,22 @@ import { extname } from 'node:path'
 export const MW_ART_SCHEME = 'mw-art'
 export const YOUTUBE_EMBED_REFERER = 'https://www.youtube.com/'
 export const YOUTUBE_EMBED_ORIGIN = 'https://www.youtube.com'
+export const YOUTUBE_NOCOOKIE_EMBED_REFERER = 'https://www.youtube-nocookie.com/'
+export const YOUTUBE_NOCOOKIE_EMBED_ORIGIN = 'https://www.youtube-nocookie.com'
 
 const PREFIX = `${MW_ART_SCHEME}://`
 const SHORT_PREFIX = `${MW_ART_SCHEME}:`
 const YOUTUBE_EMBED_HOSTS = new Set(['www.youtube.com', 'www.youtube-nocookie.com'])
+const YOUTUBE_EMBED_IDENTITIES: Record<string, { Referer: string; Origin: string }> = {
+  'www.youtube.com': {
+    Referer: YOUTUBE_EMBED_REFERER,
+    Origin: YOUTUBE_EMBED_ORIGIN
+  },
+  'www.youtube-nocookie.com': {
+    Referer: YOUTUBE_NOCOOKIE_EMBED_REFERER,
+    Origin: YOUTUBE_NOCOOKIE_EMBED_ORIGIN
+  }
+}
 
 /**
  * Decode a `mw-art://<encoded-abs-path>` request URL back to the on-disk
@@ -84,8 +96,8 @@ export function buildCsp(isDev: boolean): string {
     "img-src 'self' data: mw-art:",
     "font-src 'self' data:",
     `connect-src ${connectSrc}`,
-    'frame-src https://www.youtube.com',
-    'child-src https://www.youtube.com'
+    'frame-src https://www.youtube.com https://www.youtube-nocookie.com',
+    'child-src https://www.youtube.com https://www.youtube-nocookie.com'
   ].join('; ')
 }
 
@@ -119,10 +131,11 @@ export function shouldApplyRendererCsp(
 }
 
 /**
- * YouTube's embedded player rejects file-origin Electron renderers with Error
- * 153 when the top-level embed request has no HTTP Referer/Origin. Scope the
- * spoofed app identity to YouTube embed hosts only; subresources such as
- * googlevideo and every app/TMDB/local URL must pass through untouched.
+ * YouTube's embedded player rejects file-origin Electron renderers when the
+ * top-level embed request has no valid HTTP Referer/Origin. Scope the injected
+ * identity to the actual YouTube embed host so the request headers match the
+ * iframe origin; subresources such as googlevideo and every app/TMDB/local URL
+ * must pass through untouched.
  */
 export function shouldSetYoutubeReferer(requestUrl: string): boolean {
   let url: URL
@@ -141,6 +154,8 @@ export function withYoutubeRefererHeaders<T extends Record<string, string | stri
 ): T {
   if (!shouldSetYoutubeReferer(requestUrl)) return requestHeaders
 
+  const identity = YOUTUBE_EMBED_IDENTITIES[new URL(requestUrl).hostname]
+
   const headers = Object.fromEntries(
     Object.entries(requestHeaders).filter(([key]) => {
       const normalized = key.toLowerCase()
@@ -150,7 +165,7 @@ export function withYoutubeRefererHeaders<T extends Record<string, string | stri
 
   return {
     ...headers,
-    Referer: YOUTUBE_EMBED_REFERER,
-    Origin: YOUTUBE_EMBED_ORIGIN
+    Referer: identity.Referer,
+    Origin: identity.Origin
   }
 }
