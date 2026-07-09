@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { MovieRecord } from '../../../shared/types'
+import type { MovieRecord, ScanProgress } from '../../../shared/types'
 import {
   EMPTY_FILTERS,
   filterMovies,
@@ -14,7 +14,11 @@ export const useLibraryStore = defineStore('library', {
     filters: { ...EMPTY_FILTERS } as LibraryFilters,
     sort: 'title' as SortKey,
     loaded: false,
-    subscribed: false
+    subscribed: false,
+    firstViewFromCache: false,
+    backgroundScanRunning: false,
+    unavailableFolders: [] as string[],
+    scanningFolders: {} as Record<string, boolean>
   }),
   getters: {
     all: (s): MovieRecord[] => Object.values(s.movies),
@@ -41,21 +45,50 @@ export const useLibraryStore = defineStore('library', {
       return [
         ...new Set(this.all.map((m) => m.certificationAu).filter((c): c is string => c != null))
       ].sort()
+    },
+    cacheStatusMessage(): string | null {
+      if (!this.firstViewFromCache || this.all.length === 0) return null
+      if (this.unavailableFolders.length > 0) {
+        return 'Showing cached library. Some movie folders are offline; reconnect Google Drive to refresh.'
+      }
+      if (this.backgroundScanRunning) {
+        return 'Showing cached library while Movie World checks your folders in the background.'
+      }
+      return null
     }
   },
   actions: {
     async load() {
       if (!this.subscribed) {
         window.api.onMovieUpdated((m) => this.applyUpdate(m))
+        window.api.onScanProgress((p) => this.applyScanProgress(p))
         this.subscribed = true
       }
       if (this.loaded) return
-      const movies = await window.api.loadLibrary()
-      for (const m of movies) this.movies[m.id] = m
+      const result = await window.api.loadLibrary()
+      for (const m of result.movies) this.movies[m.id] = m
+      this.firstViewFromCache = result.status.firstViewFromCache
+      this.backgroundScanRunning = result.status.backgroundScanRunning
+      this.unavailableFolders = result.status.unavailableFolders
+      this.scanningFolders = Object.fromEntries(
+        (result.status.backgroundScanFolders ?? []).map((folder) => [folder, true])
+      )
       this.loaded = true
     },
     applyUpdate(m: MovieRecord) {
       this.movies[m.id] = m
+    },
+    applyScanProgress(p: ScanProgress) {
+      const scanningFolders = { ...this.scanningFolders }
+      if (p.done) delete scanningFolders[p.folder]
+      else scanningFolders[p.folder] = true
+      this.scanningFolders = scanningFolders
+      this.backgroundScanRunning = Object.values(scanningFolders).some(Boolean)
+
+      const unavailable = new Set(this.unavailableFolders)
+      if (p.unavailable) unavailable.add(p.folder)
+      else if (!p.done || p.discovered > 0) unavailable.delete(p.folder)
+      this.unavailableFolders = [...unavailable].sort()
     },
     setFilter(patch: Partial<LibraryFilters>) {
       this.filters = { ...this.filters, ...patch }

@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { Keybindings } from '../shared/types'
+import type { Keybindings, LibraryLoadResult } from '../shared/types'
 
 const api = {
   getSettings: () => ipcRenderer.invoke('settings:get'),
@@ -7,7 +7,7 @@ const api = {
   setKeybindings: (kb: Keybindings) => ipcRenderer.invoke('settings:set-keybindings', kb),
   addFolder: () => ipcRenderer.invoke('folders:add'),
   removeFolder: (path: string) => ipcRenderer.invoke('folders:remove', path),
-  loadLibrary: () => ipcRenderer.invoke('library:load'),
+  loadLibrary: (): Promise<LibraryLoadResult> => ipcRenderer.invoke('library:load'),
   rescanFolder: (folder: string) => ipcRenderer.invoke('library:rescan', folder),
   play: (id: string) => ipcRenderer.invoke('movie:play', id),
   retryFetch: (id: string) => ipcRenderer.invoke('movie:retry-fetch', id),

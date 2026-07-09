@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs'
-import type { MovieRecord, ScanProgress } from '../../shared/types'
+import type { LibraryLoadResult, MovieRecord, ScanProgress } from '../../shared/types'
 import type { SettingsStore } from '../settings'
 import type { TmdbClient } from '../tmdb/client'
 import { createFetchQueue, fetchAndApply, downloadImageToFile } from '../tmdb/fetcher'
@@ -24,7 +24,7 @@ interface ManagerOpts {
 }
 
 export interface LibraryManager {
-  loadLibrary(): Promise<MovieRecord[]>
+  loadLibrary(): Promise<LibraryLoadResult>
   rescanFolder(folder: string): Promise<void>
   fixMatch(id: string, tmdbId: number): Promise<void>
   retryFetch(id: string): Promise<void>
@@ -74,7 +74,10 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
     return queue
   }
 
-  async function scanOne(folder: string, { markMissing }: { markMissing: boolean }): Promise<MovieRecord[]> {
+  async function scanOne(
+    folder: string,
+    { markMissing }: { markMissing: boolean }
+  ): Promise<MovieRecord[]> {
     if (!existsSync(folder)) {
       if (markMissing) {
         for (const m of movies.values()) {
@@ -82,7 +85,13 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
         }
         await persistCache()
       }
-      opts.emit('scan:progress', { folder, discovered: 0, ingested: 0, done: true })
+      opts.emit('scan:progress', {
+        folder,
+        discovered: 0,
+        ingested: 0,
+        done: true,
+        unavailable: true
+      })
       return []
     }
     const files = await discoverVideoFiles(folder)
@@ -120,7 +129,10 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
 
   function scheduleStartupScan(folder: string): void {
     const scan: Promise<void> = scanOne(folder, { markMissing: false })
-      .then(() => undefined, () => undefined)
+      .then(
+        () => undefined,
+        () => undefined
+      )
       .finally(() => {
         startupScans.delete(scan)
       })
@@ -132,10 +144,19 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
   }
 
   return {
-    async loadLibrary(): Promise<MovieRecord[]> {
+    async loadLibrary(): Promise<LibraryLoadResult> {
       const cached = await hydrateFromCache()
-      for (const folder of opts.settings.read().folders) scheduleStartupScan(folder)
-      return cached
+      const folders = opts.settings.read().folders
+      for (const folder of folders) scheduleStartupScan(folder)
+      return {
+        movies: cached,
+        status: {
+          firstViewFromCache: cached.length > 0,
+          backgroundScanRunning: folders.length > 0,
+          backgroundScanFolders: folders,
+          unavailableFolders: folders.filter((folder) => !existsSync(folder))
+        }
+      }
     },
     rescanFolder: async (folder: string): Promise<void> => {
       await scanOne(folder, { markMissing: true })

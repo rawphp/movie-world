@@ -18,6 +18,7 @@ onMounted(async () => {
 })
 
 const empty = computed(() => store.loaded && store.all.length === 0)
+const cacheStatusMessage = computed(() => store.cacheStatusMessage)
 </script>
 
 <template>
@@ -26,8 +27,19 @@ const empty = computed(() => store.loaded && store.all.length === 0)
       No TMDB API key set — movies will be indexed without metadata.
       <RouterLink to="/settings" class="underline">Add your key in Settings</RouterLink>.
     </div>
+    <div
+      v-if="cacheStatusMessage"
+      data-testid="library-cache-status"
+      class="rounded-lg border border-sky-800 bg-sky-950/60 px-4 py-3 text-sm text-sky-100"
+    >
+      {{ cacheStatusMessage }}
+    </div>
     <FilterBar />
-    <div v-if="empty" class="rounded-lg bg-neutral-800 p-10 text-center text-neutral-300">
+    <div
+      v-if="empty"
+      data-testid="library-empty"
+      class="rounded-lg bg-neutral-800 p-10 text-center text-neutral-300"
+    >
       <p class="mb-3 text-lg">Your library is empty.</p>
       <RouterLink to="/settings" class="rounded bg-sky-600 px-4 py-2 text-white hover:bg-sky-500">
         {{ hasFolders ? 'Manage folders' : 'Add your first movie folder' }}
