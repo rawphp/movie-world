@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { DEFAULT_KEYBINDINGS } from '../../../shared/keybindings'
-import type { ScanProgress, Settings } from '../../../shared/types'
+import { DEFAULT_KEYBINDINGS, isValidCombo } from '../../../shared/keybindings'
+import type { Keybindings, ScanProgress, Settings } from '../../../shared/types'
+import ShortcutRecorder from '../components/ShortcutRecorder.vue'
 
 const api = window.api
 const settings = ref<Settings>({ folders: [], tmdbApiKey: null, keybindings: DEFAULT_KEYBINDINGS })
@@ -10,6 +11,7 @@ const saving = ref(false)
 type KeyState = 'idle' | 'valid' | 'invalid'
 const keyState = ref<KeyState>('idle')
 const progress = ref<Record<string, ScanProgress>>({})
+const shortcutErrors = ref<Partial<Record<keyof Keybindings, string>>>({})
 
 const firstRun = computed(() => settings.value.folders.length === 0 && !settings.value.tmdbApiKey)
 
@@ -49,6 +51,33 @@ async function removeFolder(path: string): Promise<void> {
 
 async function rescan(folder: string): Promise<void> {
   await api.rescanFolder(folder)
+}
+
+async function saveShortcut(action: keyof Keybindings, combo: string): Promise<void> {
+  shortcutErrors.value = { ...shortcutErrors.value, [action]: '' }
+  const otherAction: keyof Keybindings = action === 'prevMovie' ? 'nextMovie' : 'prevMovie'
+
+  if (!isValidCombo(combo)) {
+    shortcutErrors.value = { ...shortcutErrors.value, [action]: 'That shortcut is not available.' }
+    return
+  }
+
+  if (combo === settings.value.keybindings[otherAction]) {
+    shortcutErrors.value = { ...shortcutErrors.value, [action]: 'Already used by another shortcut.' }
+    return
+  }
+
+  try {
+    const nextKeybindings = { ...settings.value.keybindings, [action]: combo }
+    settings.value = await api.setKeybindings(nextKeybindings)
+  } catch {
+    shortcutErrors.value = { ...shortcutErrors.value, [action]: 'Shortcut could not be saved.' }
+  }
+}
+
+async function resetShortcuts(): Promise<void> {
+  shortcutErrors.value = {}
+  settings.value = await api.setKeybindings(DEFAULT_KEYBINDINGS)
 }
 </script>
 
@@ -157,6 +186,44 @@ async function rescan(folder: string): Promise<void> {
       <p class="mt-2 text-xs text-neutral-500">
         Removing a folder only forgets it in the app — nothing on disk is touched.
       </p>
+    </section>
+
+    <!-- Keyboard shortcuts -->
+    <section data-testid="keyboard-shortcuts">
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <h2 class="text-lg font-semibold text-white">Keyboard shortcuts</h2>
+        <button
+          data-testid="shortcut-reset"
+          class="rounded bg-neutral-700 px-3 py-2 text-sm text-white hover:bg-neutral-600"
+          @click="resetShortcuts"
+        >
+          Reset to defaults
+        </button>
+      </div>
+      <div class="space-y-2">
+        <div
+          data-testid="shortcut-prev"
+          class="flex items-start justify-between gap-3 rounded-lg bg-neutral-800 px-3 py-2 text-sm text-white"
+        >
+          <span class="pt-2">Previous movie</span>
+          <ShortcutRecorder
+            :combo="settings.keybindings.prevMovie"
+            :error="shortcutErrors.prevMovie"
+            @update:combo="saveShortcut('prevMovie', $event)"
+          />
+        </div>
+        <div
+          data-testid="shortcut-next"
+          class="flex items-start justify-between gap-3 rounded-lg bg-neutral-800 px-3 py-2 text-sm text-white"
+        >
+          <span class="pt-2">Next movie</span>
+          <ShortcutRecorder
+            :combo="settings.keybindings.nextMovie"
+            :error="shortcutErrors.nextMovie"
+            @update:combo="saveShortcut('nextMovie', $event)"
+          />
+        </div>
+      </div>
     </section>
   </div>
 </template>

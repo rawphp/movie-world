@@ -13,10 +13,15 @@ const makeApi = (initial: Settings): void => {
   // Assign only window.api so jsdom's Event constructors (needed by trigger) survive.
   window.api = {
     getSettings: vi.fn(async () => initial),
-    setApiKey: vi.fn(async (k: string) => ({
+  setApiKey: vi.fn(async (k: string) => ({
       folders: initial.folders,
       tmdbApiKey: k,
       keybindings: initial.keybindings
+    })),
+    setKeybindings: vi.fn(async (kb) => ({
+      folders: initial.folders,
+      tmdbApiKey: initial.tmdbApiKey,
+      keybindings: kb
     })),
     addFolder: vi.fn(async () => ({
       folders: [...initial.folders, '/More'],
@@ -103,5 +108,70 @@ describe('SettingsView', () => {
     const w = mount(SettingsView)
     await flushPromises()
     expect(w.find('[data-testid="first-run"]').exists()).toBe(false)
+  })
+
+  it('renders keyboard shortcut recorders from settings', async () => {
+    makeApi({
+      folders: ['/Movies'],
+      tmdbApiKey: null,
+      keybindings: { prevMovie: 'Alt+p', nextMovie: 'Alt+n' }
+    })
+
+    const w = mount(SettingsView)
+    await flushPromises()
+
+    expect(w.get('[data-testid="keyboard-shortcuts"]').text()).toContain('Keyboard shortcuts')
+    expect(w.get('[data-testid="shortcut-prev"]').text()).toContain('Alt + p')
+    expect(w.get('[data-testid="shortcut-next"]').text()).toContain('Alt + n')
+  })
+
+  it('persists a recorded valid shortcut and updates the chip', async () => {
+    const w = mount(SettingsView)
+    await flushPromises()
+
+    await w.get('[data-testid="shortcut-next"] [data-testid="shortcut-recorder"]').trigger('click')
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'n', altKey: true, cancelable: true }))
+    await flushPromises()
+
+    expect(window.api.setKeybindings).toHaveBeenCalledWith({
+      prevMovie: DEFAULT_KEYBINDINGS.prevMovie,
+      nextMovie: 'Alt+n'
+    })
+    expect(w.get('[data-testid="shortcut-next"]').text()).toContain('Alt + n')
+  })
+
+  it('rejects duplicate shortcuts without persisting', async () => {
+    makeApi({
+      folders: ['/Movies'],
+      tmdbApiKey: null,
+      keybindings: { prevMovie: 'Alt+p', nextMovie: 'Alt+n' }
+    })
+    const w = mount(SettingsView)
+    await flushPromises()
+
+    await w.get('[data-testid="shortcut-next"] [data-testid="shortcut-recorder"]').trigger('click')
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'p', altKey: true, cancelable: true }))
+    await flushPromises()
+
+    expect(window.api.setKeybindings).not.toHaveBeenCalled()
+    expect(w.get('[data-testid="shortcut-next"]').text()).toContain('Already used')
+    expect(w.get('[data-testid="shortcut-next"]').text()).toContain('Alt + n')
+  })
+
+  it('resets shortcuts to defaults', async () => {
+    makeApi({
+      folders: ['/Movies'],
+      tmdbApiKey: null,
+      keybindings: { prevMovie: 'Alt+p', nextMovie: 'Alt+n' }
+    })
+    const w = mount(SettingsView)
+    await flushPromises()
+
+    await w.get('[data-testid="shortcut-reset"]').trigger('click')
+    await flushPromises()
+
+    expect(window.api.setKeybindings).toHaveBeenCalledWith(DEFAULT_KEYBINDINGS)
+    expect(w.get('[data-testid="shortcut-prev"]').text()).toContain('←')
+    expect(w.get('[data-testid="shortcut-next"]').text()).toContain('→')
   })
 })
