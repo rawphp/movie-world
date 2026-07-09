@@ -105,7 +105,8 @@ app.whenReady().then(() => {
   const manager = createLibraryManager({
     settings,
     makeClient: (key) => createTmdbClient(key),
-    emit: (channel, payload) => emitToAll(channel, payload)
+    emit: (channel, payload) => emitToAll(channel, payload),
+    appDataPath: app.getPath('userData')
   })
   registerIpc(settings, manager)
 
