@@ -1,4 +1,4 @@
-import type { MovieRecord, ScanProgress, Settings } from '../shared/types'
+import type { Keybindings, MovieRecord, ScanProgress, Settings } from '../shared/types'
 import type { TmdbSearchResult } from '../main/tmdb/client'
 
 declare global {
@@ -6,6 +6,7 @@ declare global {
     api: {
       getSettings(): Promise<Settings>
       setApiKey(key: string): Promise<Settings>
+      setKeybindings(kb: Keybindings): Promise<Settings>
       addFolder(): Promise<Settings | null>
       removeFolder(path: string): Promise<Settings>
       loadLibrary(): Promise<MovieRecord[]>

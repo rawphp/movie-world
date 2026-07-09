@@ -1,8 +1,10 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import type { Keybindings } from '../shared/types'
 
 const api = {
   getSettings: () => ipcRenderer.invoke('settings:get'),
   setApiKey: (key: string) => ipcRenderer.invoke('settings:set-api-key', key),
+  setKeybindings: (kb: Keybindings) => ipcRenderer.invoke('settings:set-keybindings', kb),
   addFolder: () => ipcRenderer.invoke('folders:add'),
   removeFolder: (path: string) => ipcRenderer.invoke('folders:remove', path),
   loadLibrary: () => ipcRenderer.invoke('library:load'),
