@@ -1,7 +1,13 @@
 # REQ-026: Editable shortcuts settings path
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.21785
+**Claimed at:** 2026-07-09T02:43:08Z
+**Heartbeat:** 2026-07-09T02:43:08Z
+<!-- claimed-end -->
+
 **UR:** UR-006
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-09
 **Layer:** none
 **Entry point:** User opens `/settings` (SettingsView) and clicks a binding in the new "Keyboard shortcuts" section
