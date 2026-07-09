@@ -1,13 +1,7 @@
 # REQ-026: Editable shortcuts settings path
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.21785
-**Claimed at:** 2026-07-09T02:43:08Z
-**Heartbeat:** 2026-07-09T02:43:08Z
-<!-- claimed-end -->
-
 **UR:** UR-006
-**Status:** in-progress
+**Status:** pending-validation
 **Created:** 2026-07-09
 **Layer:** none
 **Entry point:** User opens `/settings` (SettingsView) and clicks a binding in the new "Keyboard shortcuts" section
@@ -30,10 +24,10 @@ Brief: "keyboard combination should be editable in settings". Clarified: editing
 
 ## Acceptance Criteria
 
-- [ ] Recording a new combo in SettingsView round-trips: `setKeybindings` IPC persists it, and a subsequent `settings:get` returns the new value
-- [ ] A settings file written before this feature existed (no `keybindings` key) loads with `DEFAULT_KEYBINDINGS` merged in — no crash, no undefined bindings
-- [ ] Reset-to-default restores `Mod+ArrowLeft` / `Mod+ArrowRight` both in the UI and on disk
-- [ ] Full test suite (`npx vitest run`) passes with all three child REQs merged
+- [x] Recording a new combo in SettingsView round-trips: `setKeybindings` IPC persists it, and a subsequent `settings:get` returns the new value
+- [x] A settings file written before this feature existed (no `keybindings` key) loads with `DEFAULT_KEYBINDINGS` merged in — no crash, no undefined bindings
+- [x] Reset-to-default restores `Mod+ArrowLeft` / `Mod+ArrowRight` both in the UI and on disk
+- [x] Full test suite (`npx vitest run`) passes with all three child REQs merged
 
 ## Verification Steps
 
@@ -49,3 +43,8 @@ Brief: "keyboard combination should be editable in settings". Clarified: editing
 - [ ] Action: launch the app, open Settings, click the "Next movie" binding and press Alt+N — Observable outcome: the binding chip shows the new combo, and pressing Alt+N in a movie detail view navigates to the next movie without restarting the app
 - [ ] Action: quit and relaunch the app, reopen Settings — Observable outcome: the edited combo survived the restart (persisted to settings.json)
 - [ ] Action: click Reset to defaults — Observable outcome: bindings show Cmd/Ctrl+← and Cmd/Ctrl+→ again and work in the detail view
+
+## Outputs
+
+- Automated verification — `npx vitest run` passed 23 files / 119 tests.
+- Automated verification — `npm run build` completed typecheck and main/preload/renderer bundle builds.
