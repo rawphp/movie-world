@@ -3,9 +3,12 @@ import { extname } from 'node:path'
 
 /** Custom scheme used to serve on-disk artwork to the sandboxed renderer. */
 export const MW_ART_SCHEME = 'mw-art'
+export const YOUTUBE_EMBED_REFERER = 'https://www.youtube.com/'
+export const YOUTUBE_EMBED_ORIGIN = 'https://www.youtube.com'
 
 const PREFIX = `${MW_ART_SCHEME}://`
 const SHORT_PREFIX = `${MW_ART_SCHEME}:`
+const YOUTUBE_EMBED_HOSTS = new Set(['www.youtube.com', 'www.youtube-nocookie.com'])
 
 /**
  * Decode a `mw-art://<encoded-abs-path>` request URL back to the on-disk
@@ -108,5 +111,42 @@ export function shouldApplyRendererCsp(
     return url.origin === new URL(rendererUrl).origin
   } catch {
     return false
+  }
+}
+
+/**
+ * YouTube's embedded player rejects file-origin Electron renderers with Error
+ * 153 when the top-level embed request has no HTTP Referer/Origin. Scope the
+ * spoofed app identity to YouTube embed hosts only; subresources such as
+ * googlevideo and every app/TMDB/local URL must pass through untouched.
+ */
+export function shouldSetYoutubeReferer(requestUrl: string): boolean {
+  let url: URL
+  try {
+    url = new URL(requestUrl)
+  } catch {
+    return false
+  }
+
+  return url.protocol === 'https:' && YOUTUBE_EMBED_HOSTS.has(url.hostname)
+}
+
+export function withYoutubeRefererHeaders<T extends Record<string, string | string[]>>(
+  requestUrl: string,
+  requestHeaders: T
+): T {
+  if (!shouldSetYoutubeReferer(requestUrl)) return requestHeaders
+
+  const headers = Object.fromEntries(
+    Object.entries(requestHeaders).filter(([key]) => {
+      const normalized = key.toLowerCase()
+      return normalized !== 'referer' && normalized !== 'origin'
+    })
+  ) as T
+
+  return {
+    ...headers,
+    Referer: YOUTUBE_EMBED_REFERER,
+    Origin: YOUTUBE_EMBED_ORIGIN
   }
 }

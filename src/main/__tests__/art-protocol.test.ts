@@ -9,7 +9,11 @@ import {
   serveArtFile,
   contentTypeFor,
   MW_ART_SCHEME,
-  shouldApplyRendererCsp
+  shouldApplyRendererCsp,
+  shouldSetYoutubeReferer,
+  withYoutubeRefererHeaders,
+  YOUTUBE_EMBED_ORIGIN,
+  YOUTUBE_EMBED_REFERER
 } from '../art-protocol'
 
 describe('decodeArtUrl', () => {
@@ -59,6 +63,42 @@ describe('shouldApplyRendererCsp', () => {
     expect(
       shouldApplyRendererCsp('https://www.youtube.com/embed/eogpIG53Cis', true, rendererUrl)
     ).toBe(false)
+  })
+})
+
+describe('YouTube embed referer injection', () => {
+  it('matches only YouTube embed hosts that need packaged file-origin headers', () => {
+    expect(shouldSetYoutubeReferer('https://www.youtube.com/embed/abc')).toBe(true)
+    expect(shouldSetYoutubeReferer('https://www.youtube-nocookie.com/embed/abc')).toBe(true)
+    expect(shouldSetYoutubeReferer('mw-art://x')).toBe(false)
+    expect(shouldSetYoutubeReferer('file:///Applications/MovieWorld/out/renderer/index.html')).toBe(
+      false
+    )
+    expect(shouldSetYoutubeReferer('http://localhost:5173/')).toBe(false)
+    expect(shouldSetYoutubeReferer('https://api.themoviedb.org/3/movie/1')).toBe(false)
+    expect(shouldSetYoutubeReferer('https://rr1---sn.googlevideo.com/videoplayback')).toBe(false)
+  })
+
+  it('sets referer and origin only for matched YouTube requests', () => {
+    const baseHeaders = { Accept: 'text/html' }
+
+    expect(withYoutubeRefererHeaders('https://www.youtube.com/embed/abc', baseHeaders)).toEqual({
+      Accept: 'text/html',
+      Referer: YOUTUBE_EMBED_REFERER,
+      Origin: YOUTUBE_EMBED_ORIGIN
+    })
+
+    const nonYoutubeUrls = [
+      'mw-art://x',
+      'file:///Applications/MovieWorld/out/renderer/index.html',
+      'http://localhost:5173/',
+      'https://api.themoviedb.org/3/movie/1',
+      'https://rr1---sn.googlevideo.com/videoplayback'
+    ]
+
+    for (const url of nonYoutubeUrls) {
+      expect(withYoutubeRefererHeaders(url, baseHeaders)).toBe(baseHeaders)
+    }
   })
 })
 
