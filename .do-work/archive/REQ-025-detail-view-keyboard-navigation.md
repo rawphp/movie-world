@@ -1,19 +1,13 @@
 # REQ-025: Detail-view keyboard prev/next navigation
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.21785
-**Claimed at:** 2026-07-09T02:09:17Z
-**Heartbeat:** 2026-07-09T02:09:17Z
-<!-- claimed-end -->
-
 **UR:** UR-006
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-09
 **Layer:** renderer
 **Entry point:**
 **Terminal state:**
 **Parent:** REQ-023
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:71f209f
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
@@ -39,12 +33,12 @@ Brief: keyboard combination in the detail view navigates to the previous/next mo
 
 ## Acceptance Criteria
 
-- [ ] `adjacentMovieId` returns the next/previous id in list order, wraps at both edges, returns `null` for empty and single-item lists, and falls back to first/last when `currentId` is not in the list — all covered by unit tests
-- [ ] A `keydown` event on `window` matching the configured next combo causes `router.push` to the next movie id in `store.list` order (component test with mocked router)
-- [ ] A `keydown` matching a combo while the Fix-match dialog is open, or dispatched from an `input`/`textarea` target, causes no navigation
-- [ ] Non-matching keydowns (wrong key or wrong modifier set) cause no navigation and are not `preventDefault`ed
-- [ ] The keydown listener is removed on component unmount (no listener leak — assert via component test unmount + dispatch)
-- [ ] Bindings come from `window.api.getSettings().keybindings`, not hardcoded values (component test stubs getSettings with a custom combo and asserts it is honoured)
+- [x] `adjacentMovieId` returns the next/previous id in list order, wraps at both edges, returns `null` for empty and single-item lists, and falls back to first/last when `currentId` is not in the list — all covered by unit tests
+- [x] A `keydown` event on `window` matching the configured next combo causes `router.push` to the next movie id in `store.list` order (component test with mocked router)
+- [x] A `keydown` matching a combo while the Fix-match dialog is open, or dispatched from an `input`/`textarea` target, causes no navigation
+- [x] Non-matching keydowns (wrong key or wrong modifier set) cause no navigation and are not `preventDefault`ed
+- [x] The keydown listener is removed on component unmount (no listener leak — assert via component test unmount + dispatch)
+- [x] Bindings come from `window.api.getSettings().keybindings`, not hardcoded values (component test stubs getSettings with a custom combo and asserts it is honoured)
 
 ## Verification Steps
 
@@ -66,3 +60,10 @@ Brief: keyboard combination in the detail view navigates to the previous/next mo
 **Data dependencies:** Reads the ordered movie list from the `list` getter of the library store (`src/renderer/src/stores/library.ts:21`), the current id from `route.params.id` (`src/renderer/src/views/MovieDetailView.vue:16`), and keybindings from `window.api.getSettings()` (`src/preload/index.d.ts:7`).
 
 **Service dependencies:** Uses `matchesCombo` from `src/shared/keybindings.ts` (REQ-024), vue-router's `router.push` (already imported in the view at line 3), and the existing `fixing` ref (`src/renderer/src/views/MovieDetailView.vue:14`) to suppress shortcuts while the dialog is open.
+
+## Outputs
+
+- src/renderer/src/lib/movie-nav.ts — Added pure adjacentMovieId helper for previous/next list navigation with wrap and fallback behavior.
+- src/renderer/src/lib/__tests__/movie-nav.test.ts — Added focused unit coverage for adjacentMovieId edge cases.
+- src/renderer/src/views/MovieDetailView.vue — Wired settings-backed keydown navigation, suppression for dialogs/editable targets, unmount cleanup, and guarded async listener registration after unmount.
+- src/renderer/src/views/__tests__/MovieDetailView.test.ts — Added component coverage for navigation, suppression, listener cleanup, custom settings keybindings, and async unmount race regression.
