@@ -1,7 +1,13 @@
 # REQ-033: Cached-First Startup
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.20260709204505
+**Claimed at:** 2026-07-09T21:04:43Z
+**Heartbeat:** 2026-07-09T21:04:43Z
+<!-- claimed-end -->
+
 **UR:** UR-008
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-10
 **Layer:** none
 **Entry point:**
