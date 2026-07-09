@@ -12,7 +12,7 @@
 **Priority:** 1
 **Size:** S
 **Files:**
-**Depends on:** REQ-027 REQ-028 REQ-029
+**Depends on:** REQ-027, REQ-028, REQ-029
 
 ## Task
 
