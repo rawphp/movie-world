@@ -37,6 +37,8 @@ export interface MovieRecord {
   fetchFailed: boolean
   posterPath: string | null // absolute path on disk
   fanartPath: string | null
+  cachedPosterPath?: string | null // app-owned cached artwork path when available
+  cachedFanartPath?: string | null
 }
 
 export interface Settings {

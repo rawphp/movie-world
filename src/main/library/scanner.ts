@@ -50,12 +50,21 @@ function mirrorArtwork(sourcePath: string, cachedPath: string): void {
   }
 }
 
-function resolveArtworkPath(sourcePath: string, cachedPath?: string): string | null {
+interface ResolvedArtworkPath {
+  path: string | null
+  cachedPath: string | null
+}
+
+function resolveArtworkPath(sourcePath: string, cachedPath?: string): ResolvedArtworkPath {
   if (existsSync(sourcePath)) {
     if (cachedPath) mirrorArtwork(sourcePath, cachedPath)
-    return sourcePath
+    return {
+      path: sourcePath,
+      cachedPath: cachedPath && existsSync(cachedPath) ? cachedPath : null
+    }
   }
-  return cachedPath && existsSync(cachedPath) ? cachedPath : null
+  if (cachedPath && existsSync(cachedPath)) return { path: cachedPath, cachedPath }
+  return { path: null, cachedPath: null }
 }
 
 export async function ingestFile(
@@ -97,11 +106,15 @@ export async function ingestFile(
   if (!nfo) return base
   const paths = sidecarPathsFor(filePath)
   const cachedPaths = opts.appDataPath ? cachedSidecarPathsFor(filePath, opts.appDataPath) : null
+  const poster = resolveArtworkPath(paths.poster, cachedPaths?.poster)
+  const fanart = resolveArtworkPath(paths.fanart, cachedPaths?.fanart)
   return {
     ...base,
     ...nfo,
     matchStatus: 'matched',
-    posterPath: resolveArtworkPath(paths.poster, cachedPaths?.poster),
-    fanartPath: resolveArtworkPath(paths.fanart, cachedPaths?.fanart)
+    posterPath: poster.path,
+    fanartPath: fanart.path,
+    cachedPosterPath: poster.cachedPath,
+    cachedFanartPath: fanart.cachedPath
   }
 }

@@ -106,6 +106,27 @@ describe('MovieDetailView', () => {
     expect(background.classes()).not.toContain('blur-[1px]')
   })
 
+  it('uses cached fanart before the source sidecar path for the hero artwork', () => {
+    const wrapper = mountWithMovie(
+      makeMovie({
+        fanartPath: '/Google Drive/Movies/Example-fanart.jpg',
+        cachedFanartPath:
+          '/Users/me/Library/Application Support/movie-world/cache/sidecars/fanart.jpg'
+      })
+    )
+
+    const background = wrapper.get('[data-testid="detail-hero-art"]')
+
+    expect(background.attributes('style')).toContain(
+      encodeURIComponent(
+        '/Users/me/Library/Application Support/movie-world/cache/sidecars/fanart.jpg'
+      )
+    )
+    expect(background.attributes('style')).not.toContain(
+      encodeURIComponent('/Google Drive/Movies/Example-fanart.jpg')
+    )
+  })
+
   it('falls back to poster artwork when fanart is unavailable', () => {
     const wrapper = mountWithMovie(makeMovie({ fanartPath: null }))
 
