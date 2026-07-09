@@ -14,3 +14,4 @@
 2026-07-09 | UR-006 | combo format, defaults, matching + validation centralized in src/shared/keybindings.ts (REQ-024) | single source of truth for main persistence, detail-view matching and recorder UI
 2026-07-09 | UR-006 | keybinding validation enforced main-side in setKeybindings (reject invalid/duplicate) | renderer bugs must not persist unusable bindings
 2026-07-09 | UR-007 | error 153 captured as REQ-030, addressing REQ-020's unfixed candidate #1 (file:// origin / missing referer) — not a REQ-020 reject | REQ-020's CSP fix worked (blank box → rendered 153); the referer/origin cause is a distinct next-layer fix
+2026-07-10 | UR-008 | Google Drive freeze fix decomposed around app-owned local cache plus cached-first background rescan | free solution that removes Drive hydration from launch-critical path
