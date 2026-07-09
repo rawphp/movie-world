@@ -47,6 +47,24 @@ describe('MovieCard', () => {
     expect(w.find('img').attributes('src')).toContain('mw-art://')
   })
 
+  it('uses cached poster artwork before the source sidecar path', () => {
+    const w = mount(MovieCard, {
+      props: {
+        movie: {
+          ...base,
+          posterPath: '/Google Drive/Movies/The Matrix-poster.jpg',
+          cachedPosterPath: '/Users/me/Library/Application Support/movie-world/cache/poster.jpg'
+        }
+      }
+    })
+
+    const src = w.find('img').attributes('src')
+    expect(src).toContain(
+      encodeURIComponent('/Users/me/Library/Application Support/movie-world/cache/poster.jpg')
+    )
+    expect(src).not.toContain(encodeURIComponent('/Google Drive/Movies/The Matrix-poster.jpg'))
+  })
+
   it('falls back to parsed title and shows pending badge', () => {
     const w = mount(MovieCard, {
       props: { movie: { ...base, matchStatus: 'pending', title: null, posterPath: null } }

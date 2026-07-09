@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -134,6 +134,16 @@ describe('serveArtFile', () => {
   it('returns a 404 Response for a non-existent path', () => {
     const missing = '/no/such/dir/definitely-missing-poster.jpg'
     const res = serveArtFile(`${MW_ART_SCHEME}://${encodeURIComponent(missing)}`)
+    expect(res.status).toBe(404)
+  })
+
+  it('returns a 404 Response for an existing path that cannot be read as artwork', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'mw-art-unreadable-'))
+    const unreadable = join(dir, 'poster.jpg')
+    mkdirSync(unreadable)
+
+    const res = serveArtFile(`${MW_ART_SCHEME}://${encodeURIComponent(unreadable)}`)
+
     expect(res.status).toBe(404)
   })
 })

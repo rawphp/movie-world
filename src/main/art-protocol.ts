@@ -57,11 +57,15 @@ export function contentTypeFor(filePath: string): string {
 export function serveArtFile(url: string): Response {
   const filePath = decodeArtUrl(url)
   if (!filePath || !existsSync(filePath)) return new Response(null, { status: 404 })
-  const body = readFileSync(filePath)
-  return new Response(body, {
-    status: 200,
-    headers: { 'Content-Type': contentTypeFor(filePath) }
-  })
+  try {
+    const body = readFileSync(filePath)
+    return new Response(body, {
+      status: 200,
+      headers: { 'Content-Type': contentTypeFor(filePath) }
+    })
+  } catch {
+    return new Response(null, { status: 404 })
+  }
 }
 
 /**

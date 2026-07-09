@@ -9,7 +9,7 @@ defineEmits<{ open: [id: string] }>()
 
 const title = computed(() => props.movie.title ?? props.movie.parsedTitle)
 const year = computed(() => props.movie.year ?? props.movie.parsedYear)
-const poster = computed(() => artSrc(props.movie.posterPath))
+const poster = computed(() => artSrc(props.movie.posterPath, props.movie.cachedPosterPath))
 const actors = computed(() =>
   props.movie.cast
     .slice(0, 2)
