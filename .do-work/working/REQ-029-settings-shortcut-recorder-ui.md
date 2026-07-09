@@ -1,7 +1,13 @@
 # REQ-029: Settings shortcut recorder UI
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.21785
+**Claimed at:** 2026-07-09T02:28:44Z
+**Heartbeat:** 2026-07-09T02:28:44Z
+<!-- claimed-end -->
+
 **UR:** UR-006
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-09
 **Layer:** renderer
 **Entry point:**
