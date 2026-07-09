@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import SettingsView from '../SettingsView.vue'
+import { DEFAULT_KEYBINDINGS } from '../../../../shared/keybindings'
 import type { ScanProgress, Settings } from '../../../../shared/types'
 
 type ProgressCb = (p: ScanProgress) => void
@@ -12,12 +13,21 @@ const makeApi = (initial: Settings): void => {
   // Assign only window.api so jsdom's Event constructors (needed by trigger) survive.
   window.api = {
     getSettings: vi.fn(async () => initial),
-    setApiKey: vi.fn(async (k: string) => ({ folders: initial.folders, tmdbApiKey: k })),
+    setApiKey: vi.fn(async (k: string) => ({
+      folders: initial.folders,
+      tmdbApiKey: k,
+      keybindings: initial.keybindings
+    })),
     addFolder: vi.fn(async () => ({
       folders: [...initial.folders, '/More'],
-      tmdbApiKey: initial.tmdbApiKey
+      tmdbApiKey: initial.tmdbApiKey,
+      keybindings: initial.keybindings
     })),
-    removeFolder: vi.fn(async () => ({ folders: [], tmdbApiKey: initial.tmdbApiKey })),
+    removeFolder: vi.fn(async () => ({
+      folders: [],
+      tmdbApiKey: initial.tmdbApiKey,
+      keybindings: initial.keybindings
+    })),
     rescanFolder: vi.fn(async () => {}),
     onScanProgress: vi.fn((cb: ProgressCb) => {
       progressCb = cb
@@ -26,7 +36,7 @@ const makeApi = (initial: Settings): void => {
 }
 
 beforeEach(() => {
-  makeApi({ folders: ['/Movies'], tmdbApiKey: null })
+  makeApi({ folders: ['/Movies'], tmdbApiKey: null, keybindings: DEFAULT_KEYBINDINGS })
 })
 
 describe('SettingsView', () => {
@@ -79,7 +89,7 @@ describe('SettingsView', () => {
   })
 
   it('shows the first-run guided empty state when no key and no folders', async () => {
-    makeApi({ folders: [], tmdbApiKey: null })
+    makeApi({ folders: [], tmdbApiKey: null, keybindings: DEFAULT_KEYBINDINGS })
     const w = mount(SettingsView)
     await flushPromises()
     expect(w.find('[data-testid="first-run"]').exists()).toBe(true)

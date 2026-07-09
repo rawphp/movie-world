@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { DEFAULT_KEYBINDINGS } from '../../shared/keybindings'
 import { createSettingsStore } from '../settings'
 
 let dir: string
@@ -13,7 +14,7 @@ beforeEach(() => {
 describe('settings store', () => {
   it('returns defaults when file does not exist', () => {
     const s = createSettingsStore(join(dir, 'settings.json'))
-    expect(s.read()).toEqual({ folders: [], tmdbApiKey: null })
+    expect(s.read()).toEqual({ folders: [], tmdbApiKey: null, keybindings: DEFAULT_KEYBINDINGS })
   })
 
   it('persists api key and folders across instances', () => {
@@ -25,6 +26,10 @@ describe('settings store', () => {
     a.addFolder('/More')
     a.removeFolder('/More')
     const b = createSettingsStore(file)
-    expect(b.read()).toEqual({ folders: ['/Movies'], tmdbApiKey: 'k123' })
+    expect(b.read()).toEqual({
+      folders: ['/Movies'],
+      tmdbApiKey: 'k123',
+      keybindings: DEFAULT_KEYBINDINGS
+    })
   })
 })

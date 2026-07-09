@@ -1,8 +1,9 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
+import { DEFAULT_KEYBINDINGS } from '../shared/keybindings'
 import type { Settings } from '../shared/types'
 
-const DEFAULTS: Settings = { folders: [], tmdbApiKey: null }
+const DEFAULTS: Settings = { folders: [], tmdbApiKey: null, keybindings: DEFAULT_KEYBINDINGS }
 
 export interface SettingsStore {
   read(): Settings

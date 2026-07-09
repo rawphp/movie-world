@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { DEFAULT_KEYBINDINGS } from '../../../shared/keybindings'
 import type { ScanProgress, Settings } from '../../../shared/types'
 
 const api = window.api
-const settings = ref<Settings>({ folders: [], tmdbApiKey: null })
+const settings = ref<Settings>({ folders: [], tmdbApiKey: null, keybindings: DEFAULT_KEYBINDINGS })
 const keyInput = ref('')
 const saving = ref(false)
 type KeyState = 'idle' | 'valid' | 'invalid'

@@ -42,7 +42,7 @@ export interface MovieRecord {
 export interface Settings {
   folders: string[]
   tmdbApiKey: string | null
-  keybindings?: Keybindings
+  keybindings: Keybindings
 }
 
 export interface Keybindings {
