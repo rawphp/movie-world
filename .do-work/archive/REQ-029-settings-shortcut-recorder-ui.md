@@ -1,19 +1,13 @@
 # REQ-029: Settings shortcut recorder UI
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.21785
-**Claimed at:** 2026-07-09T02:28:44Z
-**Heartbeat:** 2026-07-09T02:28:44Z
-<!-- claimed-end -->
-
 **UR:** UR-006
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-09
 **Layer:** renderer
 **Entry point:**
 **Terminal state:**
 **Parent:** REQ-026
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:aa0d0ef
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
@@ -30,12 +24,12 @@ Add a "Keyboard shortcuts" section to SettingsView with a key-capture recorder:
 
 ## Acceptance Criteria
 
-- [ ] SettingsView renders a "Keyboard shortcuts" section with two recorder rows showing the combos from `getSettings().keybindings`
-- [ ] Clicking a recorder and dispatching a valid keydown (e.g. Alt+N) emits/persists the new combo via `api.setKeybindings` and the chip updates to the new combo (component test with stubbed api)
-- [ ] Modifier-only keydowns are ignored while recording; `Escape` cancels recording leaving the previous combo intact
-- [ ] An invalid combo (per `isValidCombo`) or a duplicate (prev == next) shows an inline error message and does not call `api.setKeybindings`
-- [ ] "Reset to defaults" calls `api.setKeybindings` with `DEFAULT_KEYBINDINGS` and the chips show the default combos afterwards
-- [ ] While recording, the captured keydown is `preventDefault`ed and does not leak to other handlers
+- [x] SettingsView renders a "Keyboard shortcuts" section with two recorder rows showing the combos from `getSettings().keybindings`
+- [x] Clicking a recorder and dispatching a valid keydown (e.g. Alt+N) emits/persists the new combo via `api.setKeybindings` and the chip updates to the new combo (component test with stubbed api)
+- [x] Modifier-only keydowns are ignored while recording; `Escape` cancels recording leaving the previous combo intact
+- [x] An invalid combo (per `isValidCombo`) or a duplicate (prev == next) shows an inline error message and does not call `api.setKeybindings`
+- [x] "Reset to defaults" calls `api.setKeybindings` with `DEFAULT_KEYBINDINGS` and the chips show the default combos afterwards
+- [x] While recording, the captured keydown is `preventDefault`ed and does not leak to other handlers
 
 ## Verification Steps
 
@@ -57,3 +51,10 @@ Add a "Keyboard shortcuts" section to SettingsView with a key-capture recorder:
 **Data dependencies:** Reads `settings.value.keybindings` loaded via `api.getSettings()` in `onMounted` (`src/renderer/src/views/SettingsView.vue:16`); writes through `window.api.setKeybindings` (REQ-028).
 
 **Service dependencies:** Uses `comboFromEvent`, `isValidCombo` and `DEFAULT_KEYBINDINGS` from `src/shared/keybindings.ts` (REQ-024); follows the section + save-state UX patterns already in SettingsView (`keyState` pattern at `src/renderer/src/views/SettingsView.vue:10`).
+
+## Outputs
+
+- src/renderer/src/components/ShortcutRecorder.vue — Added key-capture shortcut recorder with readable combo display, validation, cancel handling, and captured keydown behavior.
+- src/renderer/src/components/__tests__/ShortcutRecorder.test.ts — Added focused recorder coverage for valid recording, modifier-only ignores, Escape cancel, invalid combos, and event capture.
+- src/renderer/src/views/SettingsView.vue — Added Keyboard shortcuts settings section with previous/next recorders, duplicate validation, reset to defaults, and setKeybindings persistence.
+- src/renderer/src/views/__tests__/SettingsView.test.ts — Added SettingsView coverage for initial shortcut rendering, persistence, duplicate rejection, and reset behavior.
