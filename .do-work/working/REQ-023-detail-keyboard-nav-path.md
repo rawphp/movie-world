@@ -1,7 +1,13 @@
 # REQ-023: Detail-view keyboard navigation path
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.21785
+**Claimed at:** 2026-07-09T02:37:37Z
+**Heartbeat:** 2026-07-09T02:37:37Z
+<!-- claimed-end -->
+
 **UR:** UR-006
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-09
 **Layer:** none
 **Entry point:** User is on `/movie/:id` (MovieDetailView) and presses the bound previous/next keyboard combination (default Cmd/Ctrl+← / Cmd/Ctrl+→)
