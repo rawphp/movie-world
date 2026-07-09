@@ -11,7 +11,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 1
 **Size:** M
-**Files:** src/shared/types.ts, src/preload/index.ts, src/preload/index.d.ts, src/renderer/src/stores/library.ts, src/renderer/src/views/LibraryView.vue, src/renderer/src/stores/__tests__/library.test.ts
+**Files:** src/shared/types.ts, src/preload/index.ts, src/preload/index.d.ts, src/renderer/src/stores/library.ts, src/renderer/src/views/LibraryView.vue, src/renderer/src/stores/__tests__/library.test.ts, src/renderer/src/views/__tests__/LibraryView.test.ts
 **Depends on:** REQ-033
 
 ## Task
@@ -33,8 +33,8 @@ The requested problem is partly technical freeze and partly user trust: if launc
 
 > Execute these after implementation to confirm the feature actually works at runtime. Each must pass before committing.
 
-1. **test** `npx vitest run src/renderer/src/stores/__tests__/library.test.ts src/renderer/src/views/__tests__/SettingsView.test.ts`
-   - Expected: renderer tests cover cached-first status state and preserve scan progress behavior.
+1. **test** `npx vitest run src/renderer/src/stores/__tests__/library.test.ts src/renderer/src/views/__tests__/LibraryView.test.ts src/renderer/src/views/__tests__/SettingsView.test.ts`
+   - Expected: renderer tests cover cached-first store state, visible cached/offline status messaging, and preserved scan progress behavior.
 2. **test** `npx vitest run src/preload/__tests__/index.test.ts`
    - Expected: preload API typings/events expose any new status channel or payload shape safely.
 3. **build** `npm run typecheck`
