@@ -1,19 +1,13 @@
 # REQ-031: Local Library Cache
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.20260709204505
-**Claimed at:** 2026-07-09T20:46:10Z
-**Heartbeat:** 2026-07-09T20:46:10Z
-<!-- claimed-end -->
-
 **UR:** UR-008
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-10
 **Layer:** none
 **Entry point:**
 **Terminal state:**
 **Parent:**
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:94084ee
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** M
@@ -30,10 +24,10 @@ The request says launch freezes because `.nfo` and artwork live in a Google Driv
 
 ## Acceptance Criteria
 
-- [ ] A cache module can write and read a list of `MovieRecord` objects from an app-owned path that is not inside a registered movie folder.
-- [ ] Cache reads tolerate a missing cache file by returning an empty list without throwing.
-- [ ] Cache reads tolerate corrupt JSON by returning an empty list and preserving the app startup path.
-- [ ] Cached records preserve file paths, metadata, match status, play state, and artwork path fields.
+- [x] A cache module can write and read a list of `MovieRecord` objects from an app-owned path that is not inside a registered movie folder.
+- [x] Cache reads tolerate a missing cache file by returning an empty list without throwing.
+- [x] Cache reads tolerate corrupt JSON by returning an empty list and preserving the app startup path.
+- [x] Cached records preserve file paths, metadata, match status, play state, and artwork path fields.
 
 ## Verification Steps
 
@@ -47,3 +41,8 @@ The request says launch freezes because `.nfo` and artwork live in a Google Driv
 ## Manual checks (advisory)
 
 - [ ] Launch Movie World after a previous library scan with Google Drive disconnected - Observable outcome: the app can use app-owned cached records without requiring Drive files to hydrate first.
+
+## Outputs
+
+- src/main/library/cache.ts - App-owned local library cache for MovieRecord lists under app data cache storage
+- src/main/library/__tests__/cache.test.ts - Focused cache tests for read/write, missing/corrupt files, path placement, and record preservation
