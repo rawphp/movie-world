@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import type { Keybindings } from '../../../shared/types'
+import { matchesCombo } from '../../../shared/keybindings'
 import { useLibraryStore } from '../stores/library'
 import { artSrc } from '../lib/art'
+import { adjacentMovieId, type MovieNavDirection } from '../lib/movie-nav'
 import StarRating from '../components/StarRating.vue'
 import FixMatchDialog from '../components/FixMatchDialog.vue'
 
@@ -12,6 +15,9 @@ const store = useLibraryStore()
 const api = window.api
 
 const fixing = ref(false)
+const keybindings = ref<Keybindings | null>(null)
+const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform)
+let mounted = false
 
 const movie = computed(() => store.movies[String(route.params.id)])
 const title = computed(() => movie.value?.title ?? movie.value?.parsedTitle ?? '')
@@ -35,6 +41,59 @@ function reveal(): void {
 function retry(): void {
   if (movie.value) void api.retryFetch(movie.value.id)
 }
+
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false
+  }
+
+  return (
+    target.isContentEditable ||
+    target.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]') != null
+  )
+}
+
+function navigate(direction: MovieNavDirection): void {
+  const id = adjacentMovieId(store.list, String(route.params.id), direction)
+
+  if (id) {
+    void router.push({ name: 'movie', params: { id } })
+  }
+}
+
+function onKeydown(event: KeyboardEvent): void {
+  if (fixing.value || !keybindings.value || isEditableTarget(event.target)) {
+    return
+  }
+
+  if (matchesCombo(event, keybindings.value.prevMovie, isMac)) {
+    event.preventDefault()
+    navigate('prev')
+    return
+  }
+
+  if (matchesCombo(event, keybindings.value.nextMovie, isMac)) {
+    event.preventDefault()
+    navigate('next')
+  }
+}
+
+onMounted(async () => {
+  mounted = true
+  const settings = await api.getSettings()
+
+  if (!mounted) {
+    return
+  }
+
+  keybindings.value = settings.keybindings
+  window.addEventListener('keydown', onKeydown)
+})
+
+onUnmounted(() => {
+  mounted = false
+  window.removeEventListener('keydown', onKeydown)
+})
 </script>
 
 <template>
