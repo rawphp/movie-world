@@ -42,6 +42,12 @@ export interface MovieRecord {
 export interface Settings {
   folders: string[]
   tmdbApiKey: string | null
+  keybindings: Keybindings
+}
+
+export interface Keybindings {
+  prevMovie: string
+  nextMovie: string
 }
 
 export interface ScanProgress {

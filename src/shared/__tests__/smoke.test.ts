@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { DEFAULT_KEYBINDINGS } from '../keybindings'
 import type {
   CastMember,
   MatchStatus,
@@ -48,7 +49,11 @@ describe('shared domain types', () => {
   })
 
   it('constructs Settings and ScanProgress', () => {
-    const settings: Settings = { folders: ['/Movies'], tmdbApiKey: null }
+    const settings: Settings = {
+      folders: ['/Movies'],
+      tmdbApiKey: null,
+      keybindings: DEFAULT_KEYBINDINGS
+    }
     const progress: ScanProgress = {
       folder: '/Movies',
       discovered: 3,
