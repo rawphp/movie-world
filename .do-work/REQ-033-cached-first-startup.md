@@ -12,7 +12,7 @@
 **Priority:** 2
 **Size:** M
 **Files:** src/main/library/manager.ts, src/main/library/__tests__/manager.test.ts
-**Depends on:** REQ-031 REQ-032
+**Depends on:** REQ-031, REQ-032
 
 ## Task
 
