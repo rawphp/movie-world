@@ -1,8 +1,14 @@
 import { describe, it, expect } from 'vitest'
-import { mkdtempSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { movieToNfoXml, parseNfoXml, sidecarPathsFor, readSidecarNfo } from '../nfo'
+import { dirname, join } from 'node:path'
+import {
+  cachedSidecarPathsFor,
+  movieToNfoXml,
+  parseNfoXml,
+  sidecarPathsFor,
+  readSidecarNfo
+} from '../nfo'
 import type { MovieRecord } from '../../../shared/types'
 
 const movie: MovieRecord = {
@@ -72,5 +78,40 @@ describe('nfo', () => {
     expect(readSidecarNfo(file)).toBeNull()
     writeFileSync(sidecarPathsFor(file).nfo, movieToNfoXml(movie))
     expect(readSidecarNfo(file)?.tmdbId).toBe(603)
+  })
+
+  it('maps cached sidecar paths into app-owned cache storage', () => {
+    const appData = join(tmpdir(), 'mw-app-data')
+    const paths = cachedSidecarPathsFor('/Movies/Alien.mkv', appData)
+
+    expect(paths.nfo.startsWith(join(appData, 'cache', 'sidecars'))).toBe(true)
+    expect(paths.poster.startsWith(join(appData, 'cache', 'sidecars'))).toBe(true)
+    expect(paths.fanart.startsWith(join(appData, 'cache', 'sidecars'))).toBe(true)
+    expect(paths.nfo).not.toContain('/Movies')
+    expect(cachedSidecarPathsFor('/Movies/Alien.mkv', appData)).toEqual(paths)
+  })
+
+  it('reads cached NFO when the source sidecar is absent', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'mw-nfo-'))
+    const appData = join(dir, 'app-data')
+    const file = join(dir, 'The Matrix (1999).mkv')
+    const cached = cachedSidecarPathsFor(file, appData)
+    mkdirSync(dirname(cached.nfo), { recursive: true })
+    writeFileSync(cached.nfo, movieToNfoXml(movie))
+
+    expect(readSidecarNfo(file, appData)?.tmdbId).toBe(603)
+  })
+
+  it('refreshes the cached NFO when the source sidecar is available', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'mw-nfo-'))
+    const appData = join(dir, 'app-data')
+    const file = join(dir, 'The Matrix (1999).mkv')
+    writeFileSync(sidecarPathsFor(file).nfo, movieToNfoXml(movie))
+
+    expect(readSidecarNfo(file, appData)?.tmdbId).toBe(603)
+
+    const cached = cachedSidecarPathsFor(file, appData)
+    expect(existsSync(cached.nfo)).toBe(true)
+    expect(readFileSync(cached.nfo, 'utf8')).toContain('<title>The Matrix</title>')
   })
 })

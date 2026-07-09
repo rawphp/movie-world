@@ -1,4 +1,6 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { createHash } from 'node:crypto'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { XMLBuilder, XMLParser } from 'fast-xml-parser'
 import type { CastMember, MovieRecord } from '../../shared/types'
 
@@ -26,6 +28,23 @@ export function sidecarPathsFor(filePath: string): {
 } {
   const stem = filePath.replace(/\.[^.]+$/, '')
   return { nfo: `${stem}.nfo`, poster: `${stem}-poster.jpg`, fanart: `${stem}-fanart.jpg` }
+}
+
+export function cachedSidecarPathsFor(
+  filePath: string,
+  appDataPath: string
+): {
+  nfo: string
+  poster: string
+  fanart: string
+} {
+  const key = createHash('sha1').update(filePath).digest('hex')
+  const dir = join(appDataPath, 'cache', 'sidecars', key)
+  return {
+    nfo: join(dir, 'metadata.nfo'),
+    poster: join(dir, 'poster.jpg'),
+    fanart: join(dir, 'fanart.jpg')
+  }
 }
 
 const TRAILER_PREFIX = 'plugin://plugin.video.youtube/?action=play_video&videoid='
@@ -111,8 +130,32 @@ export function writeSidecarNfo(movie: MovieRecord): void {
   writeFileSync(sidecarPathsFor(movie.filePath).nfo, movieToNfoXml(movie))
 }
 
-export function readSidecarNfo(filePath: string): NfoData | null {
+function tryReadText(path: string): string | null {
+  try {
+    return existsSync(path) ? readFileSync(path, 'utf8') : null
+  } catch {
+    return null
+  }
+}
+
+function writeCachedText(path: string, value: string): void {
+  try {
+    mkdirSync(dirname(path), { recursive: true })
+    writeFileSync(path, value, 'utf8')
+  } catch {
+    // Cache refresh is best-effort; source sidecar ingestion should still work.
+  }
+}
+
+export function readSidecarNfo(filePath: string, appDataPath?: string): NfoData | null {
   const { nfo } = sidecarPathsFor(filePath)
-  if (!existsSync(nfo)) return null
-  return parseNfoXml(readFileSync(nfo, 'utf8'))
+  const sourceXml = tryReadText(nfo)
+  if (sourceXml != null) {
+    if (appDataPath) writeCachedText(cachedSidecarPathsFor(filePath, appDataPath).nfo, sourceXml)
+    return parseNfoXml(sourceXml)
+  }
+
+  if (!appDataPath) return null
+  const cachedXml = tryReadText(cachedSidecarPathsFor(filePath, appDataPath).nfo)
+  return cachedXml == null ? null : parseNfoXml(cachedXml)
 }

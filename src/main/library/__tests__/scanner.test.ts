@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { discoverVideoFiles, ingestFile, movieId, VIDEO_EXTENSIONS } from '../scanner'
-import { movieToNfoXml, sidecarPathsFor } from '../nfo'
+import { cachedSidecarPathsFor, movieToNfoXml, sidecarPathsFor } from '../nfo'
 import type { MovieRecord } from '../../../shared/types'
 
 let root: string
@@ -103,4 +103,73 @@ describe('ingestFile', () => {
     expect(m.posterPath).toBe(sidecarPathsFor(file).poster)
     expect(m.fanartPath).toBeNull() // fanart file absent
   })
+
+  it('ingests cached metadata and artwork when source sidecars are missing', async () => {
+    const appData = join(root, 'app-data')
+    const file = join(root, 'The Matrix (1999).mkv')
+    writeFileSync(file, 'x')
+    const cached = cachedSidecarPathsFor(file, appData)
+    mkdirSync(dirname(cached.nfo), { recursive: true })
+    writeFileSync(cached.nfo, movieToNfoXml({ ...(await ingestFile(file, root)), ...matchedMovie() }))
+    writeFileSync(cached.poster, 'poster')
+    writeFileSync(cached.fanart, 'fanart')
+
+    const m = await ingestFile(file, root, { appDataPath: appData })
+
+    expect(m.matchStatus).toBe('matched')
+    expect(m.tmdbId).toBe(603)
+    expect(m.posterPath).toBe(cached.poster)
+    expect(m.fanartPath).toBe(cached.fanart)
+  })
+
+  it('refreshes cached sidecars from source files when they are available', async () => {
+    const appData = join(root, 'app-data')
+    const file = join(root, 'The Matrix (1999).mkv')
+    writeFileSync(file, 'x')
+    const source = sidecarPathsFor(file)
+    writeFileSync(source.nfo, movieToNfoXml({ ...(await ingestFile(file, root)), ...matchedMovie() }))
+    writeFileSync(source.poster, 'poster')
+    writeFileSync(source.fanart, 'fanart')
+
+    const m = await ingestFile(file, root, { appDataPath: appData })
+    const cached = cachedSidecarPathsFor(file, appData)
+
+    expect(m.posterPath).toBe(source.poster)
+    expect(m.fanartPath).toBe(source.fanart)
+    expect(existsSync(cached.nfo)).toBe(true)
+    expect(existsSync(cached.poster)).toBe(true)
+    expect(existsSync(cached.fanart)).toBe(true)
+  })
+
+  it('keeps cached artwork paths when source artwork is missing', async () => {
+    const appData = join(root, 'app-data')
+    const file = join(root, 'The Matrix (1999).mkv')
+    writeFileSync(file, 'x')
+    const cached = cachedSidecarPathsFor(file, appData)
+    mkdirSync(dirname(cached.nfo), { recursive: true })
+    writeFileSync(cached.nfo, movieToNfoXml({ ...(await ingestFile(file, root)), ...matchedMovie() }))
+    writeFileSync(cached.poster, 'poster')
+
+    const m = await ingestFile(file, root, { appDataPath: appData })
+
+    expect(m.posterPath).toBe(cached.poster)
+    expect(m.fanartPath).toBeNull()
+  })
 })
+
+function matchedMovie(): Partial<MovieRecord> {
+  return {
+    parsedTitle: 'The Matrix',
+    parsedYear: 1999,
+    matchStatus: 'matched',
+    tmdbId: 603,
+    title: 'The Matrix',
+    year: 1999,
+    genres: ['Action'],
+    cast: [],
+    certifications: { AU: 'MA15+' },
+    certificationAu: 'MA15+',
+    playCount: 3,
+    lastPlayedAt: '2026-07-01T10:00:00.000Z'
+  }
+}

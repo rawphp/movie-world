@@ -1,10 +1,10 @@
 import { createHash } from 'node:crypto'
-import { existsSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync } from 'node:fs'
 import { readdir, stat } from 'node:fs/promises'
 import { basename, dirname, extname, join } from 'node:path'
 import type { MovieRecord, ParsedFilename } from '../../shared/types'
 import { parseFilename } from './filename-parser'
-import { readSidecarNfo, sidecarPathsFor } from './nfo'
+import { cachedSidecarPathsFor, readSidecarNfo, sidecarPathsFor } from './nfo'
 
 export const VIDEO_EXTENSIONS = new Set(['.mkv', '.mp4', '.avi', '.mov', '.m4v', '.wmv', '.webm'])
 
@@ -37,7 +37,32 @@ function parseWithFolderFallback(filePath: string): ParsedFilename {
   return informativeness(fromFolder) > informativeness(parsed) ? fromFolder : parsed
 }
 
-export async function ingestFile(filePath: string, folderPath: string): Promise<MovieRecord> {
+export interface IngestOptions {
+  appDataPath?: string
+}
+
+function mirrorArtwork(sourcePath: string, cachedPath: string): void {
+  try {
+    mkdirSync(dirname(cachedPath), { recursive: true })
+    copyFileSync(sourcePath, cachedPath)
+  } catch {
+    // Cache refresh is best-effort; source artwork remains the usable path.
+  }
+}
+
+function resolveArtworkPath(sourcePath: string, cachedPath?: string): string | null {
+  if (existsSync(sourcePath)) {
+    if (cachedPath) mirrorArtwork(sourcePath, cachedPath)
+    return sourcePath
+  }
+  return cachedPath && existsSync(cachedPath) ? cachedPath : null
+}
+
+export async function ingestFile(
+  filePath: string,
+  folderPath: string,
+  opts: IngestOptions = {}
+): Promise<MovieRecord> {
   const { size } = await stat(filePath)
   const parsed = parseWithFolderFallback(filePath)
   const base: MovieRecord = {
@@ -68,14 +93,15 @@ export async function ingestFile(filePath: string, folderPath: string): Promise<
     posterPath: null,
     fanartPath: null
   }
-  const nfo = readSidecarNfo(filePath)
+  const nfo = readSidecarNfo(filePath, opts.appDataPath)
   if (!nfo) return base
   const paths = sidecarPathsFor(filePath)
+  const cachedPaths = opts.appDataPath ? cachedSidecarPathsFor(filePath, opts.appDataPath) : null
   return {
     ...base,
     ...nfo,
     matchStatus: 'matched',
-    posterPath: existsSync(paths.poster) ? paths.poster : null,
-    fanartPath: existsSync(paths.fanart) ? paths.fanart : null
+    posterPath: resolveArtworkPath(paths.poster, cachedPaths?.poster),
+    fanartPath: resolveArtworkPath(paths.fanart, cachedPaths?.fanart)
   }
 }
