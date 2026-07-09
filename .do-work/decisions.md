@@ -15,3 +15,4 @@
 2026-07-09 | UR-006 | keybinding validation enforced main-side in setKeybindings (reject invalid/duplicate) | renderer bugs must not persist unusable bindings
 2026-07-09 | UR-007 | error 153 captured as REQ-030, addressing REQ-020's unfixed candidate #1 (file:// origin / missing referer) — not a REQ-020 reject | REQ-020's CSP fix worked (blank box → rendered 153); the referer/origin cause is a distinct next-layer fix
 2026-07-10 | UR-008 | Google Drive freeze fix decomposed around app-owned local cache plus cached-first background rescan | free solution that removes Drive hydration from launch-critical path
+2026-07-10 | UR-009 | trailer Error 152-4 kept as one bug-fix REQ spanning diagnosis, preserved header tests, and renderer fallback | same user-visible failure path; splitting before diagnosis risks solving the wrong cause
