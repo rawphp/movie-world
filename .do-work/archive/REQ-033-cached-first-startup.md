@@ -1,23 +1,17 @@
 # REQ-033: Cached-First Startup
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.20260709204505
-**Claimed at:** 2026-07-09T21:04:43Z
-**Heartbeat:** 2026-07-09T21:04:43Z
-<!-- claimed-end -->
-
 **UR:** UR-008
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-10
 **Layer:** none
 **Entry point:**
 **Terminal state:**
 **Parent:**
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:39d7487
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
-**Files:** src/main/library/manager.ts, src/main/library/__tests__/manager.test.ts
+**Files:** src/main/library/manager.ts, src/main/library/__tests__/manager.test.ts, src/main/index.ts
 **Depends on:** REQ-031, REQ-032
 
 ## Task
@@ -30,10 +24,10 @@ Change library startup so `loadLibrary()` returns cached records immediately and
 
 ## Acceptance Criteria
 
-- [ ] `loadLibrary()` returns cached records before any slow folder scan has to complete.
-- [ ] Background scans still emit `movie:updated` and `scan:progress` events through the existing IPC path.
-- [ ] If a registered folder is missing or offline, cached movies from that folder remain visible and are not marked missing during the initial cached-first load.
-- [ ] Manual rescan still performs an explicit scan and can mark vanished files missing after the user requests it.
+- [x] `loadLibrary()` returns cached records before any slow folder scan has to complete.
+- [x] Background scans still emit `movie:updated` and `scan:progress` events through the existing IPC path.
+- [x] If a registered folder is missing or offline, cached movies from that folder remain visible and are not marked missing during the initial cached-first load.
+- [x] Manual rescan still performs an explicit scan and can mark vanished files missing after the user requests it.
 
 ## Verification Steps
 
@@ -47,3 +41,9 @@ Change library startup so `loadLibrary()` returns cached records immediately and
 ## Manual checks (advisory)
 
 - [ ] Launch Movie World while a Google Drive movie folder is offline - Observable outcome: the library screen paints from cache quickly and scan progress appears only if/when background discovery can proceed.
+
+## Outputs
+
+- src/main/library/manager.ts - Loads cached records first, schedules non-blocking startup scans, persists cache, and reserves missing-file marking for explicit rescans.
+- src/main/library/__tests__/manager.test.ts - Covers cached-first load, background scan events, offline-folder preservation, and explicit rescan behavior.
+- src/main/index.ts - Passes Electron userData path into the library manager so production startup uses the app-owned cache.
