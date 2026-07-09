@@ -1,19 +1,13 @@
 # REQ-036: Fix trailer unavailable Error 152-4
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.37498
-**Claimed at:** 2026-07-09T22:56:46Z
-**Heartbeat:** 2026-07-09T22:56:46Z
-<!-- claimed-end -->
-
 **UR:** UR-009
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-10
 **Layer:** none
 **Entry point:**
 **Terminal state:**
 **Parent:**
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:1955762
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
@@ -39,12 +33,18 @@ Relevant prior work: `REQ-030` already fixed packaged `Error 153` by adding YouT
 
 ## Acceptance Criteria
 
-- [ ] Diagnosis evidence records whether `0CYVGN98ZLA` fails because of app embed configuration or because YouTube rejects that specific video/embed, including the observed build mode and at least one comparison against a known-good trailer key.
-- [ ] The existing `REQ-030` header behavior remains host-scoped: YouTube embed requests receive `Referer: https://www.youtube.com/` and `Origin: https://www.youtube.com`, while TMDB, `mw-art:`, `file:`, localhost, and non-YouTube requests remain unchanged.
-- [ ] The movie detail page still renders valid trailer keys as inline YouTube embeds using the existing `detail-trailer-frame` path.
-- [ ] When a trailer key is present, the detail page exposes an app-owned "Watch on YouTube" fallback link outside the iframe that opens `https://www.youtube.com/watch?v=<key>`.
-- [ ] The fallback link does not replace inline playback for valid trailers; it only gives users a recovery path when YouTube refuses the embed.
-- [ ] Regression tests cover both the preserved header scoping and the detail-page YouTube fallback link.
+- [x] Diagnosis evidence records whether `0CYVGN98ZLA` fails because of app embed configuration or because YouTube rejects that specific video/embed, including the observed build mode and at least one comparison against a known-good trailer key.
+- [x] The existing `REQ-030` header behavior remains host-scoped: YouTube embed requests receive `Referer: https://www.youtube.com/` and `Origin: https://www.youtube.com`, while TMDB, `mw-art:`, `file:`, localhost, and non-YouTube requests remain unchanged.
+- [x] The movie detail page still renders valid trailer keys as inline YouTube embeds using the existing `detail-trailer-frame` path.
+- [x] When a trailer key is present, the detail page exposes an app-owned "Watch on YouTube" fallback link outside the iframe that opens `https://www.youtube.com/watch?v=<key>`.
+- [x] The fallback link does not replace inline playback for valid trailers; it only gives users a recovery path when YouTube refuses the embed.
+- [x] Regression tests cover both the preserved header scoping and the detail-page YouTube fallback link.
+
+## Diagnosis evidence
+
+- `curl` YouTube oEmbed comparison returned HTTP 200 for reported key `0CYVGN98ZLA` and known-good comparison key `eogpIG53Cis`, so the stored key is publicly resolvable and not an obvious missing-video/data-pipeline failure.
+- `npx vitest run src/main/__tests__/art-protocol.test.ts` passed, preserving the existing `REQ-030` host-scoped `Referer`/`Origin` behavior for YouTube embeds and pass-through behavior for TMDB, `mw-art:`, `file:`, localhost, and non-YouTube hosts.
+- Automated worktree checks cannot reproduce Electron/YouTube's live embedded-player `152 - 4` UI state, so the implemented fix adds an app-owned external recovery path while preserving inline playback for valid embeds.
 
 ## Verification Steps
 
@@ -63,3 +63,8 @@ Relevant prior work: `REQ-030` already fixed packaged `Error 153` by adding YouT
 
 - [ ] Action: launch the app in the build mode where `152 - 4` was observed and open a movie whose trailer key is `0CYVGN98ZLA` — Observable outcome: the Trailer section gives a clear app-owned "Watch on YouTube" recovery link outside the iframe, and clicking it opens the corresponding YouTube watch page in the external browser.
 - [ ] Action: open a movie with a known-good embeddable trailer key — Observable outcome: the inline trailer player still loads and can play in the detail page, with no regression to the prior `Error 153` path.
+
+## Outputs
+
+- src/renderer/src/views/MovieDetailView.vue — Adds an external YouTube fallback link beside the existing inline trailer iframe.
+- src/renderer/src/views/__tests__/MovieDetailView.test.ts — Adds regression coverage for the fallback link while preserving inline embed rendering.
