@@ -1,7 +1,13 @@
 # REQ-027: Main-process keybindings persistence and IPC
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.21785
+**Claimed at:** 2026-07-09T02:00:01Z
+**Heartbeat:** 2026-07-09T02:00:01Z
+<!-- claimed-end -->
+
 **UR:** UR-006
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-09
 **Layer:** main
 **Entry point:**
