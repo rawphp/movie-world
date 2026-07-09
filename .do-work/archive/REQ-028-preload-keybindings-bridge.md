@@ -1,23 +1,17 @@
 # REQ-028: Preload bridge for keybindings
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.21785
-**Claimed at:** 2026-07-09T02:21:04Z
-**Heartbeat:** 2026-07-09T02:21:04Z
-<!-- claimed-end -->
-
 **UR:** UR-006
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-09
 **Layer:** preload
 **Entry point:**
 **Terminal state:**
 **Parent:** REQ-026
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:4183f85
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** S
-**Files:** src/preload/index.ts, src/preload/index.d.ts
+**Files:** src/preload/__tests__/index.test.ts, src/preload/index.d.ts, src/preload/index.ts
 **Depends on:** REQ-024, REQ-027
 
 ## Task
@@ -35,9 +29,9 @@ Brief: the keyboard combination must be editable in settings. The renderer canno
 
 ## Acceptance Criteria
 
-- [ ] `window.api.setKeybindings` exists on the exposed bridge and invokes the `settings:set-keybindings` channel with the passed `Keybindings` object
-- [ ] `src/preload/index.d.ts` declares `setKeybindings(kb: Keybindings): Promise<Settings>` and the project typechecks — renderer code calling `window.api.setKeybindings` compiles without casts
-- [ ] Channel name matches the handler registered in `src/main/ipc.ts` exactly (`settings:set-keybindings`)
+- [x] `window.api.setKeybindings` exists on the exposed bridge and invokes the `settings:set-keybindings` channel with the passed `Keybindings` object
+- [x] `src/preload/index.d.ts` declares `setKeybindings(kb: Keybindings): Promise<Settings>` and the project typechecks — renderer code calling `window.api.setKeybindings` compiles without casts
+- [x] Channel name matches the handler registered in `src/main/ipc.ts` exactly (`settings:set-keybindings`)
 
 ## Verification Steps
 
@@ -57,3 +51,9 @@ Brief: the keyboard combination must be editable in settings. The renderer canno
 **Data dependencies:** None of its own — passes the `Keybindings` payload through to main; return value is the persisted `Settings` from `src/main/settings.ts`.
 
 **Service dependencies:** Invokes the `settings:set-keybindings` IPC channel registered in `src/main/ipc.ts` (REQ-027), via `ipcRenderer.invoke` exactly like `setApiKey` (`src/preload/index.ts:5`).
+
+## Outputs
+
+- src/preload/index.ts — Added setKeybindings bridge method invoking settings:set-keybindings with the provided Keybindings payload.
+- src/preload/index.d.ts — Added Keybindings import and typed Window api setKeybindings(kb) as Promise<Settings>.
+- src/preload/__tests__/index.test.ts — Added focused Vitest coverage proving the preload API exposes setKeybindings on the correct IPC channel.
