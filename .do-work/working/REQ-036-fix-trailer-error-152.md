@@ -1,7 +1,13 @@
 # REQ-036: Fix trailer unavailable Error 152-4
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.37498
+**Claimed at:** 2026-07-09T22:56:46Z
+**Heartbeat:** 2026-07-09T22:56:46Z
+<!-- claimed-end -->
+
 **UR:** UR-009
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-10
 **Layer:** none
 **Entry point:**
