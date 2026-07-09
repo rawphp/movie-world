@@ -1,7 +1,13 @@
 # REQ-028: Preload bridge for keybindings
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.21785
+**Claimed at:** 2026-07-09T02:21:04Z
+**Heartbeat:** 2026-07-09T02:21:04Z
+<!-- claimed-end -->
+
 **UR:** UR-006
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-09
 **Layer:** preload
 **Entry point:**
