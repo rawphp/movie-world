@@ -12,7 +12,7 @@
 **Priority:** 2
 **Size:** M
 **Files:** src/renderer/src/views/MovieDetailView.vue, src/renderer/src/lib/movie-nav.ts, src/renderer/src/lib/__tests__/movie-nav.test.ts, src/renderer/src/views/__tests__/MovieDetailView.test.ts
-**Depends on:** REQ-024 REQ-027
+**Depends on:** REQ-024, REQ-027
 
 ## Task
 

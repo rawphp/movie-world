@@ -12,7 +12,7 @@
 **Priority:** 2
 **Size:** M
 **Files:** src/renderer/src/components/ShortcutRecorder.vue, src/renderer/src/components/__tests__/ShortcutRecorder.test.ts, src/renderer/src/views/SettingsView.vue, src/renderer/src/views/__tests__/SettingsView.test.ts
-**Depends on:** REQ-024 REQ-028
+**Depends on:** REQ-024, REQ-028
 
 ## Task
 

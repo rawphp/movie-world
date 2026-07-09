@@ -12,7 +12,7 @@
 **Priority:** 2
 **Size:** S
 **Files:** src/preload/index.ts, src/preload/index.d.ts
-**Depends on:** REQ-024 REQ-027
+**Depends on:** REQ-024, REQ-027
 
 ## Task
 
