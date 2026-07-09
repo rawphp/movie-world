@@ -35,6 +35,11 @@ const sizeGb = computed(() =>
 const lastWatched = computed(() =>
   movie.value?.lastPlayedAt ? new Date(movie.value.lastPlayedAt).toLocaleString() : 'never'
 )
+const trailerWatchUrl = computed(() =>
+  movie.value?.trailerYoutubeKey
+    ? `https://www.youtube.com/watch?v=${movie.value.trailerYoutubeKey}`
+    : ''
+)
 
 function play(): void {
   if (movie.value) void api.play(movie.value.id)
@@ -252,6 +257,16 @@ onUnmounted(() => {
               "
             />
           </div>
+          <a
+            v-if="movie.trailerYoutubeKey"
+            data-testid="detail-trailer-youtube-link"
+            :href="trailerWatchUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mt-2 inline-flex text-sm text-sky-400 hover:text-sky-300"
+          >
+            Watch on YouTube
+          </a>
           <p v-else class="text-sm text-neutral-500">No trailer found for this movie.</p>
         </section>
       </div>
