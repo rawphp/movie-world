@@ -2,6 +2,7 @@ import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import type { SettingsStore } from './settings'
 import type { LibraryManager } from './library/manager'
 import { createTmdbClient } from './tmdb/client'
+import type { Keybindings } from '../shared/types'
 
 /**
  * Register the server side of every `window.api` method. Each handler is a thin
@@ -11,6 +12,7 @@ import { createTmdbClient } from './tmdb/client'
 export function registerIpc(settings: SettingsStore, manager: LibraryManager): void {
   ipcMain.handle('settings:get', () => settings.read())
   ipcMain.handle('settings:set-api-key', (_e, key: string) => settings.setApiKey(key))
+  ipcMain.handle('settings:set-keybindings', (_e, kb: Keybindings) => settings.setKeybindings(kb))
 
   ipcMain.handle('folders:add', async () => {
     const result = await dialog.showOpenDialog({ properties: ['openDirectory'] })
