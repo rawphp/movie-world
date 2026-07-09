@@ -10,3 +10,6 @@
 2026-07-09 | UR-005 | layer "main" out of scope | user answered "No" at layer-coverage prompt
 2026-07-09 | UR-005 | layer "preload" out of scope | user answered "No" at layer-coverage prompt
 2026-07-09 | UR-005 | layer "packaging" out of scope | user answered "No" at layer-coverage prompt
+2026-07-09 | UR-006 | layer "packaging" out of scope | user answered "No" at layer-coverage prompt
+2026-07-09 | UR-006 | combo format, defaults, matching + validation centralized in src/shared/keybindings.ts (REQ-024) | single source of truth for main persistence, detail-view matching and recorder UI
+2026-07-09 | UR-006 | keybinding validation enforced main-side in setKeybindings (reject invalid/duplicate) | renderer bugs must not persist unusable bindings
