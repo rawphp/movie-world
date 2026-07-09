@@ -1,19 +1,13 @@
 # REQ-032: Cache Sidecar Assets
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.20260709204505
-**Claimed at:** 2026-07-09T20:53:55Z
-**Heartbeat:** 2026-07-09T20:53:55Z
-<!-- claimed-end -->
-
 **UR:** UR-008
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-10
 **Layer:** none
 **Entry point:**
 **Terminal state:**
 **Parent:**
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:19ea4a7
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** M
@@ -30,10 +24,10 @@ The current `sidecarPathsFor()` design stores `.nfo`, poster, and fanart next to
 
 ## Acceptance Criteria
 
-- [ ] Ingestion can read previously cached metadata when the source `.nfo` next to the movie file is absent or unavailable.
-- [ ] Ingestion can map poster and fanart to app-owned cached paths when cached artwork exists.
-- [ ] Source sidecars remain supported so existing movie folders keep working and can refresh the cache when available.
-- [ ] Missing source artwork does not clear a valid cached artwork path during startup.
+- [x] Ingestion can read previously cached metadata when the source `.nfo` next to the movie file is absent or unavailable.
+- [x] Ingestion can map poster and fanart to app-owned cached paths when cached artwork exists.
+- [x] Source sidecars remain supported so existing movie folders keep working and can refresh the cache when available.
+- [x] Missing source artwork does not clear a valid cached artwork path during startup.
 
 ## Verification Steps
 
@@ -47,3 +41,10 @@ The current `sidecarPathsFor()` design stores `.nfo`, poster, and fanart next to
 ## Manual checks (advisory)
 
 - [ ] Open a library whose Google Drive artwork files are not hydrated - Observable outcome: cached poster/fanart still appears when the app has a local cached copy.
+
+## Outputs
+
+- src/main/library/nfo.ts - Adds deterministic app-owned cached sidecar paths and cached NFO fallback/refresh support.
+- src/main/library/scanner.ts - Adds ingest options for app data cache paths plus artwork cache refresh and fallback behavior.
+- src/main/library/__tests__/nfo.test.ts - Covers cached sidecar path mapping, cached NFO fallback, and cache refresh from source NFO.
+- src/main/library/__tests__/scanner.test.ts - Covers cached metadata/artwork ingestion, source sidecar cache refresh, and preserving cached artwork when source art is missing.
