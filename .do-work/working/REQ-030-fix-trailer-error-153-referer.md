@@ -1,7 +1,13 @@
 # REQ-030: Fix YouTube trailer Error 153 via referer/origin injection
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.14601
+**Claimed at:** 2026-07-09T12:24:16Z
+**Heartbeat:** 2026-07-09T12:24:16Z
+<!-- claimed-end -->
+
 **UR:** UR-007
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-09
 **Layer:** none
 **Closure proof:**
