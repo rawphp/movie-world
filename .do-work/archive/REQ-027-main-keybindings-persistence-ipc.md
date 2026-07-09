@@ -1,19 +1,13 @@
 # REQ-027: Main-process keybindings persistence and IPC
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.21785
-**Claimed at:** 2026-07-09T02:00:01Z
-**Heartbeat:** 2026-07-09T02:00:01Z
-<!-- claimed-end -->
-
 **UR:** UR-006
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-09
 **Layer:** main
 **Entry point:**
 **Terminal state:**
 **Parent:** REQ-026
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:b2d7ddd
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** M
@@ -34,11 +28,11 @@ Brief: the keyboard combination must be editable in settings. Settings persisten
 
 ## Acceptance Criteria
 
-- [ ] `read()` on a settings file with no `keybindings` key returns `DEFAULT_KEYBINDINGS`; a file with only `prevMovie` set returns that value plus the default `nextMovie`
-- [ ] `setKeybindings({ prevMovie: 'Alt+[', nextMovie: 'Alt+]' })` persists to disk and a fresh `read()` returns the new combos
-- [ ] `setKeybindings` throws and leaves the file unchanged when either combo is invalid per `isValidCombo` or when both combos are identical
-- [ ] `settings:set-keybindings` is registered in `registerIpc` and delegates to `settings.setKeybindings`
-- [ ] Existing settings tests still pass; new cases added to `src/main/__tests__/settings.test.ts`
+- [x] `read()` on a settings file with no `keybindings` key returns `DEFAULT_KEYBINDINGS`; a file with only `prevMovie` set returns that value plus the default `nextMovie`
+- [x] `setKeybindings({ prevMovie: 'Alt+[', nextMovie: 'Alt+]' })` persists to disk and a fresh `read()` returns the new combos
+- [x] `setKeybindings` throws and leaves the file unchanged when either combo is invalid per `isValidCombo` or when both combos are identical
+- [x] `settings:set-keybindings` is registered in `registerIpc` and delegates to `settings.setKeybindings`
+- [x] Existing settings tests still pass; new cases added to `src/main/__tests__/settings.test.ts`
 
 ## Verification Steps
 
@@ -58,3 +52,9 @@ Brief: the keyboard combination must be editable in settings. Settings persisten
 **Data dependencies:** Reads/writes the JSON settings file managed by `createSettingsStore` (`src/main/settings.ts:14`); extends the `DEFAULTS` constant (`src/main/settings.ts:5`).
 
 **Service dependencies:** Imports `DEFAULT_KEYBINDINGS`, `isValidCombo` and the `Keybindings` type from `src/shared/keybindings.ts` / `src/shared/types.ts` (REQ-024); extends the `SettingsStore` interface (`src/main/settings.ts:7`).
+
+## Outputs
+
+- src/main/settings.ts — Added keybinding deep-merge reads, validated setKeybindings persistence, and invalid/duplicate rejection.
+- src/main/ipc.ts — Registered settings:set-keybindings IPC handler delegating to the settings store.
+- src/main/__tests__/settings.test.ts — Added settings-store and IPC coverage for keybinding defaults, persistence, rejection, and delegation.
