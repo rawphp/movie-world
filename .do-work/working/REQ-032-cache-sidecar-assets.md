@@ -1,7 +1,13 @@
 # REQ-032: Cache Sidecar Assets
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.20260709204505
+**Claimed at:** 2026-07-09T20:53:55Z
+**Heartbeat:** 2026-07-09T20:53:55Z
+<!-- claimed-end -->
+
 **UR:** UR-008
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-10
 **Layer:** none
 **Entry point:**
