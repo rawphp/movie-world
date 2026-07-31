@@ -1,5 +1,17 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync as defaultExistsSync, readFileSync as defaultReadFileSync } from 'node:fs'
 import { extname } from 'node:path'
+import { measureSync, type TimingSink } from './startup-timings'
+
+/** Injectable FS for serveArtFile so slow/cloud-only Drive can be simulated (REQ-037). */
+export interface ArtFileSystem {
+  existsSync: (path: string) => boolean
+  readFileSync: (path: string) => Buffer
+}
+
+export interface ServeArtOptions {
+  fs?: ArtFileSystem
+  onTiming?: TimingSink
+}
 
 /** Custom scheme used to serve on-disk artwork to the sandboxed renderer. */
 export const MW_ART_SCHEME = 'mw-art'
@@ -65,19 +77,35 @@ export function contentTypeFor(filePath: string): string {
  * left matched-movie posters rendering as broken-image icons (REQ-018). A
  * missing or undecodable path returns a 404 Response; an existing file returns
  * a 200 Response carrying its exact bytes and a correct image `Content-Type`.
+ *
+ * Uses sync existsSync/readFileSync on the main process. When the path is a
+ * Google Drive cloud-only poster (no cachedPosterPath), this is the post-paint
+ * freeze hot path (REQ-037 primary root cause: a_mw_art_sync_reads).
  */
-export function serveArtFile(url: string): Response {
-  const filePath = decodeArtUrl(url)
-  if (!filePath || !existsSync(filePath)) return new Response(null, { status: 404 })
-  try {
-    const body = readFileSync(filePath)
-    return new Response(body, {
-      status: 200,
-      headers: { 'Content-Type': contentTypeFor(filePath) }
-    })
-  } catch {
-    return new Response(null, { status: 404 })
+export function serveArtFile(url: string, options?: ServeArtOptions): Response {
+  const fs = options?.fs ?? {
+    existsSync: defaultExistsSync,
+    readFileSync: defaultReadFileSync
   }
+  return measureSync(
+    'serveArtFile',
+    () => {
+      const filePath = decodeArtUrl(url)
+      if (!filePath || !fs.existsSync(filePath)) return new Response(null, { status: 404 })
+      try {
+        const body = fs.readFileSync(filePath)
+        // Uint8Array is a valid BodyInit; Node Buffer is a Uint8Array subclass at
+        // runtime but some TS DOM lib versions reject Buffer directly.
+        return new Response(Uint8Array.from(body), {
+          status: 200,
+          headers: { 'Content-Type': contentTypeFor(filePath) }
+        })
+      } catch {
+        return new Response(null, { status: 404 })
+      }
+    },
+    { sink: options?.onTiming, detail: decodeArtUrl(url) }
+  )
 }
 
 /**

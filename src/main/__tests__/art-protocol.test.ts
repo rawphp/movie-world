@@ -15,6 +15,11 @@ import {
   YOUTUBE_EMBED_ORIGIN,
   YOUTUBE_EMBED_REFERER
 } from '../art-protocol'
+import {
+  createTimingBuffer,
+  classifyStartupFreeze,
+  PRIMARY_FREEZE_ROOT_CAUSE
+} from '../startup-timings'
 
 describe('decodeArtUrl', () => {
   it('decodes an encoded absolute path', () => {
@@ -155,6 +160,65 @@ describe('serveArtFile', () => {
     const res = serveArtFile(`${MW_ART_SCHEME}://${encodeURIComponent(unreadable)}`)
 
     expect(res.status).toBe(404)
+  })
+
+  it('emits serveArtFile timing for the hot path', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'mw-art-time-'))
+    const file = join(dir, 'poster.jpg')
+    writeFileSync(file, Buffer.from([0xff, 0xd8, 0xff, 0xd9]))
+    const buffer = createTimingBuffer()
+
+    serveArtFile(`${MW_ART_SCHEME}://${encodeURIComponent(file)}`, { onTiming: buffer.sink })
+
+    expect(buffer.durationsFor('serveArtFile').length).toBe(1)
+    expect(buffer.events[0]?.detail).toBe(file)
+  })
+
+  it('blocks the UI-critical path for the full slow-FS delay (cloud-only Drive poster)', () => {
+    // Reproduce freeze scenario: grid painted from cache with posterPath on Drive
+    // and no cachedPosterPath → artSrc falls back to Drive path → serveArtFile
+    // does sync existsSync/readFileSync on a cloud-only file (REQ-037).
+    const drivePoster = '/Google Drive/Movies/The Matrix (1999)-poster.jpg'
+    const delayMs = 120
+    const bytes = Buffer.from([0xff, 0xd8, 0xff, 0xd9])
+    const buffer = createTimingBuffer()
+    const slowFs = {
+      existsSync: (p: string): boolean => {
+        const start = Date.now()
+        while (Date.now() - start < delayMs) {
+          /* busy-wait: cloud-only hydrate */
+        }
+        return p === drivePoster
+      },
+      readFileSync: (p: string): Buffer => {
+        if (p !== drivePoster) throw new Error('ENOENT')
+        return bytes
+      }
+    }
+
+    const wallStart = performance.now()
+    const res = serveArtFile(`${MW_ART_SCHEME}://${encodeURIComponent(drivePoster)}`, {
+      fs: slowFs,
+      onTiming: buffer.sink
+    })
+    const wallMs = performance.now() - wallStart
+
+    expect(res.status).toBe(200)
+    expect(wallMs).toBeGreaterThanOrEqual(delayMs - 5)
+    const timed = buffer.durationsFor('serveArtFile')[0] ?? 0
+    expect(timed).toBeGreaterThanOrEqual(delayMs - 5)
+
+    // loadLibrary is not on this path — classify freeze as mw-art sync reads.
+    expect(
+      classifyStartupFreeze({
+        loadLibraryMs: 5,
+        backgroundDiscoverMs: 500,
+        serveArtFileMs: timed,
+        loadLibraryWaitedOnDiscover: false,
+        blockingMs: 100
+      })
+    ).toBe(PRIMARY_FREEZE_ROOT_CAUSE)
+    expect(PRIMARY_FREEZE_ROOT_CAUSE).toBe('a_mw_art_sync_reads')
   })
 })
 
