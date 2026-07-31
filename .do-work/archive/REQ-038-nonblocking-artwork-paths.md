@@ -1,23 +1,18 @@
 # REQ-038: Nonblocking Artwork Paths
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.68555
-**Claimed at:** 2026-07-31T00:58:31Z
-**Heartbeat:** 2026-07-31T00:58:31Z
-<!-- claimed-end -->
 
 **UR:** UR-010
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-31
 **Layer:** none
 **Entry point:**
 **Terminal state:**
 **Parent:**
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:0d57c44
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
-**Files:** src/main/art-protocol.ts, src/main/__tests__/art-protocol.test.ts, src/main/library/scanner.ts, src/main/library/__tests__/scanner.test.ts, src/renderer/src/lib/art.ts, src/renderer/src/components/MovieCard.vue, src/renderer/src/views/MovieDetailView.vue, src/shared/types.ts
+**Files:** src/main/art-protocol.ts, src/main/__tests__/art-protocol.test.ts, src/main/library/scanner.ts, src/main/library/__tests__/scanner.test.ts, src/main/index.ts
 **Depends on:** REQ-037
 
 ## Task
@@ -30,10 +25,10 @@ User symptoms (titles visible, almost no posters, loading cursor after grid pain
 
 ## Acceptance Criteria
 
-- [ ] When a movie record has an app-owned cached poster (or fanart) path that exists under userData cache, rendered `mw-art` URLs use that path and `serveArtFile` never opens the Drive source sidecar for that request.
-- [ ] `resolveArtworkPath` (or equivalent) does not require a successful `existsSync`/`readFileSync` on the Drive source path in order to return a usable cached path when the cache file already exists.
-- [ ] `serveArtFile` returns a fast 404-style response for missing or unreadable artwork without throwing and without multi-second blocking in unit tests that simulate slow source FS on non-cache paths.
-- [ ] Existing CSP and `mw-art://` encoding behavior remain compatible with MovieCard and MovieDetailView tests.
+- [x] When a movie record has an app-owned cached poster (or fanart) path that exists under userData cache, rendered `mw-art` URLs use that path and `serveArtFile` never opens the Drive source sidecar for that request.
+- [x] `resolveArtworkPath` (or equivalent) does not require a successful `existsSync`/`readFileSync` on the Drive source path in order to return a usable cached path when the cache file already exists.
+- [x] `serveArtFile` returns a fast 404-style response for missing or unreadable artwork without throwing and without multi-second blocking in unit tests that simulate slow source FS on non-cache paths.
+- [x] Existing CSP and `mw-art://` encoding behavior remain compatible with MovieCard and MovieDetailView tests.
 
 ## Verification Steps
 
@@ -51,3 +46,12 @@ User symptoms (titles visible, almost no posters, loading cursor after grid pain
 ## Assets
 
 - (none)
+
+
+## Outputs
+
+- src/main/art-protocol.ts — isAppOwnedCachePath + fail-fast serveArtFile for non-cache paths
+- src/main/index.ts — wire userDataPath into serveArtFile
+- src/main/library/scanner.ts — cache-first resolveArtworkPath
+- src/main/__tests__/art-protocol.test.ts — fail-fast + cache-serve tests
+- src/main/library/__tests__/scanner.test.ts — cache-first resolve tests
