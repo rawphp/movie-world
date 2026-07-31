@@ -12,11 +12,12 @@ export interface ServeArtOptions {
   fs?: ArtFileSystem
   onTiming?: TimingSink
   /**
-   * App userData directory. When set, only paths under `{userData}/cache` are
+   * App userData directory (required). Only paths under `{userData}/cache` are
    * opened; non-cache (e.g. Google Drive source) paths fail-fast 404 without
-   * sync FS so one cloud-only poster cannot stall the main process (REQ-038).
+   * sync FS so one cloud-only poster cannot stall the main process (REQ-038,
+   * REQ-047 strict cache protocol).
    */
-  userDataPath?: string
+  userDataPath: string
 }
 
 /**
@@ -94,15 +95,15 @@ export function contentTypeFor(filePath: string): string {
  * missing or undecodable path returns a 404 Response; an existing file returns
  * a 200 Response carrying its exact bytes and a correct image `Content-Type`.
  *
- * When `userDataPath` is set (production wiring), only app-owned cache paths
- * under `{userData}/cache` are opened. Residual Drive/source `mw-art` URLs
- * fail-fast 404 without existsSync/readFileSync so cloud-only files cannot
- * freeze the main process (REQ-037 root cause a_mw_art_sync_reads; REQ-038 fix).
- * Renderer `artSrc` prefers `cachedPosterPath`/`cachedFanartPath` so successful
- * paint never depends on opening Drive.
+ * `userDataPath` is required. Only app-owned cache paths under `{userData}/cache`
+ * are opened. Residual Drive/source `mw-art` URLs fail-fast 404 without
+ * existsSync/readFileSync so cloud-only files cannot freeze the main process
+ * (REQ-037 root cause a_mw_art_sync_reads; REQ-038 / REQ-047). Renderer
+ * `artSrc` uses only `cachedPosterPath`/`cachedFanartPath` so successful paint
+ * never depends on opening Drive.
  */
-export function serveArtFile(url: string, options?: ServeArtOptions): Response {
-  const fs = options?.fs ?? {
+export function serveArtFile(url: string, options: ServeArtOptions): Response {
+  const fs = options.fs ?? {
     existsSync: defaultExistsSync,
     readFileSync: defaultReadFileSync
   }
@@ -112,15 +113,17 @@ export function serveArtFile(url: string, options?: ServeArtOptions): Response {
       const filePath = decodeArtUrl(url)
       if (!filePath) return new Response(null, { status: 404 })
       // Fail-fast for non-cache paths: never touch potentially cloud-backed FS.
-      if (options?.userDataPath && !isAppOwnedCachePath(filePath, options.userDataPath)) {
+      if (!isAppOwnedCachePath(filePath, options.userDataPath)) {
         return new Response(null, { status: 404 })
       }
       if (!fs.existsSync(filePath)) return new Response(null, { status: 404 })
       try {
         const body = fs.readFileSync(filePath)
-        // Uint8Array is a valid BodyInit; Node Buffer is a Uint8Array subclass at
-        // runtime but some TS DOM lib versions reject Buffer directly.
-        return new Response(Uint8Array.from(body), {
+        // BodyInit without a full second allocation. Node Buffer is a
+        // Uint8Array subclass at runtime and is a valid body; DOM lib
+        // typings reject Buffer / ArrayBufferLike views, so cast rather
+        // than Uint8Array.from(body) which copies every byte (REQ-047).
+        return new Response(body as unknown as BodyInit, {
           status: 200,
           headers: { 'Content-Type': contentTypeFor(filePath) }
         })
@@ -128,7 +131,7 @@ export function serveArtFile(url: string, options?: ServeArtOptions): Response {
         return new Response(null, { status: 404 })
       }
     },
-    { sink: options?.onTiming, detail: decodeArtUrl(url) }
+    { sink: options.onTiming, detail: decodeArtUrl(url) }
   )
 }
 

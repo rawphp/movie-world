@@ -69,8 +69,8 @@ app.whenReady().then(() => {
   // Renderer requests `mw-art://<encodeURIComponent(absPath)>`; serveArtFile
   // reads the bytes directly and returns them with a correct image
   // Content-Type, or a 404 Response when the file is absent (REQ-018).
-  // Restrict opens to userData/cache so residual Drive source URLs fail-fast
-  // instead of blocking the main process on cloud-only files (REQ-038).
+  // userDataPath is required: only userData/cache opens; residual Drive
+  // source URLs fail-fast without sync FS (REQ-038, REQ-047).
   const userDataPath = app.getPath('userData')
   protocol.handle(MW_ART_SCHEME, (req) => serveArtFile(req.url, { userDataPath }))
 

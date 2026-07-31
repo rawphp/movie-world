@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -128,17 +128,28 @@ describe('contentTypeFor', () => {
 })
 
 describe('serveArtFile', () => {
-  it('serves an existing file as a 200 with image/jpeg and the exact bytes', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'mw-art-'))
-    const file = join(dir, 'A Man Called Otto (2022)-poster.jpg')
+  /** userDataPath is required; artwork must live under `{userData}/cache` (REQ-047). */
+  function makeCacheArt(
+    name = 'poster.jpg'
+  ): { userData: string; file: string; bytes: Buffer } {
+    const userData = mkdtempSync(join(tmpdir(), 'mw-art-userdata-'))
+    const file = join(userData, 'cache', 'sidecars', 'abc', name)
+    mkdirSync(join(userData, 'cache', 'sidecars', 'abc'), { recursive: true })
     // A real (if tiny) JPEG: SOI + APP0/JFIF header + EOI.
     const bytes = Buffer.from([
       0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x00, 0x00,
       0x01, 0x00, 0x01, 0x00, 0x00, 0xff, 0xd9
     ])
     writeFileSync(file, bytes)
+    return { userData, file, bytes }
+  }
 
-    const res = serveArtFile(`${MW_ART_SCHEME}://${encodeURIComponent(file)}`)
+  it('serves an existing cache file as a 200 with image/jpeg and the exact bytes', async () => {
+    const { userData, file, bytes } = makeCacheArt('A Man Called Otto (2022)-poster.jpg')
+
+    const res = serveArtFile(`${MW_ART_SCHEME}://${encodeURIComponent(file)}`, {
+      userDataPath: userData
+    })
 
     expect(res.status).toBe(200)
     expect(res.headers.get('Content-Type')).toBe('image/jpeg')
@@ -146,38 +157,44 @@ describe('serveArtFile', () => {
     expect(got.equals(bytes)).toBe(true)
   })
 
-  it('returns a 404 Response for a non-existent path', () => {
-    const missing = '/no/such/dir/definitely-missing-poster.jpg'
-    const res = serveArtFile(`${MW_ART_SCHEME}://${encodeURIComponent(missing)}`)
+  it('returns a 404 Response for a non-existent cache path without dual-mode bypass', () => {
+    const userData = mkdtempSync(join(tmpdir(), 'mw-art-missing-'))
+    const missing = join(userData, 'cache', 'sidecars', 'nope', 'poster.jpg')
+    const res = serveArtFile(`${MW_ART_SCHEME}://${encodeURIComponent(missing)}`, {
+      userDataPath: userData
+    })
     expect(res.status).toBe(404)
   })
 
-  it('returns a 404 Response for an existing path that cannot be read as artwork', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'mw-art-unreadable-'))
-    const unreadable = join(dir, 'poster.jpg')
-    mkdirSync(unreadable)
+  it('returns a 404 Response for an existing cache path that cannot be read as artwork', () => {
+    const userData = mkdtempSync(join(tmpdir(), 'mw-art-unreadable-'))
+    const unreadable = join(userData, 'cache', 'sidecars', 'abc', 'poster.jpg')
+    mkdirSync(unreadable, { recursive: true })
 
-    const res = serveArtFile(`${MW_ART_SCHEME}://${encodeURIComponent(unreadable)}`)
+    const res = serveArtFile(`${MW_ART_SCHEME}://${encodeURIComponent(unreadable)}`, {
+      userDataPath: userData
+    })
 
     expect(res.status).toBe(404)
   })
 
   it('emits serveArtFile timing for the hot path', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'mw-art-time-'))
-    const file = join(dir, 'poster.jpg')
-    writeFileSync(file, Buffer.from([0xff, 0xd8, 0xff, 0xd9]))
+    const { userData, file } = makeCacheArt()
     const buffer = createTimingBuffer()
 
-    serveArtFile(`${MW_ART_SCHEME}://${encodeURIComponent(file)}`, { onTiming: buffer.sink })
+    serveArtFile(`${MW_ART_SCHEME}://${encodeURIComponent(file)}`, {
+      onTiming: buffer.sink,
+      userDataPath: userData
+    })
 
     expect(buffer.durationsFor('serveArtFile').length).toBe(1)
     expect(buffer.events[0]?.detail).toBe(file)
   })
 
-  it('fail-fast 404 for non-cache Drive paths under slow FS without multi-second block (REQ-038)', () => {
+  it('fail-fast 404 for non-cache Drive paths without exists/read (REQ-047 strict cache)', () => {
     // Residual mw-art requests may still carry a Drive posterPath when
-    // cachedPosterPath is missing. With userDataPath set, serveArtFile must
-    // not call existsSync/readFileSync on non-cache paths (defense in depth).
+    // cachedPosterPath is missing. userDataPath is always required; serveArtFile
+    // must not call existsSync/readFileSync on non-cache paths.
     const userData = '/Users/me/Library/Application Support/movie-world'
     const drivePoster = '/Google Drive/Movies/The Matrix (1999)-poster.jpg'
     const delayMs = 120
@@ -270,6 +287,23 @@ describe('serveArtFile', () => {
     expect(res.status).toBe(200)
     expect(driveTouched).toBe(false)
     expect(wallMs).toBeLessThan(delayMs / 2)
+    const got = Buffer.from(await res.arrayBuffer())
+    expect(got.equals(bytes)).toBe(true)
+  })
+
+  it('does not allocate a full second copy via Uint8Array.from on cache serve (REQ-047)', async () => {
+    const { userData, file, bytes } = makeCacheArt()
+    const fromSpy = vi.spyOn(Uint8Array, 'from')
+
+    const res = serveArtFile(`${MW_ART_SCHEME}://${encodeURIComponent(file)}`, {
+      userDataPath: userData
+    })
+
+    expect(res.status).toBe(200)
+    // Implementation must not Uint8Array.from(entireBuffer) — that doubles peak memory.
+    expect(fromSpy).not.toHaveBeenCalled()
+    fromSpy.mockRestore()
+
     const got = Buffer.from(await res.arrayBuffer())
     expect(got.equals(bytes)).toBe(true)
   })
