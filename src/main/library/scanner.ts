@@ -83,6 +83,75 @@ function resolveArtworkPath(sourcePath: string, cachedPath?: string): ResolvedAr
   return { path: null, cachedPath: null }
 }
 
+function usableCachePath(path: string | null | undefined): path is string {
+  return path != null && path !== '' && existsSync(path)
+}
+
+/**
+ * True when either app-owned cache art field is null/empty or its on-disk file is gone.
+ * Startup scan uses this to schedule Drive→cache backfill without full re-ingest (REQ-046).
+ */
+export function needsCacheArtBackfill(
+  movie: Pick<MovieRecord, 'cachedPosterPath' | 'cachedFanartPath'>,
+  exists: (p: string) => boolean = existsSync
+): boolean {
+  const posterOk =
+    movie.cachedPosterPath != null &&
+    movie.cachedPosterPath !== '' &&
+    exists(movie.cachedPosterPath)
+  const fanartOk =
+    movie.cachedFanartPath != null &&
+    movie.cachedFanartPath !== '' &&
+    exists(movie.cachedFanartPath)
+  return !posterOk || !fanartOk
+}
+
+/**
+ * Mirror missing app-owned cache poster/fanart from source/Drive sidecars.
+ * Does not re-read NFO or reparse metadata — art-only heal for incomplete cache (REQ-046).
+ * Failed or missing source leaves the corresponding cache field null.
+ */
+export function backfillCacheArtFromSource(
+  movie: MovieRecord,
+  appDataPath: string
+): MovieRecord {
+  const source = sidecarPathsFor(movie.filePath)
+  const cached = cachedSidecarPathsFor(movie.filePath, appDataPath)
+
+  let cachedPosterPath: string | null = usableCachePath(movie.cachedPosterPath)
+    ? movie.cachedPosterPath!
+    : null
+  let cachedFanartPath: string | null = usableCachePath(movie.cachedFanartPath)
+    ? movie.cachedFanartPath!
+    : null
+
+  if (cachedPosterPath == null) {
+    if (existsSync(cached.poster)) {
+      cachedPosterPath = cached.poster
+    } else if (existsSync(source.poster)) {
+      mirrorArtwork(source.poster, cached.poster)
+      cachedPosterPath = existsSync(cached.poster) ? cached.poster : null
+    }
+  }
+
+  if (cachedFanartPath == null) {
+    if (existsSync(cached.fanart)) {
+      cachedFanartPath = cached.fanart
+    } else if (existsSync(source.fanart)) {
+      mirrorArtwork(source.fanart, cached.fanart)
+      cachedFanartPath = existsSync(cached.fanart) ? cached.fanart : null
+    }
+  }
+
+  if (
+    cachedPosterPath === (movie.cachedPosterPath ?? null) &&
+    cachedFanartPath === (movie.cachedFanartPath ?? null)
+  ) {
+    return movie
+  }
+  return { ...movie, cachedPosterPath, cachedFanartPath }
+}
+
 export async function ingestFile(
   filePath: string,
   folderPath: string,

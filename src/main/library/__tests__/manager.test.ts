@@ -644,4 +644,98 @@ describe('library manager', () => {
     expect(after[0].posterPath).toBe(drivePoster)
     expect(after[0].fanartPath).toBe(driveFanart)
   })
+
+  it('startup backfills missing cache art from Drive source without blocking loadLibrary (REQ-046)', async () => {
+    const moviesDir = join(dir, 'movies')
+    mkdirSync(moviesDir, { recursive: true })
+    const filePath = join(moviesDir, 'Backfill.Movie.2019.mkv')
+    const drivePoster = join(moviesDir, 'Backfill.Movie.2019-poster.jpg')
+    writeFileSync(filePath, 'video-bytes')
+    writeFileSync(drivePoster, 'poster-bytes')
+
+    const appDataPath = join(dir, 'app-data')
+    const partial = makeMovie({
+      filePath,
+      folderPath: moviesDir,
+      id: movieId(filePath),
+      posterPath: drivePoster,
+      fanartPath: null,
+      cachedPosterPath: null,
+      cachedFanartPath: null,
+      matchStatus: 'matched'
+    })
+    await createLibraryCache(appDataPath).write([partial])
+
+    // Gate discover so loadLibrary returns before scan/backfill can run.
+    const { promise, resolve } = deferred<string[]>()
+    const settings = createSettingsStore(join(dir, 'settings.json'))
+    settings.addFolder(moviesDir)
+    const manager = createLibraryManager({
+      settings,
+      makeClient: () => fakeClient,
+      emit: () => {},
+      appDataPath,
+      scanDeps: {
+        discoverVideoFiles: () => promise
+      }
+    })
+
+    const loaded = await manager.loadLibrary()
+    expect(loaded.movies).toHaveLength(1)
+    expect(loaded.movies[0].cachedPosterPath ?? null).toBeNull()
+    expect(loaded.status.firstViewFromCache).toBe(true)
+    // Cache file must not exist yet — hydrate only fills from existing app-owned sidecars.
+    expect(existsSync(cachedSidecarPathsFor(filePath, appDataPath).poster)).toBe(false)
+
+    resolve([filePath])
+    await manager.idle()
+
+    const movie = manager.getMovies()[0]
+    expect(movie.cachedPosterPath).toBeTruthy()
+    expect(movie.cachedPosterPath!.startsWith(appDataPath)).toBe(true)
+    expect(existsSync(movie.cachedPosterPath!)).toBe(true)
+    const relPoster = relative(appDataPath, movie.cachedPosterPath!)
+    expect(relPoster === '' || relPoster.startsWith('..')).toBe(false)
+    // Persist so next launch is a no-op for this field.
+    const persisted = await createLibraryCache(appDataPath).read()
+    expect(persisted[0].cachedPosterPath).toBe(movie.cachedPosterPath)
+  })
+
+  it('startup cache-art backfill failure leaves fields null and does not reject idle (REQ-046)', async () => {
+    const moviesDir = join(dir, 'movies')
+    mkdirSync(moviesDir, { recursive: true })
+    const filePath = join(moviesDir, 'NoSource.Art.2018.mkv')
+    writeFileSync(filePath, 'video-bytes')
+    // No source poster/fanart on disk.
+
+    const appDataPath = join(dir, 'app-data')
+    const partial = makeMovie({
+      filePath,
+      folderPath: moviesDir,
+      id: movieId(filePath),
+      posterPath: join(moviesDir, 'NoSource.Art.2018-poster.jpg'),
+      fanartPath: null,
+      cachedPosterPath: null,
+      cachedFanartPath: null
+    })
+    await createLibraryCache(appDataPath).write([partial])
+
+    const settings = createSettingsStore(join(dir, 'settings.json'))
+    settings.addFolder(moviesDir)
+    const manager = createLibraryManager({
+      settings,
+      makeClient: () => fakeClient,
+      emit: () => {},
+      appDataPath,
+      scanDeps: {
+        discoverVideoFiles: async () => [filePath]
+      }
+    })
+
+    await expect(manager.loadLibrary()).resolves.toMatchObject({
+      movies: [expect.objectContaining({ id: partial.id })]
+    })
+    await expect(manager.idle()).resolves.toBeUndefined()
+    expect(manager.getMovies()[0].cachedPosterPath ?? null).toBeNull()
+  })
 })
