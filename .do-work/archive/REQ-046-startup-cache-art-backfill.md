@@ -1,19 +1,14 @@
 # REQ-046: Startup Cache Art Backfill
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.23552
-**Claimed at:** 2026-07-31T03:50:17Z
-**Heartbeat:** 2026-07-31T03:52:58Z
-<!-- claimed-end -->
 
 **UR:** UR-011
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-31
 **Layer:** main
 **Entry point:**
 **Terminal state:**
 **Parent:** REQ-041
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:be70f83
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** M
@@ -57,3 +52,9 @@ Prefer explicit “needs cache art” detection over full re-ingest of metadata 
 ## Assets
 
 - (none)
+
+## Outputs
+
+- src/main/library/manager.ts — Startup cache-art backfill pool
+- src/main/library/scanner.ts — needsCacheArtBackfill + backfillCacheArtFromSource
+- src/main/library/__tests__/manager.test.ts — REQ-046 tests
