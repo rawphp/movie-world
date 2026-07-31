@@ -35,9 +35,13 @@ export interface MovieRecord {
   fileMissing: boolean
   sidecarWriteFailed: boolean
   fetchFailed: boolean
+  /** Source/Drive sidecar path (Kodi/NFO); not used for UI paint — see displayPosterPath. */
   posterPath: string | null // absolute path on disk
+  /** Source/Drive fanart path; not used for UI paint — see displayFanartPath. */
   fanartPath: string | null
-  cachedPosterPath?: string | null // app-owned cached artwork path when available
+  /** App-owned cache path for paint (`displayPosterPath`); keep name — do not rename. */
+  cachedPosterPath?: string | null
+  /** App-owned cache path for paint (`displayFanartPath`); keep name — do not rename. */
   cachedFanartPath?: string | null
 }
 
