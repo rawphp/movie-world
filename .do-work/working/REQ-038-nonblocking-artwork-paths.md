@@ -1,7 +1,13 @@
 # REQ-038: Nonblocking Artwork Paths
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.68555
+**Claimed at:** 2026-07-31T00:58:31Z
+**Heartbeat:** 2026-07-31T00:58:31Z
+<!-- claimed-end -->
+
 **UR:** UR-010
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-31
 **Layer:** none
 **Entry point:**
