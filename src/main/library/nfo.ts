@@ -147,7 +147,26 @@ function writeCachedText(path: string, value: string): void {
   }
 }
 
-export function readSidecarNfo(filePath: string, appDataPath?: string): NfoData | null {
+export interface ReadSidecarNfoOptions {
+  /**
+   * When true and app-owned cache has an NFO, return it without probing the
+   * movie-folder source sidecar (startup/background scans over Google Drive).
+   */
+  preferCache?: boolean
+}
+
+export function readSidecarNfo(
+  filePath: string,
+  appDataPath?: string,
+  options?: ReadSidecarNfoOptions
+): NfoData | null {
+  const preferCache = options?.preferCache === true
+
+  if (preferCache && appDataPath) {
+    const cachedXml = tryReadText(cachedSidecarPathsFor(filePath, appDataPath).nfo)
+    if (cachedXml != null) return parseNfoXml(cachedXml)
+  }
+
   const { nfo } = sidecarPathsFor(filePath)
   const sourceXml = tryReadText(nfo)
   if (sourceXml != null) {
@@ -155,6 +174,7 @@ export function readSidecarNfo(filePath: string, appDataPath?: string): NfoData 
     return parseNfoXml(sourceXml)
   }
 
+  if (preferCache) return null
   if (!appDataPath) return null
   const cachedXml = tryReadText(cachedSidecarPathsFor(filePath, appDataPath).nfo)
   return cachedXml == null ? null : parseNfoXml(cachedXml)

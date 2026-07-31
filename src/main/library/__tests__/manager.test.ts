@@ -380,4 +380,150 @@ describe('library manager', () => {
       })
     ).toBe('a_mw_art_sync_reads')
   })
+
+  it('does not await slow folder probes inside loadLibrary; unavailable is reported via scan progress (REQ-039)', async () => {
+    const missingFolder = join(dir, 'cloud-only-drive')
+    const settings = createSettingsStore(join(dir, 'settings.json'))
+    settings.addFolder(missingFolder)
+    const appDataPath = join(dir, 'app-data')
+    const cached = makeMovie({
+      filePath: join(missingFolder, 'Cached.Movie.2020.mkv'),
+      folderPath: missingFolder,
+      fileMissing: false
+    })
+    await createLibraryCache(appDataPath).write([cached])
+    const progress: ScanProgress[] = []
+    let folderExistsCalls = 0
+    const probeDelayMs = 80
+    const manager = createLibraryManager({
+      settings,
+      makeClient: () => fakeClient,
+      emit: (channel, payload) => {
+        if (channel === 'scan:progress') progress.push(payload as ScanProgress)
+      },
+      appDataPath,
+      scanDeps: {
+        folderExists: async () => {
+          folderExistsCalls++
+          // Simulate a slow Drive root probe that would freeze if awaited in loadLibrary.
+          await new Promise((r) => setTimeout(r, probeDelayMs))
+          return false
+        },
+        discoverVideoFiles: async () => []
+      }
+    })
+
+    const loadStart = performance.now()
+    const loaded = await manager.loadLibrary()
+    const loadWallMs = performance.now() - loadStart
+
+    expect(loaded.movies).toEqual([cached])
+    // Background scan may *start* folderExists, but loadLibrary must not await it.
+    expect(loaded.status.unavailableFolders).toEqual([])
+    expect(loadWallMs).toBeLessThan(probeDelayMs)
+    // Progress for unavailable not yet emitted (probe still in flight).
+    expect(progress.some((p) => p.unavailable)).toBe(false)
+
+    await manager.idle()
+    expect(folderExistsCalls).toBeGreaterThanOrEqual(1)
+    expect(progress).toContainEqual({
+      folder: missingFolder,
+      discovered: 0,
+      ingested: 0,
+      done: true,
+      unavailable: true
+    })
+    // Cached titles remain; startup never marks missing.
+    expect(manager.getMovies()).toEqual([cached])
+  })
+
+  it('startup background ingest prefers cache; rescanFolder does not (REQ-039)', async () => {
+    const { mkdirSync } = await import('node:fs')
+    const moviesDir = join(dir, 'movies')
+    mkdirSync(moviesDir, { recursive: true })
+    const file = join(moviesDir, 'Arrival.2016.mkv')
+    const file2 = join(moviesDir, 'Dune.2021.mkv')
+    writeFileSync(file, 'x')
+    writeFileSync(file2, 'x')
+    const settings = createSettingsStore(join(dir, 'settings.json'))
+    settings.addFolder(moviesDir)
+    const ingestOpts: Array<{ path: string; preferCache?: boolean }> = []
+    let discoverPass = 0
+    const manager = createLibraryManager({
+      settings,
+      makeClient: () => fakeClient,
+      emit: () => {},
+      appDataPath: join(dir, 'app-data'),
+      scanDeps: {
+        discoverVideoFiles: async () => {
+          discoverPass++
+          // Startup only sees one file; rescan discovers a second so ingest runs again.
+          return discoverPass === 1 ? [file] : [file, file2]
+        },
+        ingestFile: async (path, folder, opts) => {
+          ingestOpts.push({ path, preferCache: opts?.preferCache })
+          return makeMovie({
+            id: movieId(path),
+            filePath: path,
+            folderPath: folder,
+            matchStatus: 'pending',
+            tmdbId: null,
+            title: null
+          })
+        }
+      }
+    })
+
+    await manager.loadLibrary()
+    await manager.idle()
+    const startupIngest = ingestOpts.find((o) => o.path === file)
+    expect(startupIngest?.preferCache).toBe(true)
+
+    const beforeRescan = ingestOpts.length
+    await manager.rescanFolder(moviesDir)
+    const rescanIngest = ingestOpts.slice(beforeRescan).find((o) => o.path === file2)
+    expect(rescanIngest).toBeDefined()
+    expect(rescanIngest?.preferCache).not.toBe(true)
+  })
+
+  it('rescanFolder still marks vanished files missing while startup does not (REQ-039)', async () => {
+    const { mkdirSync } = await import('node:fs')
+    const moviesDir = join(dir, 'movies')
+    mkdirSync(moviesDir, { recursive: true })
+    const file = join(moviesDir, 'Gone.mkv')
+    writeFileSync(file, 'x')
+    const appDataPath = join(dir, 'app-data')
+    const cached = makeMovie({
+      filePath: file,
+      folderPath: moviesDir,
+      id: movieId(file),
+      fileMissing: false
+    })
+    await createLibraryCache(appDataPath).write([cached])
+    const settings = createSettingsStore(join(dir, 'settings.json'))
+    settings.addFolder(moviesDir)
+    const updates: MovieRecord[] = []
+    const manager = createLibraryManager({
+      settings,
+      makeClient: () => fakeClient,
+      emit: (channel, payload) => {
+        if (channel === 'movie:updated') updates.push(payload as MovieRecord)
+      },
+      appDataPath,
+      scanDeps: {
+        // Simulate folder walk that no longer sees the file (Drive offline / deleted).
+        discoverVideoFiles: async () => [],
+        ingestFile: async (path, folder) => makeMovie({ filePath: path, folderPath: folder })
+      }
+    })
+
+    await manager.loadLibrary()
+    await manager.idle()
+    expect(manager.getMovies()[0].fileMissing).toBe(false)
+    expect(updates.some((m) => m.fileMissing)).toBe(false)
+
+    await manager.rescanFolder(moviesDir)
+    expect(manager.getMovies()[0].fileMissing).toBe(true)
+    expect(updates.some((m) => m.fileMissing)).toBe(true)
+  })
 })

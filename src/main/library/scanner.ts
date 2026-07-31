@@ -39,6 +39,12 @@ function parseWithFolderFallback(filePath: string): ParsedFilename {
 
 export interface IngestOptions {
   appDataPath?: string
+  /**
+   * Startup/background scans: when true, use app-owned cached NFO/art without
+   * sync-probing movie-folder (Drive) source sidecars if the cache already has them.
+   * Explicit rescan leaves this false so source can reconcile.
+   */
+  preferCache?: boolean
 }
 
 function mirrorArtwork(sourcePath: string, cachedPath: string): void {
@@ -58,10 +64,10 @@ interface ResolvedArtworkPath {
 /**
  * Resolve poster/fanart paths for a sidecar pair.
  *
- * Cache-first (REQ-038): when an app-owned cache file already exists, return it
- * as the usable path without existsSync/read/mirror on the source sidecar.
+ * Cache-first (REQ-038/039): when an app-owned cache file already exists, return
+ * it as the usable path without existsSync/read/mirror on the source sidecar.
  * Probing Google Drive cloud-only source files blocks the main process; a warm
- * cache must never require that probe for grid/detail paint.
+ * cache must never require that probe for grid/detail paint or startup scan.
  */
 function resolveArtworkPath(sourcePath: string, cachedPath?: string): ResolvedArtworkPath {
   if (cachedPath && existsSync(cachedPath)) {
@@ -112,7 +118,7 @@ export async function ingestFile(
     posterPath: null,
     fanartPath: null
   }
-  const nfo = readSidecarNfo(filePath, opts.appDataPath)
+  const nfo = readSidecarNfo(filePath, opts.appDataPath, { preferCache: opts.preferCache })
   if (!nfo) return base
   const paths = sidecarPathsFor(filePath)
   const cachedPaths = opts.appDataPath ? cachedSidecarPathsFor(filePath, opts.appDataPath) : null

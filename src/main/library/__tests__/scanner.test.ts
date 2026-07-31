@@ -180,6 +180,74 @@ describe('ingestFile', () => {
     expect(readFileSync(cached.poster, 'utf8')).toBe('cache-poster')
     expect(readFileSync(cached.fanart, 'utf8')).toBe('cache-fanart')
   })
+
+  it('preferCache skips Drive source NFO/art probes when app-owned cache already has them (REQ-039)', async () => {
+    const appData = join(root, 'app-data')
+    const file = join(root, 'The Matrix (1999).mkv')
+    writeFileSync(file, 'x')
+    const source = sidecarPathsFor(file)
+    const cached = cachedSidecarPathsFor(file, appData)
+    mkdirSync(dirname(cached.nfo), { recursive: true })
+    const cachedMeta = { ...matchedMovie(), title: 'Cached Title', playCount: 9 }
+    writeFileSync(
+      cached.nfo,
+      movieToNfoXml({ ...(await ingestFile(file, root)), ...cachedMeta } as MovieRecord)
+    )
+    writeFileSync(cached.poster, 'cache-poster')
+    writeFileSync(cached.fanart, 'cache-fanart')
+    // Source sidecars differ — preferCache must not read/mirror them.
+    writeFileSync(
+      source.nfo,
+      movieToNfoXml({
+        ...(await ingestFile(file, root)),
+        ...matchedMovie(),
+        title: 'Drive Title',
+        playCount: 1
+      } as MovieRecord)
+    )
+    writeFileSync(source.poster, 'drive-poster')
+    writeFileSync(source.fanart, 'drive-fanart')
+
+    const m = await ingestFile(file, root, { appDataPath: appData, preferCache: true })
+
+    expect(m.title).toBe('Cached Title')
+    expect(m.playCount).toBe(9)
+    expect(m.posterPath).toBe(cached.poster)
+    expect(m.fanartPath).toBe(cached.fanart)
+    expect(m.cachedPosterPath).toBe(cached.poster)
+    expect(m.cachedFanartPath).toBe(cached.fanart)
+    expect(readFileSync(cached.nfo, 'utf8')).toContain('Cached Title')
+    expect(readFileSync(cached.poster, 'utf8')).toBe('cache-poster')
+    expect(readFileSync(cached.fanart, 'utf8')).toBe('cache-fanart')
+  })
+
+  it('without preferCache, source NFO still wins over cache (rescan reconcile)', async () => {
+    const appData = join(root, 'app-data')
+    const file = join(root, 'The Matrix (1999).mkv')
+    writeFileSync(file, 'x')
+    const source = sidecarPathsFor(file)
+    const cached = cachedSidecarPathsFor(file, appData)
+    mkdirSync(dirname(cached.nfo), { recursive: true })
+    writeFileSync(
+      cached.nfo,
+      movieToNfoXml({
+        ...(await ingestFile(file, root)),
+        ...matchedMovie(),
+        title: 'Cached Title'
+      } as MovieRecord)
+    )
+    writeFileSync(
+      source.nfo,
+      movieToNfoXml({
+        ...(await ingestFile(file, root)),
+        ...matchedMovie(),
+        title: 'Drive Title'
+      } as MovieRecord)
+    )
+
+    const m = await ingestFile(file, root, { appDataPath: appData, preferCache: false })
+    expect(m.title).toBe('Drive Title')
+  })
 })
 
 function matchedMovie(): Partial<MovieRecord> {

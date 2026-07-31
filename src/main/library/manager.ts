@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { access } from 'node:fs/promises'
 import type { LibraryLoadResult, MovieRecord, ScanProgress } from '../../shared/types'
 import type { SettingsStore } from '../settings'
 import type { TmdbClient } from '../tmdb/client'
@@ -11,6 +11,15 @@ import {
 import { createLibraryCache } from './cache'
 import { measureAsync, type TimingSink } from '../startup-timings'
 
+async function defaultFolderExists(folder: string): Promise<boolean> {
+  try {
+    await access(folder)
+    return true
+  } catch {
+    return false
+  }
+}
+
 interface ManagerOpts {
   settings: SettingsStore
   makeClient: (apiKey: string) => TmdbClient
@@ -19,6 +28,8 @@ interface ManagerOpts {
   scanDeps?: {
     discoverVideoFiles?: typeof defaultDiscoverVideoFiles
     ingestFile?: typeof defaultIngestFile
+    /** Injectable folder probe (async) for tests / non-blocking Drive roots. */
+    folderExists?: (folder: string) => boolean | Promise<boolean>
   }
   downloadImage?: (url: string, dest: string) => Promise<void>
   playDeps?: { openPath?: (p: string) => Promise<string>; now?: () => Date }
@@ -41,6 +52,7 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
   const cache = opts.appDataPath ? createLibraryCache(opts.appDataPath) : null
   const discoverVideoFiles = opts.scanDeps?.discoverVideoFiles ?? defaultDiscoverVideoFiles
   const ingestFile = opts.scanDeps?.ingestFile ?? defaultIngestFile
+  const folderExists = opts.scanDeps?.folderExists ?? defaultFolderExists
   const downloadImage = opts.downloadImage ?? downloadImageToFile
   const startupScans = new Set<Promise<void>>()
 
@@ -87,7 +99,10 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
     folder: string,
     { markMissing }: { markMissing: boolean }
   ): Promise<MovieRecord[]> {
-    if (!existsSync(folder)) {
+    // Async folder probe (not sync existsSync) so cloud-provider roots cannot
+    // stall the Electron main thread while startup scans run in the background.
+    const available = await folderExists(folder)
+    if (!available) {
       if (markMissing) {
         for (const m of movies.values()) {
           if (m.folderPath === folder && !m.fileMissing) commit({ ...m, fileMissing: true })
@@ -110,13 +125,20 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
     const seen = new Set<string>()
     const ingested: MovieRecord[] = []
     let done = 0
+    // Startup (markMissing:false): prefer app-owned cache — no Drive sidecar probes
+    // when NFO/art already cached. Explicit rescan fully reconciles from source.
+    const preferCache = !markMissing
     for (const file of files) {
       const existing = [...movies.values()].find((m) => m.filePath === file)
       const record = existing
         ? { ...existing, fileMissing: false }
         : await measureAsync(
             'ingestFile',
-            () => ingestFile(file, folder, { appDataPath: opts.appDataPath }),
+            () =>
+              ingestFile(file, folder, {
+                appDataPath: opts.appDataPath,
+                preferCache
+              }),
             { sink: opts.onTiming, detail: file }
           )
       seen.add(record.id)
@@ -167,13 +189,15 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
           const cached = await hydrateFromCache()
           const folders = opts.settings.read().folders
           for (const folder of folders) scheduleStartupScan(folder)
+          // Do not sync-probe folder roots here (Drive cloud-only roots can hang).
+          // Background scan reports unavailable via scan:progress; renderer updates UX.
           return {
             movies: cached,
             status: {
               firstViewFromCache: cached.length > 0,
               backgroundScanRunning: folders.length > 0,
               backgroundScanFolders: folders,
-              unavailableFolders: folders.filter((folder) => !existsSync(folder))
+              unavailableFolders: []
             }
           }
         },
