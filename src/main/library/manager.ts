@@ -5,11 +5,16 @@ import type { TmdbClient } from '../tmdb/client'
 import { createFetchQueue, fetchAndApply, downloadImageToFile } from '../tmdb/fetcher'
 import { playMovie } from '../player'
 import {
+  backfillCacheArtFromSource,
   discoverVideoFiles as defaultDiscoverVideoFiles,
-  ingestFile as defaultIngestFile
+  ingestFile as defaultIngestFile,
+  needsCacheArtBackfill
 } from './scanner'
 import { completeCachedArtworkPaths, createLibraryCache } from './cache'
 import { measureAsync, type TimingSink } from '../startup-timings'
+
+/** Max concurrent Drive→cache art mirrors during startup backfill (UR-011 / REQ-046). */
+const CACHE_ART_BACKFILL_CONCURRENCY = 2
 
 async function defaultFolderExists(folder: string): Promise<boolean> {
   try {
@@ -56,6 +61,11 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
   const downloadImage = opts.downloadImage ?? downloadImageToFile
   const startupScans = new Set<Promise<void>>()
 
+  // Startup cache-art backfill pool (concurrency 2): never blocks loadLibrary.
+  const backfillWaiting: MovieRecord[] = []
+  let backfillActive = 0
+  let backfillIdleResolvers: Array<() => void> = []
+
   function client(): TmdbClient | null {
     const key = opts.settings.read().tmdbApiKey
     return key ? opts.makeClient(key) : null
@@ -69,6 +79,63 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
 
   async function persistCache(): Promise<void> {
     await cache?.write([...movies.values()])
+  }
+
+  function notifyBackfillIdle(): void {
+    if (backfillActive === 0 && backfillWaiting.length === 0) {
+      backfillIdleResolvers.forEach((r) => r())
+      backfillIdleResolvers = []
+    }
+  }
+
+  async function runCacheArtBackfill(movie: MovieRecord): Promise<void> {
+    backfillActive++
+    try {
+      const appDataPath = opts.appDataPath
+      if (!appDataPath) return
+      const current = movies.get(movie.id) ?? movie
+      const updated = backfillCacheArtFromSource(current, appDataPath)
+      if (
+        updated.cachedPosterPath !== (current.cachedPosterPath ?? null) ||
+        updated.cachedFanartPath !== (current.cachedFanartPath ?? null)
+      ) {
+        // Merge onto latest map entry so concurrent match/fetch updates are not clobbered.
+        const latest = movies.get(movie.id) ?? current
+        commit({
+          ...latest,
+          cachedPosterPath: updated.cachedPosterPath,
+          cachedFanartPath: updated.cachedFanartPath
+        })
+      }
+    } catch {
+      // Best-effort: never reject loadLibrary / startup path (REQ-046).
+    } finally {
+      backfillActive--
+      pumpCacheArtBackfill()
+    }
+  }
+
+  function pumpCacheArtBackfill(): void {
+    while (backfillActive < CACHE_ART_BACKFILL_CONCURRENCY && backfillWaiting.length > 0) {
+      void runCacheArtBackfill(backfillWaiting.shift()!)
+    }
+    notifyBackfillIdle()
+  }
+
+  function scheduleCacheArtBackfill(movie: MovieRecord): void {
+    if (!opts.appDataPath) return
+    if (!needsCacheArtBackfill(movie)) return
+    // Dedupe by id while waiting/running.
+    if (backfillWaiting.some((m) => m.id === movie.id)) return
+    backfillWaiting.push(movie)
+    pumpCacheArtBackfill()
+  }
+
+  function waitForCacheArtBackfill(): Promise<void> {
+    if (backfillActive === 0 && backfillWaiting.length === 0) return Promise.resolve()
+    return new Promise((resolve) => {
+      backfillIdleResolvers.push(resolve)
+    })
   }
 
   async function hydrateFromCache(): Promise<MovieRecord[]> {
@@ -161,6 +228,11 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
           )
       seen.add(record.id)
       if (!existing || existing.fileMissing) commit(record)
+      // Startup only: re-touch known records missing usable cache art (async pool).
+      // Brand-new files already materialize via ingestFile; do not mark missing here.
+      if (existing && !markMissing && opts.appDataPath) {
+        scheduleCacheArtBackfill(record)
+      }
       ingested.push(record)
       opts.emit('scan:progress', {
         folder,
@@ -243,6 +315,7 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
     getMovies: (): MovieRecord[] => [...movies.values()],
     idle: async (): Promise<void> => {
       await waitForStartupScans()
+      await waitForCacheArtBackfill()
       await (queue?.idle() ?? Promise.resolve())
     }
   }
