@@ -1,19 +1,14 @@
 # REQ-048: Explicit Scan Mode And Timings Gate
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.23552
-**Claimed at:** 2026-07-31T03:55:38Z
-**Heartbeat:** 2026-07-31T03:55:38Z
-<!-- claimed-end -->
 
 **UR:** UR-011
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-31
 **Layer:** main
 **Entry point:**
 **Terminal state:**
 **Parent:** REQ-041
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:7427d8e
 **Criteria approved:** agent-drafted
 **Priority:** 1
 **Size:** S
@@ -30,10 +25,10 @@ Brief item 6 + inferred clarification: startup = prefer cache, no mark missing; 
 
 ## Acceptance Criteria
 
-- [ ] Manager uses explicit mode type/string for startup vs rescan; no `preferCache = !markMissing` assignment.
-- [ ] Startup mode still does not mark missing; rescan still marks missing and reconciles source.
-- [ ] Timing logs are off by default; enabled only when `MW_STARTUP_TIMINGS=1` (or equivalent documented env).
-- [ ] Tests for startup vs rescan mode still pass; root-cause constant not required for product behavior tests.
+- [x] Manager uses explicit mode type/string for startup vs rescan; no `preferCache = !markMissing` assignment.
+- [x] Startup mode still does not mark missing; rescan still marks missing and reconciles source.
+- [x] Timing logs are off by default; enabled only when `MW_STARTUP_TIMINGS=1` (or equivalent documented env).
+- [x] Tests for startup vs rescan mode still pass; root-cause constant not required for product behavior tests.
 
 ## Verification Steps
 
@@ -53,3 +48,12 @@ Brief item 6 + inferred clarification: startup = prefer cache, no mark missing; 
 ## Assets
 
 - (none)
+
+## Outputs
+
+- src/main/library/manager.ts — ScanMode
+- src/main/library/scanner.ts — ScanMode type
+- src/main/library/nfo.ts — mode startup|rescan
+- src/main/startup-timings.ts — MW_STARTUP_TIMINGS gate
+- src/main/library/__tests__/manager.test.ts — mode tests
+- src/main/library/__tests__/scanner.test.ts — mode tests
