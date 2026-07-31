@@ -1,8 +1,43 @@
 ---
 ur: UR-011
 received: 2026-07-31
-status: intake
+status: captured
+classification: feature
+layers_in_scope: [shared, main, preload, renderer, packaging]
+layer_decisions: { preload: no, packaging: no }
+reqs:
+  - { id: REQ-041, layer: none, integration_confidence: n/a }
+  - { id: REQ-042, layer: shared, integration_confidence: high }
+  - { id: REQ-043, layer: renderer, integration_confidence: high }
+  - { id: REQ-044, layer: main, integration_confidence: high }
+  - { id: REQ-045, layer: main, integration_confidence: high }
+  - { id: REQ-046, layer: main, integration_confidence: high }
+  - { id: REQ-047, layer: main, integration_confidence: high }
+  - { id: REQ-048, layer: main, integration_confidence: high }
+acknowledged_partials: []
 ---
+
+<!-- capture-summary-start -->
+## Capture summary (2026-07-31)
+
+| Item | Value |
+|---|---|
+| Classification | feature |
+| Layers in scope | shared, main, preload, renderer, packaging |
+| Layer decisions | preload: no, packaging: no |
+| REQs generated | 8 |
+
+| REQ | Layer | Integration confidence |
+|---|---|---|
+| REQ-041 | none | n/a |
+| REQ-042 | shared | high |
+| REQ-043 | renderer | high |
+| REQ-044 | main | high |
+| REQ-045 | main | high |
+| REQ-046 | main | high |
+| REQ-047 | main | high |
+| REQ-048 | main | high |
+<!-- capture-summary-end -->
 
 # UR-011: User Request
 

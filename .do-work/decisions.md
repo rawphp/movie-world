@@ -17,3 +17,7 @@
 2026-07-10 | UR-008 | Google Drive freeze fix decomposed around app-owned local cache plus cached-first background rescan | free solution that removes Drive hydration from launch-critical path
 2026-07-10 | UR-009 | trailer Error 152-4 kept as one bug-fix REQ spanning diagnosis, preserved header tests, and renderer fallback | same user-visible failure path; splitting before diagnosis risks solving the wrong cause
 2026-07-31 | UR-010 | diagnosis REQ (037) hard-deps art+scan fixes (038/039); cache completeness (040) depends on art path fix | post-paint freeze needs proven hot path; titles-without-posters also needs hydrate field fill
+2026-07-31 | UR-011 | layer "preload" out of scope | user answered "No" at layer-coverage prompt (default on decline)
+2026-07-31 | UR-011 | layer "packaging" out of scope | user answered "No" at layer-coverage prompt (default on decline)
+2026-07-31 | UR-011 | keep cachedPosterPath field names; display contract only | grill clarification — avoid rename churn
+2026-07-31 | UR-011 | backfill may mirror Drive at concurrency 2; cache write required, Drive best-effort | grill clarifications from UR-010 review rework
