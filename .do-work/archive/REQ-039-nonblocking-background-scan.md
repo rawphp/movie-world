@@ -1,23 +1,18 @@
 # REQ-039: Nonblocking Background Drive Scan
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.90875
-**Claimed at:** 2026-07-31T01:03:46Z
-**Heartbeat:** 2026-07-31T01:03:46Z
-<!-- claimed-end -->
 
 **UR:** UR-010
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-31
 **Layer:** none
 **Entry point:**
 **Terminal state:**
 **Parent:**
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:e0338f2
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** M
-**Files:** src/main/library/manager.ts, src/main/library/scanner.ts, src/main/library/__tests__/manager.test.ts, src/main/library/__tests__/scanner.test.ts
+**Files:** src/main/library/manager.ts, src/main/library/scanner.ts, src/main/library/nfo.ts, src/main/library/__tests__/manager.test.ts, src/main/library/__tests__/scanner.test.ts
 **Depends on:** REQ-037
 
 ## Task
@@ -30,11 +25,11 @@ Make the post-`loadLibrary` background folder scan safe against Google Drive clo
 
 ## Acceptance Criteria
 
-- [ ] Cached-first `loadLibrary()` still returns before any folder walk completes (existing REQ-033 contract preserved).
-- [ ] Background startup scan does not perform synchronous Drive-source probes (`existsSync`/`copyFileSync` on movie-folder sidecars) on the critical path when app-owned cache already supplies NFO/artwork for that file — or equivalent proven strategy from REQ-037 that keeps the main process responsive under a slow-FS test double.
-- [ ] Under a unit test that makes folder `readdir`/`stat`/sidecar probes artificially slow, the manager still returns cached movies immediately and the slow work does not run inside the `loadLibrary` await (and, where measurable, yields or avoids sync main-thread stalls in the simulated path).
-- [ ] Startup scan still emits `scan:progress` / `movie:updated` when it can proceed; missing/offline folders do not wipe cached titles on the initial cached-first load (`markMissing: false` for startup).
-- [ ] Explicit `rescanFolder` may still fully reconcile and mark missing files (existing manual-rescan contract).
+- [x] Cached-first `loadLibrary()` still returns before any folder walk completes (existing REQ-033 contract preserved).
+- [x] Background startup scan does not perform synchronous Drive-source probes (`existsSync`/`copyFileSync` on movie-folder sidecars) on the critical path when app-owned cache already supplies NFO/artwork for that file — or equivalent proven strategy from REQ-037 that keeps the main process responsive under a slow-FS test double.
+- [x] Under a unit test that makes folder `readdir`/`stat`/sidecar probes artificially slow, the manager still returns cached movies immediately and the slow work does not run inside the `loadLibrary` await (and, where measurable, yields or avoids sync main-thread stalls in the simulated path).
+- [x] Startup scan still emits `scan:progress` / `movie:updated` when it can proceed; missing/offline folders do not wipe cached titles on the initial cached-first load (`markMissing: false` for startup).
+- [x] Explicit `rescanFolder` may still fully reconcile and mark missing files (existing manual-rescan contract).
 
 ## Verification Steps
 
@@ -52,3 +47,12 @@ Make the post-`loadLibrary` background folder scan safe against Google Drive clo
 ## Assets
 
 - (none)
+
+
+## Outputs
+
+- src/main/library/manager.ts — async folderExists; preferCache startup ingest
+- src/main/library/scanner.ts — preferCache IngestOptions
+- src/main/library/nfo.ts — preferCache readSidecarNfo
+- src/main/library/__tests__/manager.test.ts — nonblocking scan tests
+- src/main/library/__tests__/scanner.test.ts — preferCache skip-source tests
