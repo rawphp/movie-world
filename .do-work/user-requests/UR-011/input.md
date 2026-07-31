@@ -15,3 +15,20 @@ status: intake
 5. Backfill: startup scan must re-touch records missing cache art (async, limited concurrency), not only brand-new files — otherwise incomplete cache never recovers.
 6. Delete or gate: startup-timings production noise; preferCache = !markMissing → explicit mode; dual artSrc fallback.
 7. Stop copying image buffers in serveArtFile.
+
+## Clarifications
+
+**Q:** Explicit scan modes vs current preferCache = !markMissing; protocol dual-mode; hydrate migration; display-only cache paths
+**A:** Map modes to existing contracts: `startup` = prefer cache, do not mark missing; `rescan` = full source reconcile + mark missing. Production already passes `userDataPath` into `serveArtFile` — requiring it is the production contract (tests must pass userData). Keep `completeCachedArtworkPaths` on hydrate then persist so fields stick. Renderer display art uses only `cachedPosterPath`/`cachedFanartPath` (no Drive fallback in artSrc). *(inferred, confirmed)*
+
+**Q:** You said display art is “cachedPosterPath | null only (or rename to posterCachePath).” Which should capture encode?
+**A:** Keep names `cachedPosterPath`/`cachedFanartPath`; change contract only (renderer ignores `posterPath`/`fanartPath` for paint).
+
+**Q:** You said startup scan must “re-touch records missing cache art (async, limited concurrency).” When cache art is missing, may backfill read/copy from Drive source sidecars?
+**A:** May mirror from Drive: async limited pool may copy source poster/fanart into cache when missing — never blocks first paint; placeholders until done.
+
+**Q:** You said backfill is “async, limited concurrency.” What pool size for concurrent Drive→cache art mirrors?
+**A:** 2 concurrent.
+
+**Q:** You said always materialize under cache and “optionally still write Drive sidecars for Kodi.” On TMDB match, Drive writes best-effort?
+**A:** Yes — cache required for match paint success; Drive NFO/poster write failures only set sidecarWriteFailed / are swallowed.
