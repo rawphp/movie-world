@@ -1,6 +1,12 @@
-import { writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { dirname } from 'node:path'
 import type { MovieRecord } from '../../shared/types'
-import { sidecarPathsFor, writeSidecarNfo } from '../library/nfo'
+import {
+  cachedSidecarPathsFor,
+  movieToNfoXml,
+  sidecarPathsFor,
+  writeSidecarNfo
+} from '../library/nfo'
 import { imageUrl, type TmdbClient } from './client'
 import { applyDetails, pickConfidentMatch } from './matcher'
 
@@ -14,7 +20,41 @@ export async function downloadImageToFile(
 ): Promise<void> {
   const res = await fetchFn(url)
   if (!res.ok) throw new Error(`image download failed: ${res.status}`)
+  mkdirSync(dirname(dest), { recursive: true })
   writeFileSync(dest, Buffer.from(await res.arrayBuffer()))
+}
+
+/**
+ * Materialize one artwork file. When `cacheDest` is set (appDataPath available),
+ * cache is the primary write target — match/paint success requires it. Drive
+ * (`driveDest`) is best-effort for Kodi/NFO compatibility and never clears a
+ * successful cache path (REQ-044).
+ */
+async function materializeArt(
+  url: string,
+  driveDest: string,
+  downloadImage: DownloadImage,
+  cacheDest?: string
+): Promise<{ path: string | null; cachedPath: string | null }> {
+  if (cacheDest) {
+    mkdirSync(dirname(cacheDest), { recursive: true })
+    await downloadImage(url, cacheDest)
+    // Cache succeeded — Drive is best-effort only.
+    try {
+      mkdirSync(dirname(driveDest), { recursive: true })
+      if (existsSync(cacheDest)) {
+        copyFileSync(cacheDest, driveDest)
+      } else {
+        await downloadImage(url, driveDest)
+      }
+      return { path: driveDest, cachedPath: cacheDest }
+    } catch {
+      return { path: cacheDest, cachedPath: cacheDest }
+    }
+  }
+  // Legacy: no appDataPath — write Drive only.
+  await downloadImage(url, driveDest)
+  return { path: driveDest, cachedPath: null }
 }
 
 /**
@@ -24,12 +64,16 @@ export async function downloadImageToFile(
  * claims to own them and BEFORE the NFO is written, so a failed download
  * propagates (leaving `posterPath` null) rather than reporting a clean
  * `matched` record with a broken poster (UR-001 partial-write guard).
+ *
+ * With `appDataPath`, poster/fanart (and NFO) materialize under
+ * `cachedSidecarPathsFor` first; Drive sidecars remain best-effort for Kodi.
  */
 export async function fetchAndApply(
   movie: MovieRecord,
   client: TmdbClient,
   downloadImage: DownloadImage,
-  tmdbId?: number
+  tmdbId?: number,
+  appDataPath?: string
 ): Promise<MovieRecord> {
   let id = tmdbId ?? null
   if (id == null) {
@@ -40,16 +84,42 @@ export async function fetchAndApply(
   }
   const details = await client.getMovieDetails(id)
   let matched = applyDetails(movie, details)
-  const paths = sidecarPathsFor(movie.filePath)
+  const drivePaths = sidecarPathsFor(movie.filePath)
+  const cachePaths = appDataPath ? cachedSidecarPathsFor(movie.filePath, appDataPath) : null
+
   if (details.poster_path) {
-    await downloadImage(imageUrl(details.poster_path, 'w500'), paths.poster)
-    matched = { ...matched, posterPath: paths.poster }
+    const poster = await materializeArt(
+      imageUrl(details.poster_path, 'w500'),
+      drivePaths.poster,
+      downloadImage,
+      cachePaths?.poster
+    )
+    matched = {
+      ...matched,
+      posterPath: poster.path,
+      cachedPosterPath: poster.cachedPath
+    }
   }
   if (details.backdrop_path) {
-    await downloadImage(imageUrl(details.backdrop_path, 'original'), paths.fanart)
-    matched = { ...matched, fanartPath: paths.fanart }
+    const fanart = await materializeArt(
+      imageUrl(details.backdrop_path, 'original'),
+      drivePaths.fanart,
+      downloadImage,
+      cachePaths?.fanart
+    )
+    matched = {
+      ...matched,
+      fanartPath: fanart.path,
+      cachedFanartPath: fanart.cachedPath
+    }
   }
+
+  // NFO: cache first when available, then Drive (best-effort pair).
   try {
+    if (cachePaths) {
+      mkdirSync(dirname(cachePaths.nfo), { recursive: true })
+      writeFileSync(cachePaths.nfo, movieToNfoXml(matched), 'utf8')
+    }
     writeSidecarNfo(matched)
   } catch {
     matched = { ...matched, sidecarWriteFailed: true }
@@ -69,6 +139,8 @@ export function createFetchQueue(opts: {
   retries?: number
   backoffMs?: number
   downloadImage?: DownloadImage
+  /** When set, matched art materializes under app-owned cache (REQ-044). */
+  appDataPath?: string
 }): FetchQueue {
   const concurrency = opts.concurrency ?? 4
   const retries = opts.retries ?? 3
@@ -83,7 +155,9 @@ export function createFetchQueue(opts: {
     try {
       for (let attempt = 1; ; attempt++) {
         try {
-          opts.onUpdate(await fetchAndApply(movie, opts.client, downloadImage))
+          opts.onUpdate(
+            await fetchAndApply(movie, opts.client, downloadImage, undefined, opts.appDataPath)
+          )
           break
         } catch {
           if (attempt >= retries) {

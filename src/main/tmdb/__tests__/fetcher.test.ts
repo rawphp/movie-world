@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { createFetchQueue } from '../fetcher'
+import { dirname, join } from 'node:path'
+import { createFetchQueue, fetchAndApply } from '../fetcher'
 import type { TmdbClient } from '../client'
 import type { MovieRecord } from '../../../shared/types'
+import { cachedSidecarPathsFor, sidecarPathsFor } from '../../library/nfo'
 
 const pendingMovie = (dir: string, name: string): MovieRecord => ({
   id: name,
@@ -162,5 +163,122 @@ describe('fetch queue', () => {
     expect(last.posterPath).toBeNull()
     expect(last.matchStatus).not.toBe('matched')
     expect(last.fetchFailed).toBe(true)
+  })
+})
+
+describe('fetchAndApply cache materialize (REQ-044)', () => {
+  const matrixClient = (): TmdbClient =>
+    ({
+      searchMovies: vi.fn(async () => searchHit),
+      getMovieDetails: vi.fn(async () => details)
+    }) as unknown as TmdbClient
+
+  it('downloads poster/fanart under userData cache and sets cachedPosterPath/cachedFanartPath', async () => {
+    const dir = tempDir()
+    const appData = join(dir, 'app-data')
+    const movie = pendingMovie(dir, 'The Matrix')
+    const cached = cachedSidecarPathsFor(movie.filePath, appData)
+    const downloadImage = vi.fn(async (_url: string, dest: string) => {
+      mkdirSync(dirname(dest), { recursive: true })
+      writeFileSync(dest, dest.endsWith('poster.jpg') || dest.includes('poster') ? 'poster-bytes' : 'fanart-bytes')
+    })
+
+    const result = await fetchAndApply(movie, matrixClient(), downloadImage, undefined, appData)
+
+    expect(result.matchStatus).toBe('matched')
+    expect(result.cachedPosterPath).toBe(cached.poster)
+    expect(result.cachedFanartPath).toBe(cached.fanart)
+    expect(result.cachedPosterPath!.startsWith(appData)).toBe(true)
+    expect(result.cachedFanartPath!.startsWith(appData)).toBe(true)
+    expect(existsSync(cached.poster)).toBe(true)
+    expect(existsSync(cached.fanart)).toBe(true)
+    // Primary download targets are cache paths (Drive optional after).
+    expect(downloadImage.mock.calls.some((c) => c[1] === cached.poster)).toBe(true)
+    expect(downloadImage.mock.calls.some((c) => c[1] === cached.fanart)).toBe(true)
+  })
+
+  it('sets cache fields without requiring Drive paths for display (Drive write best-effort)', async () => {
+    const dir = tempDir()
+    const appData = join(dir, 'app-data')
+    // Put the movie under a non-writable parent so Drive sidecar writes fail.
+    const driveRoot = join(dir, 'drive-ro')
+    mkdirSync(driveRoot, { recursive: true })
+    const movieDir = join(driveRoot, 'The Matrix')
+    mkdirSync(movieDir, { recursive: true })
+    const movie = pendingMovie(movieDir, 'The Matrix')
+    chmodSync(movieDir, 0o555)
+
+    const cached = cachedSidecarPathsFor(movie.filePath, appData)
+    const downloadImage = vi.fn(async (_url: string, dest: string) => {
+      // Only allow writes under appData (cache); Drive dest will fail on writeFileSync.
+      if (!dest.startsWith(appData)) {
+        throw new Error('Drive write denied')
+      }
+      mkdirSync(dirname(dest), { recursive: true })
+      writeFileSync(dest, 'ok')
+    })
+
+    let result: MovieRecord
+    try {
+      result = await fetchAndApply(movie, matrixClient(), downloadImage, undefined, appData)
+    } finally {
+      chmodSync(movieDir, 0o755)
+    }
+
+    expect(result.matchStatus).toBe('matched')
+    expect(result.cachedPosterPath).toBe(cached.poster)
+    expect(result.cachedFanartPath).toBe(cached.fanart)
+    expect(existsSync(cached.poster)).toBe(true)
+    // Drive art write failure must not clear cache fields or unmatch.
+    expect(result.cachedPosterPath).not.toBeNull()
+    expect(result.cachedFanartPath).not.toBeNull()
+  })
+
+  it('does not set non-null cache fields when cache download fails', async () => {
+    const dir = tempDir()
+    const appData = join(dir, 'app-data')
+    const movie = pendingMovie(dir, 'The Matrix')
+    const downloadImage = vi.fn(async () => {
+      throw new Error('cache download failed')
+    })
+
+    await expect(
+      fetchAndApply(movie, matrixClient(), downloadImage, undefined, appData)
+    ).rejects.toThrow('cache download failed')
+  })
+
+  it('createFetchQueue passes appDataPath so matched records get cache art paths', async () => {
+    const dir = tempDir()
+    const appData = join(dir, 'app-data')
+    const movie = pendingMovie(dir, 'The Matrix')
+    const cached = cachedSidecarPathsFor(movie.filePath, appData)
+    const downloadImage = vi.fn(async (_url: string, dest: string) => {
+      mkdirSync(dirname(dest), { recursive: true })
+      writeFileSync(dest, 'img')
+    })
+    const updates: MovieRecord[] = []
+    const q = createFetchQueue({
+      client: matrixClient(),
+      onUpdate: (m) => updates.push(m),
+      downloadImage,
+      appDataPath: appData
+    })
+    q.enqueue(movie)
+    await q.idle()
+    const last = updates.at(-1)!
+    expect(last.matchStatus).toBe('matched')
+    expect(last.cachedPosterPath).toBe(cached.poster)
+    expect(last.cachedFanartPath).toBe(cached.fanart)
+  })
+
+  it('without appDataPath keeps legacy Drive-only poster paths (no cache fields)', async () => {
+    const dir = tempDir()
+    const movie = pendingMovie(dir, 'The Matrix')
+    const downloadImage = vi.fn(async () => {})
+    const result = await fetchAndApply(movie, matrixClient(), downloadImage)
+    expect(result.posterPath).toBe(sidecarPathsFor(movie.filePath).poster)
+    expect(result.fanartPath).toBe(sidecarPathsFor(movie.filePath).fanart)
+    expect(result.cachedPosterPath ?? null).toBeNull()
+    expect(result.cachedFanartPath ?? null).toBeNull()
   })
 })
