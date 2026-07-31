@@ -587,4 +587,61 @@ describe('library manager', () => {
     expect(movie.posterPath).toBe(drivePoster)
     expect(movie.fanartPath).toBe(driveFanart)
   })
+
+  it('hydrate persists completed cached art so next cache read has non-null paths (REQ-045)', async () => {
+    const driveRoot = join(dir, 'GoogleDrive', 'My Drive', 'Movies')
+    mkdirSync(driveRoot, { recursive: true })
+    const filePath = join(driveRoot, 'Persist.Movie.2021.mkv')
+    const drivePoster = join(driveRoot, 'Persist.Movie.2021-poster.jpg')
+    const driveFanart = join(driveRoot, 'Persist.Movie.2021-fanart.jpg')
+    const appDataPath = join(dir, 'app-data')
+    const sidecar = cachedSidecarPathsFor(filePath, appDataPath)
+    mkdirSync(dirname(sidecar.poster), { recursive: true })
+    writeFileSync(sidecar.poster, 'poster-bytes')
+    writeFileSync(sidecar.fanart, 'fanart-bytes')
+
+    const partial = makeMovie({
+      filePath,
+      folderPath: driveRoot,
+      id: movieId(filePath),
+      posterPath: drivePoster,
+      fanartPath: driveFanart,
+      cachedPosterPath: null,
+      cachedFanartPath: null
+    })
+    const libraryCache = createLibraryCache(appDataPath)
+    await libraryCache.write([partial])
+
+    // Precondition: on-disk JSON still has null cached fields.
+    const before = await libraryCache.read()
+    expect(before[0].cachedPosterPath).toBeNull()
+    expect(before[0].cachedFanartPath).toBeNull()
+    expect(existsSync(drivePoster)).toBe(false)
+    expect(existsSync(driveFanart)).toBe(false)
+
+    const settings = createSettingsStore(join(dir, 'settings.json'))
+    settings.addFolder(driveRoot)
+    const manager = createLibraryManager({
+      settings,
+      makeClient: () => fakeClient,
+      emit: () => {},
+      appDataPath,
+      scanDeps: {
+        folderExists: async () => false,
+        discoverVideoFiles: async () => []
+      }
+    })
+
+    const loaded = await manager.loadLibrary()
+    expect(loaded.movies[0].cachedPosterPath).toBe(sidecar.poster)
+    expect(loaded.movies[0].cachedFanartPath).toBe(sidecar.fanart)
+
+    // After hydrate completion, cache JSON must be written so next launch is a no-op.
+    const after = await libraryCache.read()
+    expect(after).toHaveLength(1)
+    expect(after[0].cachedPosterPath).toBe(sidecar.poster)
+    expect(after[0].cachedFanartPath).toBe(sidecar.fanart)
+    expect(after[0].posterPath).toBe(drivePoster)
+    expect(after[0].fanartPath).toBe(driveFanart)
+  })
 })
