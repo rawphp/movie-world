@@ -1,19 +1,14 @@
 # REQ-047: Strict Cache Art Protocol
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.23552
-**Claimed at:** 2026-07-31T03:55:38Z
-**Heartbeat:** 2026-07-31T03:55:38Z
-<!-- claimed-end -->
 
 **UR:** UR-011
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-31
 **Layer:** main
 **Entry point:**
 **Terminal state:**
 **Parent:** REQ-041
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:8350f93
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** S
@@ -30,10 +25,10 @@ Brief items 3 and 7. Production `index.ts` already passes userDataPath; optional
 
 ## Acceptance Criteria
 
-- [ ] `serveArtFile` TypeScript API requires `userDataPath` (or options object where userDataPath is required).
-- [ ] Non-cache paths 404 without calling exists/read on those paths.
-- [ ] Successful cache serve does not allocate a full second copy of the image via `Uint8Array.from(entireBuffer)`.
-- [ ] All unit tests and production wiring pass required userDataPath.
+- [x] `serveArtFile` TypeScript API requires `userDataPath` (or options object where userDataPath is required).
+- [x] Non-cache paths 404 without calling exists/read on those paths.
+- [x] Successful cache serve does not allocate a full second copy of the image via `Uint8Array.from(entireBuffer)`.
+- [x] All unit tests and production wiring pass required userDataPath.
 
 ## Verification Steps
 
@@ -53,3 +48,9 @@ Brief items 3 and 7. Production `index.ts` already passes userDataPath; optional
 ## Assets
 
 - (none)
+
+## Outputs
+
+- src/main/art-protocol.ts — Required userDataPath; cache-only; no copy
+- src/main/index.ts — Protocol handler comment
+- src/main/__tests__/art-protocol.test.ts — Tests

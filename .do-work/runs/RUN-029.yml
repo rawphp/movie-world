@@ -1,0 +1,20 @@
+run_id: RUN-029
+req: REQ-047
+ur: UR-011
+agent_id: ""
+model: "default"
+branch: "req/REQ-047"
+started_at: "2026-07-31T03:55:00Z"
+ended_at: "2026-07-31T04:00:00Z"
+result: "done"
+review_outcome: "passed"
+proof_status: "unproven"
+cost_estimate: "est~0.15"
+cost_estimate_num: 0.15
+pr_url: ""
+commands:
+  []
+tests:
+  []
+changed_files:
+  []
