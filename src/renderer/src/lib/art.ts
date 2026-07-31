@@ -1,11 +1,12 @@
 /**
- * Map an on-disk poster/fanart path to the `mw-art://` protocol URL registered
- * in the main process (REQ-011). Returns an empty string for a null path so the
- * caller can treat the result as a falsy placeholder. When a cached artwork path
- * exists, prefer it over the source sidecar path so rendering does not hydrate
- * cloud-backed movie folders.
+ * Map an app-owned cache poster/fanart path to the `mw-art://` protocol URL
+ * registered in the main process (REQ-011 / REQ-043).
+ *
+ * Cache-only contract: pass only paths from `displayPosterPath` /
+ * `displayFanartPath` (or raw `cachedPosterPath` / `cachedFanartPath`).
+ * Never pass Drive/source `posterPath` / `fanartPath` — when cache is null,
+ * returns empty string so the UI shows a placeholder.
  */
-export const artSrc = (path: string | null, cachedPath?: string | null): string => {
-  const selected = cachedPath || path
-  return selected ? `mw-art://${encodeURIComponent(selected)}` : ''
+export const artSrc = (cachePath: string | null | undefined): string => {
+  return cachePath ? `mw-art://${encodeURIComponent(cachePath)}` : ''
 }

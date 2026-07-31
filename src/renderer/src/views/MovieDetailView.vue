@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { Keybindings } from '../../../shared/types'
 import { matchesCombo } from '../../../shared/keybindings'
+import { displayFanartPath, displayPosterPath } from '../../../shared/display-art'
 import { useLibraryStore } from '../stores/library'
 import { artSrc } from '../lib/art'
 import { adjacentMovieId, type MovieNavDirection } from '../lib/movie-nav'
@@ -22,12 +23,8 @@ let mounted = false
 const movie = computed(() => store.movies[String(route.params.id)])
 const title = computed(() => movie.value?.title ?? movie.value?.parsedTitle ?? '')
 const year = computed(() => movie.value?.year ?? movie.value?.parsedYear ?? null)
-const fanart = computed(() =>
-  artSrc(movie.value?.fanartPath ?? null, movie.value?.cachedFanartPath ?? null)
-)
-const poster = computed(() =>
-  artSrc(movie.value?.posterPath ?? null, movie.value?.cachedPosterPath ?? null)
-)
+const fanart = computed(() => artSrc(movie.value ? displayFanartPath(movie.value) : null))
+const poster = computed(() => artSrc(movie.value ? displayPosterPath(movie.value) : null))
 const backgroundArt = computed(() => fanart.value || poster.value)
 const sizeGb = computed(() =>
   movie.value ? `${(movie.value.fileSize / 1024 ** 3).toFixed(2)} GB` : ''

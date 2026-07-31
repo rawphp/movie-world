@@ -52,6 +52,8 @@ const makeMovie = (overrides: Partial<MovieRecord> = {}): MovieRecord => ({
   fetchFailed: false,
   posterPath: '/art/poster.jpg',
   fanartPath: '/art/fanart.jpg',
+  cachedPosterPath: '/userData/cache/art/poster.jpg',
+  cachedFanartPath: '/userData/cache/art/fanart.jpg',
   ...overrides
 })
 
@@ -101,12 +103,14 @@ describe('MovieDetailView', () => {
 
     expect(hero.classes()).toContain('h-[45vh]')
     expect(background.attributes('style')).toContain('mw-art://')
-    expect(background.attributes('style')).toContain(encodeURIComponent('/art/fanart.jpg'))
+    expect(background.attributes('style')).toContain(
+      encodeURIComponent('/userData/cache/art/fanart.jpg')
+    )
     expect(background.classes()).toContain('pointer-events-none')
     expect(background.classes()).not.toContain('blur-[1px]')
   })
 
-  it('uses cached fanart before the source sidecar path for the hero artwork', () => {
+  it('uses cached fanart for hero artwork and ignores Drive fanartPath', () => {
     const wrapper = mountWithMovie(
       makeMovie({
         fanartPath: '/Google Drive/Movies/Example-fanart.jpg',
@@ -127,17 +131,47 @@ describe('MovieDetailView', () => {
     )
   })
 
-  it('falls back to poster artwork when fanart is unavailable', () => {
-    const wrapper = mountWithMovie(makeMovie({ fanartPath: null }))
+  it('falls back to cached poster when cached fanart is unavailable', () => {
+    const wrapper = mountWithMovie(
+      makeMovie({ fanartPath: null, cachedFanartPath: null })
+    )
 
     const background = wrapper.get('[data-testid="detail-hero-art"]')
 
     expect(background.attributes('style')).toContain('mw-art://')
-    expect(background.attributes('style')).toContain(encodeURIComponent('/art/poster.jpg'))
+    expect(background.attributes('style')).toContain(
+      encodeURIComponent('/userData/cache/art/poster.jpg')
+    )
+  })
+
+  it('uses solid fallback hero when only Drive art paths are set (no cache)', () => {
+    const wrapper = mountWithMovie(
+      makeMovie({
+        fanartPath: '/Google Drive/Movies/Example-fanart.jpg',
+        posterPath: '/Google Drive/Movies/Example-poster.jpg',
+        cachedFanartPath: null,
+        cachedPosterPath: null
+      })
+    )
+
+    const fallback = wrapper.get('[data-testid="detail-hero-fallback"]')
+
+    expect(fallback.classes()).toContain('bg-neutral-950')
+    expect(fallback.classes()).toContain('pointer-events-none')
+    expect(wrapper.find('[data-testid="detail-hero-art"]').exists()).toBe(false)
+    expect(wrapper.html()).not.toContain(encodeURIComponent('/Google Drive/Movies/Example-fanart.jpg'))
+    expect(wrapper.html()).not.toContain(encodeURIComponent('/Google Drive/Movies/Example-poster.jpg'))
   })
 
   it('uses a solid fallback hero surface when no artwork is available', () => {
-    const wrapper = mountWithMovie(makeMovie({ fanartPath: null, posterPath: null }))
+    const wrapper = mountWithMovie(
+      makeMovie({
+        fanartPath: null,
+        posterPath: null,
+        cachedFanartPath: null,
+        cachedPosterPath: null
+      })
+    )
 
     const fallback = wrapper.get('[data-testid="detail-hero-fallback"]')
 

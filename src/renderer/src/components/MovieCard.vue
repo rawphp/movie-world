@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { MovieRecord } from '../../../shared/types'
+import { displayPosterPath } from '../../../shared/display-art'
 import { artSrc } from '../lib/art'
 import StarRating from './StarRating.vue'
 
@@ -9,7 +10,7 @@ defineEmits<{ open: [id: string] }>()
 
 const title = computed(() => props.movie.title ?? props.movie.parsedTitle)
 const year = computed(() => props.movie.year ?? props.movie.parsedYear)
-const poster = computed(() => artSrc(props.movie.posterPath, props.movie.cachedPosterPath))
+const poster = computed(() => artSrc(displayPosterPath(props.movie)))
 const actors = computed(() =>
   props.movie.cast
     .slice(0, 2)

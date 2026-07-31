@@ -33,7 +33,9 @@ const base: MovieRecord = {
   sidecarWriteFailed: false,
   fetchFailed: false,
   posterPath: '/art/p.jpg',
-  fanartPath: null
+  fanartPath: null,
+  cachedPosterPath: '/userData/cache/art/p.jpg',
+  cachedFanartPath: null
 }
 
 describe('MovieCard', () => {
@@ -45,9 +47,12 @@ describe('MovieCard', () => {
     expect(w.text()).toContain('Keanu Reeves')
     expect(w.text().toLowerCase()).toContain('never')
     expect(w.find('img').attributes('src')).toContain('mw-art://')
+    expect(w.find('img').attributes('src')).toContain(
+      encodeURIComponent('/userData/cache/art/p.jpg')
+    )
   })
 
-  it('uses cached poster artwork before the source sidecar path', () => {
+  it('uses cached poster path for mw-art and ignores Drive posterPath', () => {
     const w = mount(MovieCard, {
       props: {
         movie: {
@@ -65,9 +70,35 @@ describe('MovieCard', () => {
     expect(src).not.toContain(encodeURIComponent('/Google Drive/Movies/The Matrix-poster.jpg'))
   })
 
+  it('shows title placeholder when only Drive posterPath is set (no cache)', () => {
+    const w = mount(MovieCard, {
+      props: {
+        movie: {
+          ...base,
+          posterPath: '/Google Drive/Movies/The Matrix-poster.jpg',
+          cachedPosterPath: null
+        }
+      }
+    })
+
+    expect(w.find('img').exists()).toBe(false)
+    expect(w.text()).toContain('The Matrix')
+    // Must not request Drive path via mw-art
+    expect(w.html()).not.toContain('Google Drive')
+    expect(w.html()).not.toContain(encodeURIComponent('/Google Drive/Movies/The Matrix-poster.jpg'))
+  })
+
   it('falls back to parsed title and shows pending badge', () => {
     const w = mount(MovieCard, {
-      props: { movie: { ...base, matchStatus: 'pending', title: null, posterPath: null } }
+      props: {
+        movie: {
+          ...base,
+          matchStatus: 'pending',
+          title: null,
+          posterPath: null,
+          cachedPosterPath: null
+        }
+      }
     })
     expect(w.text()).toContain('Parsed Name')
     expect(w.find('[data-testid="badge-pending"]').exists()).toBe(true)
