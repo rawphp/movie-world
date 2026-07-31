@@ -1,8 +1,35 @@
 ---
 ur: UR-010
 received: 2026-07-31
-status: intake
+status: captured
+classification: bug-fix
+layers_in_scope: []
+layer_decisions: {}
+reqs:
+  - { id: REQ-037, layer: none, integration_confidence: n/a }
+  - { id: REQ-038, layer: none, integration_confidence: n/a }
+  - { id: REQ-039, layer: none, integration_confidence: n/a }
+  - { id: REQ-040, layer: none, integration_confidence: n/a }
+acknowledged_partials: []
 ---
+
+<!-- capture-summary-start -->
+## Capture summary (2026-07-31)
+
+| Item | Value |
+|---|---|
+| Classification | bug-fix |
+| Layers in scope | (none — bug-fix) |
+| Layer decisions | (none — bug-fix) |
+| REQs generated | 4 |
+
+| REQ | Layer | Integration confidence |
+|---|---|---|
+| REQ-037 | none | n/a |
+| REQ-038 | none | n/a |
+| REQ-039 | none | n/a |
+| REQ-040 | none | n/a |
+<!-- capture-summary-end -->
 
 # UR-010: User Request
 
