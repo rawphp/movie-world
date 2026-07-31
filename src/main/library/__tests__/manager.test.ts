@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mkdtempSync, writeFileSync, rmSync, unlinkSync } from 'node:fs'
+import { existsSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, unlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join, relative } from 'node:path'
 import { createLibraryManager, type LibraryManager } from '../manager'
 import { createSettingsStore } from '../../settings'
 import { movieId } from '../scanner'
 import { createLibraryCache } from '../cache'
+import { cachedSidecarPathsFor } from '../nfo'
 import type { LibraryLoadResult, MovieRecord, ScanProgress } from '../../../shared/types'
 import type { TmdbClient } from '../../tmdb/client'
 import { createTimingBuffer, classifyStartupFreeze } from '../../startup-timings'
@@ -525,5 +526,65 @@ describe('library manager', () => {
     await manager.rescanFolder(moviesDir)
     expect(manager.getMovies()[0].fileMissing).toBe(true)
     expect(updates.some((m) => m.fileMissing)).toBe(true)
+  })
+
+  it('hydrate fills cachedPosterPath from app-owned sidecar when JSON only has Drive posterPath (REQ-040)', async () => {
+    // Simulate Google Drive library folder + cloud-only poster path stored in cache JSON,
+    // while the poster was previously mirrored under userData cache/sidecars.
+    const driveRoot = join(dir, 'GoogleDrive', 'My Drive', 'Movies')
+    mkdirSync(driveRoot, { recursive: true })
+    const filePath = join(driveRoot, 'Cached.Movie.2020.mkv')
+    const drivePoster = join(driveRoot, 'Cached.Movie.2020-poster.jpg')
+    const driveFanart = join(driveRoot, 'Cached.Movie.2020-fanart.jpg')
+    // Drive art is cloud-only: not present on local disk.
+    const appDataPath = join(dir, 'app-data')
+    const sidecar = cachedSidecarPathsFor(filePath, appDataPath)
+    mkdirSync(dirname(sidecar.poster), { recursive: true })
+    writeFileSync(sidecar.poster, 'poster-bytes')
+    writeFileSync(sidecar.fanart, 'fanart-bytes')
+
+    const partial = makeMovie({
+      filePath,
+      folderPath: driveRoot,
+      id: movieId(filePath),
+      posterPath: drivePoster,
+      fanartPath: driveFanart,
+      cachedPosterPath: null,
+      cachedFanartPath: null
+    })
+    await createLibraryCache(appDataPath).write([partial])
+
+    const settings = createSettingsStore(join(dir, 'settings.json'))
+    settings.addFolder(driveRoot)
+    // Drive art is absent — if hydrate probed posterPath/fanartPath it would not help,
+    // and filling still must succeed from app-owned sidecars only.
+    expect(existsSync(drivePoster)).toBe(false)
+    expect(existsSync(driveFanart)).toBe(false)
+    expect(existsSync(sidecar.poster)).toBe(true)
+    expect(existsSync(sidecar.fanart)).toBe(true)
+
+    const manager = createLibraryManager({
+      settings,
+      makeClient: () => fakeClient,
+      emit: () => {},
+      appDataPath,
+      scanDeps: {
+        // Keep startup scan inert so load result is pure hydrate.
+        folderExists: async () => false,
+        discoverVideoFiles: async () => []
+      }
+    })
+
+    const loaded = await manager.loadLibrary()
+    const movie = loaded.movies[0]
+
+    expect(movie.cachedPosterPath).toBe(sidecar.poster)
+    expect(movie.cachedFanartPath).toBe(sidecar.fanart)
+    expect(movie.cachedPosterPath!.startsWith(appDataPath)).toBe(true)
+    const relPoster = relative(appDataPath, movie.cachedPosterPath!)
+    expect(relPoster === '' || relPoster.startsWith('..')).toBe(false)
+    // Drive source paths must remain as stored in JSON.
+    expect(movie.posterPath).toBe(drivePoster)
+    expect(movie.fanartPath).toBe(driveFanart)
   })
 })

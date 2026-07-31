@@ -8,7 +8,7 @@ import {
   discoverVideoFiles as defaultDiscoverVideoFiles,
   ingestFile as defaultIngestFile
 } from './scanner'
-import { createLibraryCache } from './cache'
+import { completeCachedArtworkPaths, createLibraryCache } from './cache'
 import { measureAsync, type TimingSink } from '../startup-timings'
 
 async function defaultFolderExists(folder: string): Promise<boolean> {
@@ -75,9 +75,14 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
     return measureAsync(
       'hydrateFromCache',
       async () => {
-        if (!cache) return []
+        if (!cache || !opts.appDataPath) return []
         const folders = new Set(opts.settings.read().folders)
-        const cached = (await cache.read()).filter((movie) => folders.has(movie.folderPath))
+        const appDataPath = opts.appDataPath
+        // Complete cached art fields from app-owned sidecars so first paint never
+        // falls back to Drive posterPath when the mirror already exists (REQ-040).
+        const cached = (await cache.read())
+          .filter((movie) => folders.has(movie.folderPath))
+          .map((movie) => completeCachedArtworkPaths(movie, appDataPath))
         movies.clear()
         for (const movie of cached) movies.set(movie.id, movie)
         return cached

@@ -1,8 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { existsSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join, relative } from 'node:path'
-import { createLibraryCache, libraryCachePath } from '../cache'
+import { dirname, join, relative } from 'node:path'
+import {
+  completeCachedArtworkPaths,
+  createLibraryCache,
+  libraryCachePath
+} from '../cache'
+import { cachedSidecarPathsFor } from '../nfo'
 import type { MovieRecord } from '../../../shared/types'
 
 let root: string
@@ -118,5 +123,41 @@ describe('library cache', () => {
     await cache.write(records)
 
     expect(await cache.read()).toEqual(records)
+  })
+
+  it('completeCachedArtworkPaths fills app-owned paths without probing Drive sources (REQ-040)', () => {
+    const appData = join(root, 'app-data')
+    const driveRoot = join(root, 'GoogleDrive', 'Movies')
+    const filePath = join(driveRoot, 'Alien.mkv')
+    const drivePoster = join(driveRoot, 'Alien-poster.jpg')
+    const driveFanart = join(driveRoot, 'Alien-fanart.jpg')
+    const sidecar = cachedSidecarPathsFor(filePath, appData)
+    mkdirSync(dirname(sidecar.poster), { recursive: true })
+    writeFileSync(sidecar.poster, 'p')
+    // fanart missing on disk → stays null
+
+    const record = makeMovie({
+      filePath,
+      folderPath: driveRoot,
+      posterPath: drivePoster,
+      fanartPath: driveFanart,
+      cachedPosterPath: null,
+      cachedFanartPath: null
+    })
+
+    const probed: string[] = []
+    const completed = completeCachedArtworkPaths(record, appData, (p) => {
+      probed.push(p)
+      return existsSync(p)
+    })
+
+    expect(completed.cachedPosterPath).toBe(sidecar.poster)
+    expect(completed.cachedFanartPath == null).toBe(true)
+    expect(completed.posterPath).toBe(drivePoster)
+    expect(probed).toContain(sidecar.poster)
+    expect(probed).toContain(sidecar.fanart)
+    expect(probed).not.toContain(drivePoster)
+    expect(probed).not.toContain(driveFanart)
+    expect(probed.every((p) => p.startsWith(appData))).toBe(true)
   })
 })
