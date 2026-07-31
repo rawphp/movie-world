@@ -1,7 +1,13 @@
 # REQ-045: Hydrate Persist Completed Art
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.23552
+**Claimed at:** 2026-07-31T03:43:50Z
+**Heartbeat:** 2026-07-31T03:43:50Z
+<!-- claimed-end -->
+
 **UR:** UR-011
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-31
 **Layer:** main
 **Entry point:**
