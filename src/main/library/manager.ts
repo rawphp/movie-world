@@ -8,7 +8,8 @@ import {
   backfillCacheArtFromSource,
   discoverVideoFiles as defaultDiscoverVideoFiles,
   ingestFile as defaultIngestFile,
-  needsCacheArtBackfill
+  needsCacheArtBackfill,
+  type ScanMode
 } from './scanner'
 import { completeCachedArtworkPaths, createLibraryCache } from './cache'
 import { measureAsync, type TimingSink } from '../startup-timings'
@@ -180,10 +181,9 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
     return queue
   }
 
-  async function scanOne(
-    folder: string,
-    { markMissing }: { markMissing: boolean }
-  ): Promise<MovieRecord[]> {
+  async function scanOne(folder: string, mode: ScanMode): Promise<MovieRecord[]> {
+    // startup = prefer cache, do not mark missing; rescan = full reconcile + mark missing.
+    const markMissing = mode === 'rescan'
     // Async folder probe (not sync existsSync) so cloud-provider roots cannot
     // stall the Electron main thread while startup scans run in the background.
     const available = await folderExists(folder)
@@ -210,9 +210,6 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
     const seen = new Set<string>()
     const ingested: MovieRecord[] = []
     let done = 0
-    // Startup (markMissing:false): prefer app-owned cache — no Drive sidecar probes
-    // when NFO/art already cached. Explicit rescan fully reconciles from source.
-    const preferCache = !markMissing
     for (const file of files) {
       const existing = [...movies.values()].find((m) => m.filePath === file)
       const record = existing
@@ -222,7 +219,7 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
             () =>
               ingestFile(file, folder, {
                 appDataPath: opts.appDataPath,
-                preferCache
+                mode
               }),
             { sink: opts.onTiming, detail: file }
           )
@@ -230,7 +227,7 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
       if (!existing || existing.fileMissing) commit(record)
       // Startup only: re-touch known records missing usable cache art (async pool).
       // Brand-new files already materialize via ingestFile; do not mark missing here.
-      if (existing && !markMissing && opts.appDataPath) {
+      if (existing && mode === 'startup' && opts.appDataPath) {
         scheduleCacheArtBackfill(record)
       }
       ingested.push(record)
@@ -256,7 +253,7 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
   }
 
   function scheduleStartupScan(folder: string): void {
-    const scan: Promise<void> = scanOne(folder, { markMissing: false })
+    const scan: Promise<void> = scanOne(folder, 'startup')
       .then(
         () => undefined,
         () => undefined
@@ -295,7 +292,7 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
       )
     },
     rescanFolder: async (folder: string): Promise<void> => {
-      await scanOne(folder, { markMissing: true })
+      await scanOne(folder, 'rescan')
     },
     async fixMatch(id: string, tmdbId: number): Promise<void> {
       const movie = movies.get(id)

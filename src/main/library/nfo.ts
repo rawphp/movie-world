@@ -149,10 +149,11 @@ function writeCachedText(path: string, value: string): void {
 
 export interface ReadSidecarNfoOptions {
   /**
-   * When true and app-owned cache has an NFO, return it without probing the
-   * movie-folder source sidecar (startup/background scans over Google Drive).
+   * Explicit scan mode (REQ-048):
+   * - `startup` — return app-owned cache NFO without probing Drive source
+   * - `rescan` (or omitted) — source first, then cache fallback
    */
-  preferCache?: boolean
+  mode?: 'startup' | 'rescan'
 }
 
 export function readSidecarNfo(
@@ -160,7 +161,7 @@ export function readSidecarNfo(
   appDataPath?: string,
   options?: ReadSidecarNfoOptions
 ): NfoData | null {
-  const preferCache = options?.preferCache === true
+  const preferCache = options?.mode === 'startup'
 
   if (preferCache && appDataPath) {
     const cachedXml = tryReadText(cachedSidecarPathsFor(filePath, appDataPath).nfo)

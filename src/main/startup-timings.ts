@@ -29,18 +29,8 @@ export type FreezeRootCauseClass =
   | 'd_other'
 
 /**
- * REQ-037 primary root cause (post-paint freeze with missing posters).
- *
- * Evidence encoded by tests:
- * - `loadLibrary` returns without waiting on slow `discoverVideoFiles`
- * - `serveArtFile` wall time equals injected sync FS delay when reading Drive
- *   poster paths (cloud-only) after the grid paints with posterPath but no
- *   cachedPosterPath
- *
- * Classification: (a) mw-art sync reads of Drive paths — not the cached-first
- * loadLibrary path. Background scan can also block the main process via sync
- * existsSync/copyFileSync in ingest, but the UI freeze after titles show and
- * posters are absent matches concurrent serveArtFile protocol work.
+ * REQ-037 diagnosis constant — test-only fossil (REQ-048).
+ * Not used on product hot paths; kept for art-protocol classification tests.
  */
 export const PRIMARY_FREEZE_ROOT_CAUSE: FreezeRootCauseClass = 'a_mw_art_sync_reads'
 
@@ -71,8 +61,8 @@ export function emitTiming(
 ): void {
   const event: StartupTimingEvent = { stage, durationMs, detail }
   if (sink) sink(event)
-  // Production-safe structured log for manual Drive launches (REQ-037 advisory).
-  if (durationMs >= 50 || process.env.MW_STARTUP_TIMINGS === '1') {
+  // Silent by default (REQ-048). Opt in with MW_STARTUP_TIMINGS=1 for diagnosis.
+  if (process.env.MW_STARTUP_TIMINGS === '1') {
     console.info(`[startup-timing] ${stage} ${durationMs.toFixed(1)}ms${detail ? ` ${detail}` : ''}`)
   }
 }

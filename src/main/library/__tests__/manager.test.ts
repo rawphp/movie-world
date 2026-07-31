@@ -438,7 +438,7 @@ describe('library manager', () => {
     expect(manager.getMovies()).toEqual([cached])
   })
 
-  it('startup background ingest prefers cache; rescanFolder does not (REQ-039)', async () => {
+  it('startup uses mode startup; rescanFolder uses mode rescan (REQ-048)', async () => {
     const { mkdirSync } = await import('node:fs')
     const moviesDir = join(dir, 'movies')
     mkdirSync(moviesDir, { recursive: true })
@@ -448,7 +448,7 @@ describe('library manager', () => {
     writeFileSync(file2, 'x')
     const settings = createSettingsStore(join(dir, 'settings.json'))
     settings.addFolder(moviesDir)
-    const ingestOpts: Array<{ path: string; preferCache?: boolean }> = []
+    const ingestOpts: Array<{ path: string; mode?: string; preferCache?: boolean }> = []
     let discoverPass = 0
     const manager = createLibraryManager({
       settings,
@@ -462,7 +462,8 @@ describe('library manager', () => {
           return discoverPass === 1 ? [file] : [file, file2]
         },
         ingestFile: async (path, folder, opts) => {
-          ingestOpts.push({ path, preferCache: opts?.preferCache })
+          const raw = opts as { mode?: string; preferCache?: boolean } | undefined
+          ingestOpts.push({ path, mode: raw?.mode, preferCache: raw?.preferCache })
           return makeMovie({
             id: movieId(path),
             filePath: path,
@@ -478,13 +479,42 @@ describe('library manager', () => {
     await manager.loadLibrary()
     await manager.idle()
     const startupIngest = ingestOpts.find((o) => o.path === file)
-    expect(startupIngest?.preferCache).toBe(true)
+    expect(startupIngest?.mode).toBe('startup')
+    // Explicit mode — no preferCache = !markMissing boolean overload.
+    expect(startupIngest?.preferCache).toBeUndefined()
 
     const beforeRescan = ingestOpts.length
     await manager.rescanFolder(moviesDir)
     const rescanIngest = ingestOpts.slice(beforeRescan).find((o) => o.path === file2)
     expect(rescanIngest).toBeDefined()
-    expect(rescanIngest?.preferCache).not.toBe(true)
+    expect(rescanIngest?.mode).toBe('rescan')
+    expect(rescanIngest?.preferCache).toBeUndefined()
+  })
+
+  it('startup-timing console logs only when MW_STARTUP_TIMINGS=1 (REQ-048)', async () => {
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {})
+    const prev = process.env.MW_STARTUP_TIMINGS
+    try {
+      delete process.env.MW_STARTUP_TIMINGS
+      const { emitTiming } = await import('../../startup-timings')
+      emitTiming(undefined, 'loadLibrary', 120, 'off-by-default')
+      expect(
+        infoSpy.mock.calls.some((c) => String(c[0]).includes('[startup-timing]'))
+      ).toBe(false)
+
+      process.env.MW_STARTUP_TIMINGS = '1'
+      emitTiming(undefined, 'loadLibrary', 10, 'gated-on')
+      expect(
+        infoSpy.mock.calls.some(
+          (c) =>
+            String(c[0]).includes('[startup-timing]') && String(c[0]).includes('gated-on')
+        )
+      ).toBe(true)
+    } finally {
+      if (prev === undefined) delete process.env.MW_STARTUP_TIMINGS
+      else process.env.MW_STARTUP_TIMINGS = prev
+      infoSpy.mockRestore()
+    }
   })
 
   it('rescanFolder still marks vanished files missing while startup does not (REQ-039)', async () => {
