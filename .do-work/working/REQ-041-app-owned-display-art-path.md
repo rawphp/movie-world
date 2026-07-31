@@ -1,7 +1,13 @@
 # REQ-041: App-Owned Display Art Path
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.92898
+**Claimed at:** 2026-07-31T04:01:24Z
+**Heartbeat:** 2026-07-31T04:01:24Z
+<!-- claimed-end -->
+
 **UR:** UR-011
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-31
 **Layer:** none
 **Entry point:** User launches Movie World with a warm `library-records.json` (and/or incomplete cache fields) against a Google Drive movie folder (cloud-only posters).
