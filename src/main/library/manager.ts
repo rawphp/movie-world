@@ -80,11 +80,18 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
         const appDataPath = opts.appDataPath
         // Complete cached art fields from app-owned sidecars so first paint never
         // falls back to Drive posterPath when the mirror already exists (REQ-040).
+        // When any field is filled, persist so the next launch is a no-op (REQ-045).
+        let anyCompleted = false
         const cached = (await cache.read())
           .filter((movie) => folders.has(movie.folderPath))
-          .map((movie) => completeCachedArtworkPaths(movie, appDataPath))
+          .map((movie) => {
+            const completed = completeCachedArtworkPaths(movie, appDataPath)
+            if (completed !== movie) anyCompleted = true
+            return completed
+          })
         movies.clear()
         for (const movie of cached) movies.set(movie.id, movie)
+        if (anyCompleted) await persistCache()
         return cached
       },
       { sink: opts.onTiming }
