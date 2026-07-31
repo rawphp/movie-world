@@ -1,7 +1,13 @@
 # REQ-040: Cache Art Completeness On Load
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.14770
+**Claimed at:** 2026-07-31T01:08:56Z
+**Heartbeat:** 2026-07-31T01:08:56Z
+<!-- claimed-end -->
+
 **UR:** UR-010
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-31
 **Layer:** none
 **Entry point:**
