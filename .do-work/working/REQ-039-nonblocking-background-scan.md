@@ -1,7 +1,13 @@
 # REQ-039: Nonblocking Background Drive Scan
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.90875
+**Claimed at:** 2026-07-31T01:03:46Z
+**Heartbeat:** 2026-07-31T01:03:46Z
+<!-- claimed-end -->
+
 **UR:** UR-010
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-31
 **Layer:** none
 **Entry point:**
