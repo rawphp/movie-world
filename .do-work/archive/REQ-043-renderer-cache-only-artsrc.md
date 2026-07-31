@@ -1,19 +1,14 @@
 # REQ-043: Renderer Cache-Only artSrc
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.23552
-**Claimed at:** 2026-07-31T03:50:17Z
-**Heartbeat:** 2026-07-31T03:50:17Z
-<!-- claimed-end -->
 
 **UR:** UR-011
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-31
 **Layer:** renderer
 **Entry point:**
 **Terminal state:**
 **Parent:** REQ-041
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:81d3fe9
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** S
@@ -30,9 +25,9 @@ Brief items 1 and 6: dual artSrc fallback must go. Clarification: ignore `poster
 
 ## Acceptance Criteria
 
-- [ ] `artSrc` (or successor) never encodes Drive/source `posterPath`/`fanartPath` when cache fields are null.
-- [ ] MovieCard and MovieDetailView use shared display helpers / cache-only artSrc.
-- [ ] Existing MovieCard/Detail tests updated: cache path → mw-art; Drive-only → empty/placeholder, not Drive mw-art URL.
+- [x] `artSrc` (or successor) never encodes Drive/source `posterPath`/`fanartPath` when cache fields are null.
+- [x] MovieCard and MovieDetailView use shared display helpers / cache-only artSrc.
+- [x] Existing MovieCard/Detail tests updated: cache path → mw-art; Drive-only → empty/placeholder, not Drive mw-art URL.
 
 ## Verification Steps
 
@@ -52,3 +47,12 @@ Brief items 1 and 6: dual artSrc fallback must go. Clarification: ignore `poster
 ## Assets
 
 - (none)
+
+## Outputs
+
+- src/renderer/src/lib/art.ts — Cache-only artSrc
+- src/renderer/src/lib/__tests__/art.test.ts — Unit tests
+- src/renderer/src/components/MovieCard.vue — displayPosterPath + cache-only artSrc
+- src/renderer/src/components/__tests__/MovieCard.test.ts — Cache/Drive-only tests
+- src/renderer/src/views/MovieDetailView.vue — display helpers + cache-only artSrc
+- src/renderer/src/views/__tests__/MovieDetailView.test.ts — Cache/Drive-only tests

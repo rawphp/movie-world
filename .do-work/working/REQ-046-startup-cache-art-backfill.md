@@ -3,7 +3,7 @@
 <!-- claimed-start -->
 **Claimed by:** Toms-MacBook-Pro.local.23552
 **Claimed at:** 2026-07-31T03:50:17Z
-**Heartbeat:** 2026-07-31T03:50:17Z
+**Heartbeat:** 2026-07-31T03:52:58Z
 <!-- claimed-end -->
 
 **UR:** UR-011
@@ -32,12 +32,12 @@ Prefer explicit “needs cache art” detection over full re-ingest of metadata 
 
 ## Acceptance Criteria
 
-- [ ] Startup path identifies existing movies missing usable `cachedPosterPath`/`cachedFanartPath` (null or cache file absent) and schedules backfill work.
-- [ ] Backfill uses max 2 concurrent source→cache mirror/resolve operations.
-- [ ] `loadLibrary` still returns cached movies before backfill finishes.
-- [ ] Successful backfill commits updated cache art fields and persists library cache.
-- [ ] Failed or missing source mirror leaves cache fields null (or unchanged) and does not reject `loadLibrary` / throw into the startup path.
-- [ ] Unit test: cached record with Drive posterPath, null cachedPosterPath, source art present in temp FS → after idle, movie has non-null cachedPosterPath under appData; loadLibrary returned before that work finished.
+- [x] Startup path identifies existing movies missing usable `cachedPosterPath`/`cachedFanartPath` (null or cache file absent) and schedules backfill work.
+- [x] Backfill uses max 2 concurrent source→cache mirror/resolve operations.
+- [x] `loadLibrary` still returns cached movies before backfill finishes.
+- [x] Successful backfill commits updated cache art fields and persists library cache.
+- [x] Failed or missing source mirror leaves cache fields null (or unchanged) and does not reject `loadLibrary` / throw into the startup path.
+- [x] Unit test: cached record with Drive posterPath, null cachedPosterPath, source art present in temp FS → after idle, movie has non-null cachedPosterPath under appData; loadLibrary returned before that work finished.
 
 ## Verification Steps
 
