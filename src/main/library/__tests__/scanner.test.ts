@@ -181,7 +181,7 @@ describe('ingestFile', () => {
     expect(readFileSync(cached.fanart, 'utf8')).toBe('cache-fanart')
   })
 
-  it('preferCache skips Drive source NFO/art probes when app-owned cache already has them (REQ-039)', async () => {
+  it('mode startup skips Drive source NFO/art probes when app-owned cache already has them (REQ-048)', async () => {
     const appData = join(root, 'app-data')
     const file = join(root, 'The Matrix (1999).mkv')
     writeFileSync(file, 'x')
@@ -195,7 +195,7 @@ describe('ingestFile', () => {
     )
     writeFileSync(cached.poster, 'cache-poster')
     writeFileSync(cached.fanart, 'cache-fanart')
-    // Source sidecars differ — preferCache must not read/mirror them.
+    // Source sidecars differ — startup mode must not read/mirror them.
     writeFileSync(
       source.nfo,
       movieToNfoXml({
@@ -208,7 +208,7 @@ describe('ingestFile', () => {
     writeFileSync(source.poster, 'drive-poster')
     writeFileSync(source.fanart, 'drive-fanart')
 
-    const m = await ingestFile(file, root, { appDataPath: appData, preferCache: true })
+    const m = await ingestFile(file, root, { appDataPath: appData, mode: 'startup' })
 
     expect(m.title).toBe('Cached Title')
     expect(m.playCount).toBe(9)
@@ -221,7 +221,7 @@ describe('ingestFile', () => {
     expect(readFileSync(cached.fanart, 'utf8')).toBe('cache-fanart')
   })
 
-  it('without preferCache, source NFO still wins over cache (rescan reconcile)', async () => {
+  it('mode rescan: source NFO still wins over cache (full reconcile)', async () => {
     const appData = join(root, 'app-data')
     const file = join(root, 'The Matrix (1999).mkv')
     writeFileSync(file, 'x')
@@ -245,7 +245,7 @@ describe('ingestFile', () => {
       } as MovieRecord)
     )
 
-    const m = await ingestFile(file, root, { appDataPath: appData, preferCache: false })
+    const m = await ingestFile(file, root, { appDataPath: appData, mode: 'rescan' })
     expect(m.title).toBe('Drive Title')
   })
 })

@@ -37,14 +37,17 @@ function parseWithFolderFallback(filePath: string): ParsedFilename {
   return informativeness(fromFolder) > informativeness(parsed) ? fromFolder : parsed
 }
 
+/** Explicit library scan mode (REQ-048). Replaces preferCache = !markMissing. */
+export type ScanMode = 'startup' | 'rescan'
+
 export interface IngestOptions {
   appDataPath?: string
   /**
-   * Startup/background scans: when true, use app-owned cached NFO/art without
-   * sync-probing movie-folder (Drive) source sidecars if the cache already has them.
-   * Explicit rescan leaves this false so source can reconcile.
+   * Explicit scan mode (REQ-048):
+   * - `startup` — prefer app-owned cache; skip Drive sidecar probes when warm
+   * - `rescan` — full source reconcile (NFO/art from movie folder)
    */
-  preferCache?: boolean
+  mode?: ScanMode
 }
 
 function mirrorArtwork(sourcePath: string, cachedPath: string): void {
@@ -187,7 +190,7 @@ export async function ingestFile(
     posterPath: null,
     fanartPath: null
   }
-  const nfo = readSidecarNfo(filePath, opts.appDataPath, { preferCache: opts.preferCache })
+  const nfo = readSidecarNfo(filePath, opts.appDataPath, { mode: opts.mode })
   if (!nfo) return base
   const paths = sidecarPathsFor(filePath)
   const cachedPaths = opts.appDataPath ? cachedSidecarPathsFor(filePath, opts.appDataPath) : null
