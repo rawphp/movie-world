@@ -1,7 +1,13 @@
 # REQ-037: Diagnose Startup Freeze Hot Path
 
+<!-- claimed-start -->
+**Claimed by:** Toms-MacBook-Pro.local.46237
+**Claimed at:** 2026-07-31T00:53:13Z
+**Heartbeat:** 2026-07-31T00:53:13Z
+<!-- claimed-end -->
+
 **UR:** UR-010
-**Status:** backlog
+**Status:** in-progress
 **Created:** 2026-07-31
 **Layer:** none
 **Entry point:**
