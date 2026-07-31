@@ -103,7 +103,13 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
   function ensureQueue(): ReturnType<typeof createFetchQueue> | null {
     const c = client()
     if (!c) return null
-    if (!queue) queue = createFetchQueue({ client: c, onUpdate: commit, downloadImage })
+    if (!queue)
+      queue = createFetchQueue({
+        client: c,
+        onUpdate: commit,
+        downloadImage,
+        appDataPath: opts.appDataPath
+      })
     return queue
   }
 
@@ -223,7 +229,7 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
       const movie = movies.get(id)
       const c = client()
       if (!movie || !c) return
-      commit(await fetchAndApply(movie, c, downloadImage, tmdbId))
+      commit(await fetchAndApply(movie, c, downloadImage, tmdbId, opts.appDataPath))
     },
     async retryFetch(id: string): Promise<void> {
       const movie = movies.get(id)
