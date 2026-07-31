@@ -1,19 +1,14 @@
 # REQ-045: Hydrate Persist Completed Art
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.23552
-**Claimed at:** 2026-07-31T03:43:50Z
-**Heartbeat:** 2026-07-31T03:45:51Z
-<!-- claimed-end -->
 
 **UR:** UR-011
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-31
 **Layer:** main
 **Entry point:**
 **Terminal state:**
 **Parent:** REQ-041
-**Closure proof:**
+**Closure proof:** checkpoint:.do-work/runs latest REQ-045 commit:c8c61bb
 **Criteria approved:** agent-drafted
 **Priority:** 2
 **Size:** S
@@ -52,3 +47,8 @@ Brief item 4. REQ-040 already fills fields in memory on hydrate but does not wri
 ## Assets
 
 - (none)
+
+## Outputs
+
+- src/main/library/manager.ts — Persist library cache after hydrate when completeCachedArtworkPaths changes any record
+- src/main/library/__tests__/manager.test.ts — REQ-045 test — partial cache JSON + on-disk sidecars → load fills and writes non-null cached art paths
