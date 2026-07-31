@@ -1,5 +1,5 @@
 import { existsSync as defaultExistsSync, readFileSync as defaultReadFileSync } from 'node:fs'
-import { extname } from 'node:path'
+import { extname, resolve, sep } from 'node:path'
 import { measureSync, type TimingSink } from './startup-timings'
 
 /** Injectable FS for serveArtFile so slow/cloud-only Drive can be simulated (REQ-037). */
@@ -11,6 +11,22 @@ export interface ArtFileSystem {
 export interface ServeArtOptions {
   fs?: ArtFileSystem
   onTiming?: TimingSink
+  /**
+   * App userData directory. When set, only paths under `{userData}/cache` are
+   * opened; non-cache (e.g. Google Drive source) paths fail-fast 404 without
+   * sync FS so one cloud-only poster cannot stall the main process (REQ-038).
+   */
+  userDataPath?: string
+}
+
+/**
+ * True when `filePath` is under the app-owned artwork cache tree
+ * (`{userDataPath}/cache/...`). Used by serveArtFile fail-fast policy.
+ */
+export function isAppOwnedCachePath(filePath: string, userDataPath: string): boolean {
+  const cacheRoot = resolve(userDataPath, 'cache')
+  const target = resolve(filePath)
+  return target === cacheRoot || target.startsWith(cacheRoot + sep)
 }
 
 /** Custom scheme used to serve on-disk artwork to the sandboxed renderer. */
@@ -78,9 +94,12 @@ export function contentTypeFor(filePath: string): string {
  * missing or undecodable path returns a 404 Response; an existing file returns
  * a 200 Response carrying its exact bytes and a correct image `Content-Type`.
  *
- * Uses sync existsSync/readFileSync on the main process. When the path is a
- * Google Drive cloud-only poster (no cachedPosterPath), this is the post-paint
- * freeze hot path (REQ-037 primary root cause: a_mw_art_sync_reads).
+ * When `userDataPath` is set (production wiring), only app-owned cache paths
+ * under `{userData}/cache` are opened. Residual Drive/source `mw-art` URLs
+ * fail-fast 404 without existsSync/readFileSync so cloud-only files cannot
+ * freeze the main process (REQ-037 root cause a_mw_art_sync_reads; REQ-038 fix).
+ * Renderer `artSrc` prefers `cachedPosterPath`/`cachedFanartPath` so successful
+ * paint never depends on opening Drive.
  */
 export function serveArtFile(url: string, options?: ServeArtOptions): Response {
   const fs = options?.fs ?? {
@@ -91,7 +110,12 @@ export function serveArtFile(url: string, options?: ServeArtOptions): Response {
     'serveArtFile',
     () => {
       const filePath = decodeArtUrl(url)
-      if (!filePath || !fs.existsSync(filePath)) return new Response(null, { status: 404 })
+      if (!filePath) return new Response(null, { status: 404 })
+      // Fail-fast for non-cache paths: never touch potentially cloud-backed FS.
+      if (options?.userDataPath && !isAppOwnedCachePath(filePath, options.userDataPath)) {
+        return new Response(null, { status: 404 })
+      }
+      if (!fs.existsSync(filePath)) return new Response(null, { status: 404 })
       try {
         const body = fs.readFileSync(filePath)
         // Uint8Array is a valid BodyInit; Node Buffer is a Uint8Array subclass at

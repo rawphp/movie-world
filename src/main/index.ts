@@ -69,7 +69,10 @@ app.whenReady().then(() => {
   // Renderer requests `mw-art://<encodeURIComponent(absPath)>`; serveArtFile
   // reads the bytes directly and returns them with a correct image
   // Content-Type, or a 404 Response when the file is absent (REQ-018).
-  protocol.handle(MW_ART_SCHEME, (req) => serveArtFile(req.url))
+  // Restrict opens to userData/cache so residual Drive source URLs fail-fast
+  // instead of blocking the main process on cloud-only files (REQ-038).
+  const userDataPath = app.getPath('userData')
+  protocol.handle(MW_ART_SCHEME, (req) => serveArtFile(req.url, { userDataPath }))
 
   // YouTube rejects packaged file:// renderer embeds with Error 153 unless the
   // embed request carries a web origin. Keep the injected identity scoped to

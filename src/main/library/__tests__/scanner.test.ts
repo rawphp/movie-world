@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { existsSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { discoverVideoFiles, ingestFile, movieId, VIDEO_EXTENSIONS } from '../scanner'
@@ -154,6 +154,31 @@ describe('ingestFile', () => {
 
     expect(m.posterPath).toBe(cached.poster)
     expect(m.fanartPath).toBeNull()
+  })
+
+  it('returns usable cached artwork without probing the Drive source when cache exists (REQ-038)', async () => {
+    const appData = join(root, 'app-data')
+    const file = join(root, 'The Matrix (1999).mkv')
+    writeFileSync(file, 'x')
+    const source = sidecarPathsFor(file)
+    const cached = cachedSidecarPathsFor(file, appData)
+    mkdirSync(dirname(cached.nfo), { recursive: true })
+    writeFileSync(cached.nfo, movieToNfoXml({ ...(await ingestFile(file, root)), ...matchedMovie() }))
+    // Distinct cache bytes: if resolveArtworkPath probed source it would mirror
+    // and overwrite these (REQ-038 must prefer cache without touching source).
+    writeFileSync(cached.poster, 'cache-poster')
+    writeFileSync(cached.fanart, 'cache-fanart')
+    writeFileSync(source.poster, 'drive-poster')
+    writeFileSync(source.fanart, 'drive-fanart')
+
+    const m = await ingestFile(file, root, { appDataPath: appData })
+
+    expect(m.cachedPosterPath).toBe(cached.poster)
+    expect(m.cachedFanartPath).toBe(cached.fanart)
+    expect(m.posterPath).toBe(cached.poster)
+    expect(m.fanartPath).toBe(cached.fanart)
+    expect(readFileSync(cached.poster, 'utf8')).toBe('cache-poster')
+    expect(readFileSync(cached.fanart, 'utf8')).toBe('cache-fanart')
   })
 })
 
