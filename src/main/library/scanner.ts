@@ -55,7 +55,18 @@ interface ResolvedArtworkPath {
   cachedPath: string | null
 }
 
+/**
+ * Resolve poster/fanart paths for a sidecar pair.
+ *
+ * Cache-first (REQ-038): when an app-owned cache file already exists, return it
+ * as the usable path without existsSync/read/mirror on the source sidecar.
+ * Probing Google Drive cloud-only source files blocks the main process; a warm
+ * cache must never require that probe for grid/detail paint.
+ */
 function resolveArtworkPath(sourcePath: string, cachedPath?: string): ResolvedArtworkPath {
+  if (cachedPath && existsSync(cachedPath)) {
+    return { path: cachedPath, cachedPath }
+  }
   if (existsSync(sourcePath)) {
     if (cachedPath) mirrorArtwork(sourcePath, cachedPath)
     return {
@@ -63,7 +74,6 @@ function resolveArtworkPath(sourcePath: string, cachedPath?: string): ResolvedAr
       cachedPath: cachedPath && existsSync(cachedPath) ? cachedPath : null
     }
   }
-  if (cachedPath && existsSync(cachedPath)) return { path: cachedPath, cachedPath }
   return { path: null, cachedPath: null }
 }
 

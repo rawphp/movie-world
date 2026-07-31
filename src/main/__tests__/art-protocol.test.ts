@@ -174,16 +174,19 @@ describe('serveArtFile', () => {
     expect(buffer.events[0]?.detail).toBe(file)
   })
 
-  it('blocks the UI-critical path for the full slow-FS delay (cloud-only Drive poster)', () => {
-    // Reproduce freeze scenario: grid painted from cache with posterPath on Drive
-    // and no cachedPosterPath → artSrc falls back to Drive path → serveArtFile
-    // does sync existsSync/readFileSync on a cloud-only file (REQ-037).
+  it('fail-fast 404 for non-cache Drive paths under slow FS without multi-second block (REQ-038)', () => {
+    // Residual mw-art requests may still carry a Drive posterPath when
+    // cachedPosterPath is missing. With userDataPath set, serveArtFile must
+    // not call existsSync/readFileSync on non-cache paths (defense in depth).
+    const userData = '/Users/me/Library/Application Support/movie-world'
     const drivePoster = '/Google Drive/Movies/The Matrix (1999)-poster.jpg'
     const delayMs = 120
-    const bytes = Buffer.from([0xff, 0xd8, 0xff, 0xd9])
+    let existsCalls = 0
+    let readCalls = 0
     const buffer = createTimingBuffer()
     const slowFs = {
       existsSync: (p: string): boolean => {
+        existsCalls++
         const start = Date.now()
         while (Date.now() - start < delayMs) {
           /* busy-wait: cloud-only hydrate */
@@ -191,24 +194,29 @@ describe('serveArtFile', () => {
         return p === drivePoster
       },
       readFileSync: (p: string): Buffer => {
+        readCalls++
         if (p !== drivePoster) throw new Error('ENOENT')
-        return bytes
+        return Buffer.from([0xff, 0xd8, 0xff, 0xd9])
       }
     }
 
     const wallStart = performance.now()
     const res = serveArtFile(`${MW_ART_SCHEME}://${encodeURIComponent(drivePoster)}`, {
       fs: slowFs,
-      onTiming: buffer.sink
+      onTiming: buffer.sink,
+      userDataPath: userData
     })
     const wallMs = performance.now() - wallStart
 
-    expect(res.status).toBe(200)
-    expect(wallMs).toBeGreaterThanOrEqual(delayMs - 5)
-    const timed = buffer.durationsFor('serveArtFile')[0] ?? 0
-    expect(timed).toBeGreaterThanOrEqual(delayMs - 5)
+    expect(res.status).toBe(404)
+    expect(existsCalls).toBe(0)
+    expect(readCalls).toBe(0)
+    expect(wallMs).toBeLessThan(delayMs / 2)
 
-    // loadLibrary is not on this path — classify freeze as mw-art sync reads.
+    const timed = buffer.durationsFor('serveArtFile')[0] ?? 0
+    expect(timed).toBeLessThan(delayMs / 2)
+    // Historical root cause label from REQ-037 still names the freeze class.
+    expect(PRIMARY_FREEZE_ROOT_CAUSE).toBe('a_mw_art_sync_reads')
     expect(
       classifyStartupFreeze({
         loadLibraryMs: 5,
@@ -217,8 +225,53 @@ describe('serveArtFile', () => {
         loadLibraryWaitedOnDiscover: false,
         blockingMs: 100
       })
-    ).toBe(PRIMARY_FREEZE_ROOT_CAUSE)
-    expect(PRIMARY_FREEZE_ROOT_CAUSE).toBe('a_mw_art_sync_reads')
+    ).not.toBe(PRIMARY_FREEZE_ROOT_CAUSE)
+  })
+
+  it('serves app-owned cache paths without opening a Drive source path (REQ-038)', async () => {
+    const userData = mkdtempSync(join(tmpdir(), 'mw-art-userdata-'))
+    const cacheFile = join(userData, 'cache', 'sidecars', 'abc', 'poster.jpg')
+    mkdirSync(join(userData, 'cache', 'sidecars', 'abc'), { recursive: true })
+    const bytes = Buffer.from([0xff, 0xd8, 0xff, 0xd9])
+    writeFileSync(cacheFile, bytes)
+
+    const drivePoster = '/Google Drive/Movies/The Matrix (1999)-poster.jpg'
+    const delayMs = 120
+    let driveTouched = false
+    const slowFs = {
+      existsSync: (p: string): boolean => {
+        if (p === drivePoster || p.startsWith('/Google Drive/')) {
+          driveTouched = true
+          const start = Date.now()
+          while (Date.now() - start < delayMs) {
+            /* cloud-only */
+          }
+          return false
+        }
+        return p === cacheFile
+      },
+      readFileSync: (p: string): Buffer => {
+        if (p === drivePoster || p.startsWith('/Google Drive/')) {
+          driveTouched = true
+          throw new Error('should not open Drive')
+        }
+        if (p !== cacheFile) throw new Error('ENOENT')
+        return bytes
+      }
+    }
+
+    const wallStart = performance.now()
+    const res = serveArtFile(`${MW_ART_SCHEME}://${encodeURIComponent(cacheFile)}`, {
+      fs: slowFs,
+      userDataPath: userData
+    })
+    const wallMs = performance.now() - wallStart
+
+    expect(res.status).toBe(200)
+    expect(driveTouched).toBe(false)
+    expect(wallMs).toBeLessThan(delayMs / 2)
+    const got = Buffer.from(await res.arrayBuffer())
+    expect(got.equals(bytes)).toBe(true)
   })
 })
 
