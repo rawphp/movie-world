@@ -1,19 +1,14 @@
 # REQ-044: Writers Materialize Cache Art
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.23552
-**Claimed at:** 2026-07-31T03:43:49Z
-**Heartbeat:** 2026-07-31T03:47:14Z
-<!-- claimed-end -->
 
 **UR:** UR-011
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-31
 **Layer:** main
 **Entry point:**
 **Terminal state:**
 **Parent:** REQ-041
-**Closure proof:**
+**Closure proof:** checkpoint:.do-work/runs latest REQ-044 commit:60495a7
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** M
@@ -56,3 +51,9 @@ Reuse `cachedSidecarPathsFor`, existing `mirrorArtwork` / write helpers; invert 
 ## Assets
 
 - (none)
+
+## Outputs
+
+- src/main/tmdb/fetcher.ts — Cache-primary art/NFO materialize in fetchAndApply; appDataPath on queue
+- src/main/tmdb/__tests__/fetcher.test.ts — REQ-044 unit tests for cache materialize and Drive best-effort
+- src/main/library/manager.ts — Pass appDataPath into createFetchQueue and fixMatch fetchAndApply
