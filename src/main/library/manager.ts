@@ -9,6 +9,7 @@ import {
   ingestFile as defaultIngestFile
 } from './scanner'
 import { createLibraryCache } from './cache'
+import { measureAsync, type TimingSink } from '../startup-timings'
 
 interface ManagerOpts {
   settings: SettingsStore
@@ -21,6 +22,8 @@ interface ManagerOpts {
   }
   downloadImage?: (url: string, dest: string) => Promise<void>
   playDeps?: { openPath?: (p: string) => Promise<string>; now?: () => Date }
+  /** Optional sink for startup stage timings (REQ-037 diagnosis). */
+  onTiming?: TimingSink
 }
 
 export interface LibraryManager {
@@ -57,12 +60,18 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
   }
 
   async function hydrateFromCache(): Promise<MovieRecord[]> {
-    if (!cache) return []
-    const folders = new Set(opts.settings.read().folders)
-    const cached = (await cache.read()).filter((movie) => folders.has(movie.folderPath))
-    movies.clear()
-    for (const movie of cached) movies.set(movie.id, movie)
-    return cached
+    return measureAsync(
+      'hydrateFromCache',
+      async () => {
+        if (!cache) return []
+        const folders = new Set(opts.settings.read().folders)
+        const cached = (await cache.read()).filter((movie) => folders.has(movie.folderPath))
+        movies.clear()
+        for (const movie of cached) movies.set(movie.id, movie)
+        return cached
+      },
+      { sink: opts.onTiming }
+    )
   }
 
   // Queue is rebuilt lazily so a newly-entered API key takes effect.
@@ -94,7 +103,10 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
       })
       return []
     }
-    const files = await discoverVideoFiles(folder)
+    const files = await measureAsync('discoverVideoFiles', () => discoverVideoFiles(folder), {
+      sink: opts.onTiming,
+      detail: folder
+    })
     const seen = new Set<string>()
     const ingested: MovieRecord[] = []
     let done = 0
@@ -102,7 +114,11 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
       const existing = [...movies.values()].find((m) => m.filePath === file)
       const record = existing
         ? { ...existing, fileMissing: false }
-        : await ingestFile(file, folder, { appDataPath: opts.appDataPath })
+        : await measureAsync(
+            'ingestFile',
+            () => ingestFile(file, folder, { appDataPath: opts.appDataPath }),
+            { sink: opts.onTiming, detail: file }
+          )
       seen.add(record.id)
       if (!existing || existing.fileMissing) commit(record)
       ingested.push(record)
@@ -145,18 +161,24 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
 
   return {
     async loadLibrary(): Promise<LibraryLoadResult> {
-      const cached = await hydrateFromCache()
-      const folders = opts.settings.read().folders
-      for (const folder of folders) scheduleStartupScan(folder)
-      return {
-        movies: cached,
-        status: {
-          firstViewFromCache: cached.length > 0,
-          backgroundScanRunning: folders.length > 0,
-          backgroundScanFolders: folders,
-          unavailableFolders: folders.filter((folder) => !existsSync(folder))
-        }
-      }
+      return measureAsync(
+        'loadLibrary',
+        async () => {
+          const cached = await hydrateFromCache()
+          const folders = opts.settings.read().folders
+          for (const folder of folders) scheduleStartupScan(folder)
+          return {
+            movies: cached,
+            status: {
+              firstViewFromCache: cached.length > 0,
+              backgroundScanRunning: folders.length > 0,
+              backgroundScanFolders: folders,
+              unavailableFolders: folders.filter((folder) => !existsSync(folder))
+            }
+          }
+        },
+        { sink: opts.onTiming }
+      )
     },
     rescanFolder: async (folder: string): Promise<void> => {
       await scanOne(folder, { markMissing: true })

@@ -8,6 +8,7 @@ import { movieId } from '../scanner'
 import { createLibraryCache } from '../cache'
 import type { LibraryLoadResult, MovieRecord, ScanProgress } from '../../../shared/types'
 import type { TmdbClient } from '../../tmdb/client'
+import { createTimingBuffer, classifyStartupFreeze } from '../../startup-timings'
 
 let dir: string
 beforeEach(() => {
@@ -286,5 +287,97 @@ describe('library manager', () => {
     await manager.idle()
     await manager.fixMatch(movieId(file), 603)
     expect(updates.at(-1)!).toMatchObject({ tmdbId: 603, matchStatus: 'matched' })
+  })
+
+  it('emits timings for hydrateFromCache, loadLibrary, discoverVideoFiles, and ingestFile', async () => {
+    const { mkdirSync } = await import('node:fs')
+    const moviesDir = join(dir, 'movies')
+    mkdirSync(moviesDir, { recursive: true })
+    const cachedFile = join(moviesDir, 'Cached.Movie.2020.mkv')
+    // New discovery forces ingestFile (existing cache hits skip ingest).
+    const newFile = join(moviesDir, 'Arrival.2016.mkv')
+    const buffer = createTimingBuffer()
+    const appDataPath = join(dir, 'app-data')
+    const cached = makeMovie({ filePath: cachedFile, folderPath: moviesDir })
+    await createLibraryCache(appDataPath).write([cached])
+    const settings = createSettingsStore(join(dir, 'settings.json'))
+    settings.addFolder(moviesDir)
+    const manager = createLibraryManager({
+      settings,
+      makeClient: () => fakeClient,
+      emit: () => {},
+      appDataPath,
+      onTiming: buffer.sink,
+      scanDeps: {
+        discoverVideoFiles: async () => [newFile],
+        ingestFile: async (path, folder) =>
+          makeMovie({ filePath: path, folderPath: folder, matchStatus: 'matched' })
+      }
+    })
+
+    await manager.loadLibrary()
+    await manager.idle()
+
+    expect(buffer.durationsFor('hydrateFromCache').length).toBe(1)
+    expect(buffer.durationsFor('loadLibrary').length).toBe(1)
+    expect(buffer.durationsFor('discoverVideoFiles').length).toBe(1)
+    expect(buffer.events.find((e) => e.stage === 'discoverVideoFiles')?.detail).toBe(moviesDir)
+    expect(buffer.durationsFor('ingestFile').length).toBe(1)
+    expect(buffer.events.find((e) => e.stage === 'ingestFile')?.detail).toBe(newFile)
+  })
+
+  it('does not wait on slow discoverVideoFiles before loadLibrary returns (scan is not UI-critical)', async () => {
+    const { mkdirSync } = await import('node:fs')
+    const moviesDir = join(dir, 'movies')
+    mkdirSync(moviesDir, { recursive: true })
+    const buffer = createTimingBuffer()
+    const appDataPath = join(dir, 'app-data')
+    const cached = makeMovie({ folderPath: moviesDir })
+    await createLibraryCache(appDataPath).write([cached])
+    const settings = createSettingsStore(join(dir, 'settings.json'))
+    settings.addFolder(moviesDir)
+    const { promise, resolve } = deferred<string[]>()
+    const discoverDelayMs = 150
+    const manager = createLibraryManager({
+      settings,
+      makeClient: () => fakeClient,
+      emit: () => {},
+      appDataPath,
+      onTiming: buffer.sink,
+      scanDeps: {
+        discoverVideoFiles: async () => {
+          await new Promise((r) => setTimeout(r, discoverDelayMs))
+          return promise
+        },
+        ingestFile: async (path, folder) => makeMovie({ filePath: path, folderPath: folder })
+      }
+    })
+
+    const loadStart = performance.now()
+    const loaded = await manager.loadLibrary()
+    const loadWallMs = performance.now() - loadStart
+
+    expect(loaded.movies).toEqual([cached])
+    // loadLibrary must return well before the slow discover finishes.
+    expect(loadWallMs).toBeLessThan(discoverDelayMs)
+    const loadLibraryMs = buffer.durationsFor('loadLibrary')[0] ?? Number.POSITIVE_INFINITY
+    expect(loadLibraryMs).toBeLessThan(discoverDelayMs)
+
+    resolve([])
+    await manager.idle()
+    const discoverMs = buffer.durationsFor('discoverVideoFiles')[0] ?? 0
+    expect(discoverMs).toBeGreaterThanOrEqual(discoverDelayMs - 20)
+
+    // Background scan is slow but loadLibrary did not wait — freeze after paint
+    // is not explained by loadLibrary awaiting discover (points at serveArtFile).
+    expect(
+      classifyStartupFreeze({
+        loadLibraryMs,
+        backgroundDiscoverMs: discoverMs,
+        serveArtFileMs: 200,
+        loadLibraryWaitedOnDiscover: false,
+        blockingMs: 100
+      })
+    ).toBe('a_mw_art_sync_reads')
   })
 })
