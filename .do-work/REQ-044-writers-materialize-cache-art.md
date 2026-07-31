@@ -28,6 +28,7 @@ Reuse `cachedSidecarPathsFor`, existing `mirrorArtwork` / write helpers; invert 
 
 - [ ] `fetchAndApply` with appDataPath downloads/writes poster and fanart under userData cache and sets `cachedPosterPath`/`cachedFanartPath` to those paths when download succeeds.
 - [ ] Drive/source sidecar art writes (if still performed) are best-effort: failure does not clear successful cache fields or prevent matched status solely due to Drive write failure.
+- [ ] Failed cache write (download or fs write under userData cache) does not set non-null `cachedPosterPath`/`cachedFanartPath` for that asset.
 - [ ] `ingestFile` continues to resolve cache-first and sets cache fields when cache files exist or after successful mirror into cache.
 - [ ] Unit tests prove TMDB apply sets cache paths under a temp appDataPath without requiring Drive paths to be readable for display fields.
 

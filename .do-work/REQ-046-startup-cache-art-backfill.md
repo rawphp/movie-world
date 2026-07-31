@@ -30,6 +30,7 @@ Prefer explicit “needs cache art” detection over full re-ingest of metadata 
 - [ ] Backfill uses max 2 concurrent source→cache mirror/resolve operations.
 - [ ] `loadLibrary` still returns cached movies before backfill finishes.
 - [ ] Successful backfill commits updated cache art fields and persists library cache.
+- [ ] Failed or missing source mirror leaves cache fields null (or unchanged) and does not reject `loadLibrary` / throw into the startup path.
 - [ ] Unit test: cached record with Drive posterPath, null cachedPosterPath, source art present in temp FS → after idle, movie has non-null cachedPosterPath under appData; loadLibrary returned before that work finished.
 
 ## Verification Steps
