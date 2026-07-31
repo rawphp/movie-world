@@ -3,7 +3,7 @@
 <!-- claimed-start -->
 **Claimed by:** Toms-MacBook-Pro.local.23552
 **Claimed at:** 2026-07-31T03:43:50Z
-**Heartbeat:** 2026-07-31T03:43:50Z
+**Heartbeat:** 2026-07-31T03:45:51Z
 <!-- claimed-end -->
 
 **UR:** UR-011
@@ -30,9 +30,9 @@ Brief item 4. REQ-040 already fills fields in memory on hydrate but does not wri
 
 ## Acceptance Criteria
 
-- [ ] After hydrate completes artwork fields from disk, library cache JSON is written when any record changed.
-- [ ] Completion still only `exists` under appData/cache (no Drive poster/fanart probes).
-- [ ] Unit test: partial JSON + on-disk cache files → load fills fields AND a subsequent cache read (or written file parse) contains non-null cached paths.
+- [x] After hydrate completes artwork fields from disk, library cache JSON is written when any record changed.
+- [x] Completion still only `exists` under appData/cache (no Drive poster/fanart probes).
+- [x] Unit test: partial JSON + on-disk cache files → load fills fields AND a subsequent cache read (or written file parse) contains non-null cached paths.
 
 ## Verification Steps
 

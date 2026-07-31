@@ -1,23 +1,18 @@
 # REQ-042: Display Art Helpers
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.23552
-**Claimed at:** 2026-07-31T03:43:48Z
-**Heartbeat:** 2026-07-31T03:43:48Z
-<!-- claimed-end -->
 
 **UR:** UR-011
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-31
 **Layer:** shared
 **Entry point:**
 **Terminal state:**
 **Parent:** REQ-041
-**Closure proof:**
+**Closure proof:** checkpoint:.do-work/runs latest REQ-042 commit:fc3926f
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** S
-**Files:** src/shared/types.ts, src/shared/__tests__/display-art.test.ts
+**Files:** src/shared/display-art.ts, src/shared/types.ts, src/shared/__tests__/display-art.test.ts
 **Depends on:**
 
 ## Task
@@ -30,9 +25,9 @@ Brief item 1 + clarification: keep names; change contract only. Shared helpers g
 
 ## Acceptance Criteria
 
-- [ ] Shared helper(s) return `cachedPosterPath` / `cachedFanartPath` (or null) and never select `posterPath` / `fanartPath` for display.
-- [ ] Unit tests cover non-null cache, null cache with non-null Drive path (must return null), and both null.
-- [ ] Field names remain `cachedPosterPath` / `cachedFanartPath` on `MovieRecord` (no rename).
+- [x] Shared helper(s) return `cachedPosterPath` / `cachedFanartPath` (or null) and never select `posterPath` / `fanartPath` for display.
+- [x] Unit tests cover non-null cache, null cache with non-null Drive path (must return null), and both null.
+- [x] Field names remain `cachedPosterPath` / `cachedFanartPath` on `MovieRecord` (no rename).
 
 ## Verification Steps
 
@@ -52,3 +47,9 @@ Brief item 1 + clarification: keep names; change contract only. Shared helpers g
 ## Assets
 
 - (none)
+
+## Outputs
+
+- src/shared/display-art.ts — displayPosterPath/displayFanartPath cache-only paint helpers
+- src/shared/__tests__/display-art.test.ts — Unit tests for cache/null/Drive-ignored display paths
+- src/shared/types.ts — MovieRecord art field comments encoding display contract

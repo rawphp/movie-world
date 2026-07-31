@@ -3,7 +3,7 @@
 <!-- claimed-start -->
 **Claimed by:** Toms-MacBook-Pro.local.23552
 **Claimed at:** 2026-07-31T03:43:49Z
-**Heartbeat:** 2026-07-31T03:43:49Z
+**Heartbeat:** 2026-07-31T03:47:14Z
 <!-- claimed-end -->
 
 **UR:** UR-011
@@ -17,7 +17,7 @@
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** M
-**Files:** src/main/tmdb/fetcher.ts, src/main/library/scanner.ts, src/main/library/nfo.ts, src/main/tmdb/__tests__/fetcher.test.ts, src/main/library/__tests__/scanner.test.ts
+**Files:** src/main/tmdb/fetcher.ts, src/main/tmdb/__tests__/fetcher.test.ts, src/main/library/manager.ts
 **Depends on:**
 
 ## Task
@@ -32,11 +32,11 @@ Reuse `cachedSidecarPathsFor`, existing `mirrorArtwork` / write helpers; invert 
 
 ## Acceptance Criteria
 
-- [ ] `fetchAndApply` with appDataPath downloads/writes poster and fanart under userData cache and sets `cachedPosterPath`/`cachedFanartPath` to those paths when download succeeds.
-- [ ] Drive/source sidecar art writes (if still performed) are best-effort: failure does not clear successful cache fields or prevent matched status solely due to Drive write failure.
-- [ ] Failed cache write (download or fs write under userData cache) does not set non-null `cachedPosterPath`/`cachedFanartPath` for that asset.
-- [ ] `ingestFile` continues to resolve cache-first and sets cache fields when cache files exist or after successful mirror into cache.
-- [ ] Unit tests prove TMDB apply sets cache paths under a temp appDataPath without requiring Drive paths to be readable for display fields.
+- [x] `fetchAndApply` with appDataPath downloads/writes poster and fanart under userData cache and sets `cachedPosterPath`/`cachedFanartPath` to those paths when download succeeds.
+- [x] Drive/source sidecar art writes (if still performed) are best-effort: failure does not clear successful cache fields or prevent matched status solely due to Drive write failure.
+- [x] Failed cache write (download or fs write under userData cache) does not set non-null `cachedPosterPath`/`cachedFanartPath` for that asset.
+- [x] `ingestFile` continues to resolve cache-first and sets cache fields when cache files exist or after successful mirror into cache.
+- [x] Unit tests prove TMDB apply sets cache paths under a temp appDataPath without requiring Drive paths to be readable for display fields.
 
 ## Verification Steps
 
