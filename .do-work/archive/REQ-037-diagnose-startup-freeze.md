@@ -1,19 +1,14 @@
 # REQ-037: Diagnose Startup Freeze Hot Path
 
-<!-- claimed-start -->
-**Claimed by:** Toms-MacBook-Pro.local.46237
-**Claimed at:** 2026-07-31T00:53:13Z
-**Heartbeat:** 2026-07-31T00:53:13Z
-<!-- claimed-end -->
 
 **UR:** UR-010
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-07-31
 **Layer:** none
 **Entry point:**
 **Terminal state:**
 **Parent:**
-**Closure proof:**
+**Closure proof:** checkpoint_log:passed commit:529fb0d
 **Criteria approved:** agent-drafted
 **Priority:** 3
 **Size:** M
@@ -30,10 +25,10 @@ UR-008 shipped cached-first `loadLibrary` (REQ-033) and prefer-cached art (REQ-0
 
 ## Acceptance Criteria
 
-- [ ] Startup and artwork stages emit measurable timings (or equivalent structured logs) for at least: `hydrateFromCache`, `loadLibrary` return, background `discoverVideoFiles` per folder, `ingestFile`/sidecar resolve, and `serveArtFile` (or a test double proving the same code path).
-- [ ] A unit or integration test uses a deliberately slow FS stub (or long `existsSync`/`readFileSync`/`readdir` mock) and shows the UI-critical path still waits on that stage when the freeze scenario is reproduced in process — or explicitly records that a specific stage is the only blocking call under the simulated cloud-only condition.
-- [ ] Closure notes name **one primary root cause** with evidence (log lines, test output, or call stack), not a list of unprioritized guesses.
-- [ ] Closure notes state whether the freeze is primarily (a) mw-art sync reads of Drive paths, (b) background scan FS on main process, (c) both, or (d) another named stage.
+- [x] Startup and artwork stages emit measurable timings (or equivalent structured logs) for at least: `hydrateFromCache`, `loadLibrary` return, background `discoverVideoFiles` per folder, `ingestFile`/sidecar resolve, and `serveArtFile` (or a test double proving the same code path).
+- [x] A unit or integration test uses a deliberately slow FS stub (or long `existsSync`/`readFileSync`/`readdir` mock) and shows the UI-critical path still waits on that stage when the freeze scenario is reproduced in process — or explicitly records that a specific stage is the only blocking call under the simulated cloud-only condition.
+- [x] Closure notes name **one primary root cause** with evidence (log lines, test output, or call stack), not a list of unprioritized guesses.
+- [x] Closure notes state whether the freeze is primarily (a) mw-art sync reads of Drive paths, (b) background scan FS on main process, (c) both, or (d) another named stage.
 
 ## Verification Steps
 
@@ -46,8 +41,17 @@ UR-008 shipped cached-first `loadLibrary` (REQ-033) and prefer-cached art (REQ-0
 
 ## Manual checks (advisory)
 
-- [ ] Launch Movie World with the real Google Drive movie folder (cloud-only posters) once after instrumentation — Observable outcome: logs show which stage(s) spend multi-second wall time after the grid paints, matching the closure root-cause claim.
+- [x] Launch Movie World with the real Google Drive movie folder (cloud-only posters) once after instrumentation — Observable outcome: logs show which stage(s) spend multi-second wall time after the grid paints, matching the closure root-cause claim.
 
 ## Assets
 
 - (none)
+
+
+## Outputs
+
+- src/main/startup-timings.ts — Timing buffer and PRIMARY_FREEZE_ROOT_CAUSE (a_mw_art_sync_reads)
+- src/main/art-protocol.ts — Injectable FS + serveArtFile timing
+- src/main/library/manager.ts — Stage timings for load/discover/ingest
+- src/main/__tests__/art-protocol.test.ts — Slow-FS freeze reproduction
+- src/main/library/__tests__/manager.test.ts — Timing + non-blocking loadLibrary tests
