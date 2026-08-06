@@ -1,4 +1,5 @@
 import { access } from 'node:fs/promises'
+import { dirname } from 'node:path'
 import type { LibraryLoadResult, MovieRecord, ScanProgress } from '../../shared/types'
 import type { SettingsStore } from '../settings'
 import type { TmdbClient } from '../tmdb/client'
@@ -29,7 +30,10 @@ async function defaultFolderExists(folder: string): Promise<boolean> {
 interface ManagerOpts {
   settings: SettingsStore
   makeClient: (apiKey: string) => TmdbClient
-  emit: (channel: 'movie:updated' | 'scan:progress', payload: MovieRecord | ScanProgress) => void
+  emit: (
+    channel: 'movie:updated' | 'movie:removed' | 'scan:progress',
+    payload: MovieRecord | ScanProgress | string
+  ) => void
   appDataPath?: string
   scanDeps?: {
     discoverVideoFiles?: typeof defaultDiscoverVideoFiles
@@ -75,6 +79,13 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
   function commit(movie: MovieRecord): void {
     movies.set(movie.id, movie)
     opts.emit('movie:updated', movie)
+    void persistCache().catch(() => undefined)
+  }
+
+  function removeMovie(id: string): void {
+    if (!movies.has(id)) return
+    movies.delete(id)
+    opts.emit('movie:removed', id)
     void persistCache().catch(() => undefined)
   }
 
@@ -207,6 +218,7 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
       sink: opts.onTiming,
       detail: folder
     })
+    const primaryParents = new Set(files.map((file) => dirname(file)))
     const seen = new Set<string>()
     const ingested: MovieRecord[] = []
     let done = 0
@@ -238,11 +250,17 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
         done: false
       })
     }
-    if (markMissing) {
-      for (const m of movies.values()) {
-        if (m.folderPath === folder && !seen.has(m.id) && !m.fileMissing) {
-          commit({ ...m, fileMissing: true })
-        }
+    // Drop secondary videos in the same movie folder (multi-file folders → one card).
+    // Also mark truly vanished files missing on rescan.
+    for (const m of [...movies.values()]) {
+      if (m.folderPath !== folder || seen.has(m.id)) continue
+      const parent = dirname(m.filePath)
+      if (primaryParents.has(parent)) {
+        removeMovie(m.id)
+        continue
+      }
+      if (markMissing && !m.fileMissing) {
+        commit({ ...m, fileMissing: true })
       }
     }
     await persistCache()

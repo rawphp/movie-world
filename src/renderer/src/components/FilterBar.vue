@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useLibraryStore } from '../stores/library'
-import type { SortKey } from '../lib/filtering'
+import type { IssueFilter, SortKey } from '../lib/filtering'
 
 const store = useLibraryStore()
 const sortOptions: Array<[SortKey, string]> = [
@@ -26,8 +26,8 @@ const filtersActive = computed(() => store.hasActiveFilters)
         :value="store.filters.search"
         type="search"
         aria-label="Search movies"
-        placeholder="Search…"
-        class="w-48 rounded-full bg-neutral-700 px-3 py-1 text-white placeholder-neutral-400"
+        placeholder="Search title or actor…"
+        class="w-52 rounded-full bg-neutral-700 px-3 py-1 text-white placeholder-neutral-400"
         @input="store.setFilter({ search: ($event.target as HTMLInputElement).value })"
       />
       <select
@@ -113,6 +113,22 @@ const filtersActive = computed(() => store.hasActiveFilters)
         <option value="all">Any status</option>
         <option value="watched">Watched</option>
         <option value="unwatched">Unwatched</option>
+      </select>
+      <select
+        data-testid="filter-issue"
+        :value="store.filters.issue"
+        aria-label="Filter by library issues"
+        class="rounded-full bg-neutral-700 px-2 py-1 text-white"
+        @change="
+          store.setFilter({
+            issue: ($event.target as HTMLSelectElement).value as IssueFilter
+          })
+        "
+      >
+        <option value="all">Any issues</option>
+        <option value="unmatched">Needs match</option>
+        <option value="missing">File missing</option>
+        <option value="fetchFailed">Fetch failed</option>
       </select>
       <span class="ml-auto flex items-center gap-1 text-neutral-400">
         <label for="filter-sort" class="sr-only">Sort movies</label>

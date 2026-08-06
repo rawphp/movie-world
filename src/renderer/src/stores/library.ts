@@ -71,6 +71,7 @@ export const useLibraryStore = defineStore('library', {
     async load() {
       if (!this.subscribed) {
         window.api.onMovieUpdated((m) => this.applyUpdate(m))
+        window.api.onMovieRemoved((id) => this.applyRemove(id))
         window.api.onScanProgress((p) => this.applyScanProgress(p))
         this.subscribed = true
       }
@@ -87,6 +88,11 @@ export const useLibraryStore = defineStore('library', {
     },
     applyUpdate(m: MovieRecord) {
       this.movies[m.id] = m
+    },
+    applyRemove(id: string) {
+      const next = { ...this.movies }
+      delete next[id]
+      this.movies = next
     },
     applyScanProgress(p: ScanProgress) {
       const scanningFolders = { ...this.scanningFolders }

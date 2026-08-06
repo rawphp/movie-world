@@ -16,6 +16,8 @@ const api = {
     ipcRenderer.invoke('tmdb:search', query, year),
   revealFile: (id: string) => ipcRenderer.invoke('file:reveal', id),
   onMovieUpdated: (cb: (m: unknown) => void) => ipcRenderer.on('movie:updated', (_e, m) => cb(m)),
+  onMovieRemoved: (cb: (id: string) => void) =>
+    ipcRenderer.on('movie:removed', (_e, id: string) => cb(id)),
   onScanProgress: (cb: (p: unknown) => void) => ipcRenderer.on('scan:progress', (_e, p) => cb(p))
 }
 

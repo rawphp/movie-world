@@ -98,7 +98,7 @@ async function resetShortcuts(): Promise<void> {
 <template>
   <div class="mx-auto max-w-2xl space-y-8">
     <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-white">Settings</h1>
+      <h1 class="text-2xl font-bold text-white">Library &amp; keys</h1>
       <RouterLink to="/" class="text-sm text-sky-400 hover:text-sky-300">
         ← Back to library
       </RouterLink>
@@ -185,7 +185,9 @@ async function resetShortcuts(): Promise<void> {
           data-testid="folder-row"
           class="flex items-center gap-2 rounded-lg bg-neutral-800 px-3 py-2 text-sm text-white"
         >
-          <span class="min-w-0 flex-1 truncate">📁 {{ f }}</span>
+          <span class="min-w-0 flex-1 truncate" :title="f">
+            📁 {{ f.split('/').filter(Boolean).pop() || f }}
+          </span>
           <span
             v-if="progress[f] && !progress[f].done"
             class="whitespace-nowrap text-xs text-sky-300"

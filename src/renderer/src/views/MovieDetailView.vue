@@ -74,8 +74,11 @@ function isEditableTarget(target: EventTarget | null): boolean {
   )
 }
 
+const prevId = computed(() => adjacentMovieId(store.list, String(route.params.id), 'prev'))
+const nextId = computed(() => adjacentMovieId(store.list, String(route.params.id), 'next'))
+
 function navigate(direction: MovieNavDirection): void {
-  const id = adjacentMovieId(store.list, String(route.params.id), direction)
+  const id = direction === 'prev' ? prevId.value : nextId.value
 
   if (id) {
     void router.push({ name: 'movie', params: { id } })
@@ -194,8 +197,19 @@ onUnmounted(() => {
           </div>
           <div class="mt-5 flex flex-wrap items-center gap-2">
             <button
+              v-if="movie.matchStatus === 'unmatched'"
+              data-testid="detail-fix-match"
+              class="inline-flex items-center gap-1 rounded-full bg-amber-500 px-5 py-2 text-sm font-medium text-black hover:bg-amber-400"
+              @click="fixing = true"
+            >
+              Fix match
+            </button>
+            <button
               data-testid="detail-play"
               class="inline-flex items-center gap-1 rounded-full bg-sky-600 px-5 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
+              :class="
+                movie.matchStatus === 'unmatched' ? 'bg-neutral-800 ring-1 ring-white/10' : ''
+              "
               :disabled="movie.fileMissing"
               :title="
                 movie.fileMissing
@@ -210,6 +224,7 @@ onUnmounted(() => {
               ▶ Play
             </button>
             <button
+              v-if="movie.matchStatus !== 'unmatched'"
               data-testid="detail-fix-match"
               class="rounded-full bg-neutral-900/80 px-4 py-2 text-sm text-neutral-100 ring-1 ring-white/10 hover:bg-neutral-800"
               @click="fixing = true"
@@ -223,7 +238,36 @@ onUnmounted(() => {
             >
               Retry fetch
             </button>
+            <button
+              type="button"
+              data-testid="detail-prev"
+              class="rounded-full bg-neutral-900/80 px-3 py-2 text-sm text-neutral-100 ring-1 ring-white/10 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
+              :disabled="!prevId"
+              :title="keybindings ? formatCombo(keybindings.prevMovie) : 'Previous movie'"
+              aria-label="Previous movie"
+              @click="navigate('prev')"
+            >
+              ← Prev
+            </button>
+            <button
+              type="button"
+              data-testid="detail-next"
+              class="rounded-full bg-neutral-900/80 px-3 py-2 text-sm text-neutral-100 ring-1 ring-white/10 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
+              :disabled="!nextId"
+              :title="keybindings ? formatCombo(keybindings.nextMovie) : 'Next movie'"
+              aria-label="Next movie"
+              @click="navigate('next')"
+            >
+              Next →
+            </button>
           </div>
+          <p
+            v-if="movie.matchStatus === 'unmatched'"
+            data-testid="detail-unmatched-hint"
+            class="mt-2 text-xs text-amber-200"
+          >
+            This file was not matched to TMDB — use Fix match to pick the correct title.
+          </p>
           <p
             v-if="movie.fileMissing"
             data-testid="detail-file-missing-hint"
@@ -236,7 +280,7 @@ onUnmounted(() => {
             data-testid="detail-shortcut-hint"
             class="mt-2 text-xs text-neutral-400"
           >
-            Navigate library:
+            Keyboard:
             {{ formatCombo(keybindings.prevMovie) }} previous ·
             {{ formatCombo(keybindings.nextMovie) }} next
           </p>
@@ -269,7 +313,15 @@ onUnmounted(() => {
         >
           <span>{{ sizeGb }}</span>
           <span aria-hidden="true">·</span>
-          <button class="text-sky-400 hover:text-sky-300" @click="reveal">Reveal in Finder</button>
+          <button
+            type="button"
+            class="text-sky-400 hover:text-sky-300 disabled:cursor-not-allowed disabled:text-neutral-500 disabled:no-underline"
+            :disabled="movie.fileMissing"
+            :title="movie.fileMissing ? 'File is missing from disk' : 'Reveal in Finder'"
+            @click="reveal"
+          >
+            Reveal in Finder
+          </button>
         </div>
       </div>
 

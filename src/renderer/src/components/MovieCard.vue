@@ -10,6 +10,9 @@ const emit = defineEmits<{ open: [id: string] }>()
 
 const title = computed(() => props.movie.title ?? props.movie.parsedTitle)
 const year = computed(() => props.movie.year ?? props.movie.parsedYear)
+const titleWithYear = computed(() =>
+  year.value != null ? `${title.value} (${year.value})` : title.value
+)
 const poster = computed(() => artSrc(displayPosterPath(props.movie)))
 const actors = computed(() =>
   props.movie.cast
@@ -24,8 +27,7 @@ const lastWatched = computed(() => {
 })
 
 const ariaLabel = computed(() => {
-  const bits = [title.value]
-  if (year.value != null) bits.push(String(year.value))
+  const bits = [titleWithYear.value]
   if (props.movie.matchStatus === 'unmatched') bits.push('needs match')
   if (props.movie.fileMissing) bits.push('file missing')
   if (props.movie.fetchFailed) bits.push('fetch failed')
@@ -117,9 +119,12 @@ const onKeydown = (event: KeyboardEvent): void => {
     </div>
 
     <div class="space-y-0.5 p-2 text-sm">
-      <div class="truncate font-medium text-white" :title="title">{{ title }}</div>
+      <div class="truncate font-medium text-white" :title="titleWithYear">
+        {{ title
+        }}<span v-if="year != null" class="font-normal text-neutral-400"> ({{ year }})</span>
+      </div>
       <div class="flex items-center justify-between text-neutral-400">
-        <span>{{ year ?? '—' }}</span>
+        <span class="sr-only">{{ year ?? 'Unknown year' }}</span>
         <StarRating :vote-average="movie.voteAverage" />
       </div>
       <div v-if="actors" class="truncate text-xs text-neutral-400">{{ actors }}</div>

@@ -262,6 +262,64 @@ describe('library manager', () => {
     expect(manager.getMovies()[0].tmdbId).toBe(603)
   })
 
+  it('drops secondary videos in the same movie folder instead of listing both', async () => {
+    const moviesDir = join(dir, 'movies')
+    mkdirSync(moviesDir)
+    const movieFolder = join(moviesDir, 'Absolutely Anything (2015)')
+    mkdirSync(movieFolder)
+    const primary = join(movieFolder, 'main.mp4')
+    const stub = join(movieFolder, 'stub.mp4')
+    writeFileSync(primary, 'x'.repeat(1000))
+    writeFileSync(stub, '')
+
+    const settingsFile = join(dir, 'settings-dedupe.json')
+    const appDataPath = join(dir, 'app-data-dedupe')
+    const settings = createSettingsStore(settingsFile)
+    settings.setApiKey('KEY')
+    settings.addFolder(moviesDir)
+
+    // Seed cache with both files as separate library entries (pre-dedupe behavior).
+    const primaryMovie = makeMovie({
+      id: movieId(primary),
+      filePath: primary,
+      folderPath: moviesDir,
+      title: 'Absolutely Anything'
+    })
+    const stubMovie = makeMovie({
+      id: movieId(stub),
+      filePath: stub,
+      folderPath: moviesDir,
+      title: 'Absolutely Anything'
+    })
+    await createLibraryCache(appDataPath).write([primaryMovie, stubMovie])
+
+    const removed: string[] = []
+    const manager = createLibraryManager({
+      settings,
+      makeClient: () => fakeClient,
+      appDataPath,
+      emit: (channel, payload) => {
+        if (channel === 'movie:removed') removed.push(payload as string)
+      },
+      scanDeps: {
+        // Real discover already selects primary; return only primary to mirror that.
+        discoverVideoFiles: async () => [primary],
+        ingestFile: async (path, folder) =>
+          makeMovie({ filePath: path, folderPath: folder, title: 'Absolutely Anything' })
+      }
+    })
+
+    await manager.loadLibrary()
+    await manager.idle()
+
+    const ids = manager
+      .getMovies()
+      .map((m) => m.filePath)
+      .sort()
+    expect(ids).toEqual([primary])
+    expect(removed).toContain(movieId(stub))
+  })
+
   it('rescan flags vanished files as missing', async () => {
     const { mkdirSync } = await import('node:fs')
     const moviesDir = join(dir, 'movies')
@@ -498,16 +556,13 @@ describe('library manager', () => {
       delete process.env.MW_STARTUP_TIMINGS
       const { emitTiming } = await import('../../startup-timings')
       emitTiming(undefined, 'loadLibrary', 120, 'off-by-default')
-      expect(
-        infoSpy.mock.calls.some((c) => String(c[0]).includes('[startup-timing]'))
-      ).toBe(false)
+      expect(infoSpy.mock.calls.some((c) => String(c[0]).includes('[startup-timing]'))).toBe(false)
 
       process.env.MW_STARTUP_TIMINGS = '1'
       emitTiming(undefined, 'loadLibrary', 10, 'gated-on')
       expect(
         infoSpy.mock.calls.some(
-          (c) =>
-            String(c[0]).includes('[startup-timing]') && String(c[0]).includes('gated-on')
+          (c) => String(c[0]).includes('[startup-timing]') && String(c[0]).includes('gated-on')
         )
       ).toBe(true)
     } finally {

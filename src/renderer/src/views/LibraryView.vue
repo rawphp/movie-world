@@ -22,6 +22,8 @@ const emptyFiltered = computed(
   () => store.loaded && store.all.length > 0 && store.list.length === 0
 )
 const cacheStatusMessage = computed(() => store.cacheStatusMessage)
+const unmatchedCount = computed(() => store.all.filter((m) => m.matchStatus === 'unmatched').length)
+const missingCount = computed(() => store.all.filter((m) => m.fileMissing).length)
 </script>
 
 <template>
@@ -36,6 +38,40 @@ const cacheStatusMessage = computed(() => store.cacheStatusMessage)
       class="rounded-lg border border-sky-800 bg-sky-950/60 px-4 py-3 text-sm text-sky-100"
     >
       {{ cacheStatusMessage }}
+    </div>
+    <div
+      v-if="unmatchedCount > 0"
+      data-testid="library-unmatched-banner"
+      class="flex flex-wrap items-center gap-2 rounded-lg bg-amber-900/50 px-4 py-3 text-sm text-amber-100"
+    >
+      <span
+        >{{ unmatchedCount }} {{ unmatchedCount === 1 ? 'movie needs' : 'movies need' }} a TMDB
+        match.</span
+      >
+      <button
+        type="button"
+        class="underline hover:text-white"
+        @click="store.setFilter({ issue: 'unmatched' })"
+      >
+        Show them
+      </button>
+    </div>
+    <div
+      v-if="missingCount > 0"
+      data-testid="library-missing-banner"
+      class="flex flex-wrap items-center gap-2 rounded-lg bg-red-900/40 px-4 py-3 text-sm text-red-100"
+    >
+      <span
+        >{{ missingCount }} {{ missingCount === 1 ? 'file is' : 'files are' }} missing from
+        disk.</span
+      >
+      <button
+        type="button"
+        class="underline hover:text-white"
+        @click="store.setFilter({ issue: 'missing' })"
+      >
+        Show them
+      </button>
     </div>
 
     <div

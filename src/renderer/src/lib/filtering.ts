@@ -1,5 +1,7 @@
 import type { MovieRecord } from '../../../shared/types'
 
+export type IssueFilter = 'all' | 'unmatched' | 'missing' | 'fetchFailed'
+
 export interface LibraryFilters {
   search: string
   genre: string | null
@@ -8,6 +10,7 @@ export interface LibraryFilters {
   minRating: number | null
   actor: string | null
   watched: 'all' | 'watched' | 'unwatched'
+  issue: IssueFilter
 }
 
 export type SortKey = 'title' | 'year' | 'rating' | 'lastWatched'
@@ -19,7 +22,8 @@ export const EMPTY_FILTERS: LibraryFilters = {
   certification: null,
   minRating: null,
   actor: null,
-  watched: 'all'
+  watched: 'all',
+  issue: 'all'
 }
 
 const displayTitle = (m: MovieRecord): string => m.title ?? m.parsedTitle
@@ -44,7 +48,8 @@ export function filtersAreActive(f: LibraryFilters): boolean {
     f.certification != null ||
     f.minRating != null ||
     (f.actor != null && f.actor.trim() !== '') ||
-    f.watched !== 'all'
+    f.watched !== 'all' ||
+    f.issue !== 'all'
   )
 }
 
@@ -53,7 +58,11 @@ export function filterMovies(movies: MovieRecord[], f: LibraryFilters): MovieRec
   const actorQ = f.actor?.trim().toLowerCase() ?? ''
   const cert = f.certification ? normalizeCertification(f.certification) : null
   return movies.filter((m) => {
-    if (q && !displayTitle(m).toLowerCase().includes(q)) return false
+    if (q) {
+      const inTitle = displayTitle(m).toLowerCase().includes(q)
+      const inCast = m.cast.some((c) => c.name.toLowerCase().includes(q))
+      if (!inTitle && !inCast) return false
+    }
     if (f.genre && !m.genres.includes(f.genre)) return false
     if (f.year != null && (m.year ?? m.parsedYear) !== f.year) return false
     if (cert && (!m.certificationAu || normalizeCertification(m.certificationAu) !== cert))
@@ -62,6 +71,9 @@ export function filterMovies(movies: MovieRecord[], f: LibraryFilters): MovieRec
     if (actorQ && !m.cast.some((c) => c.name.toLowerCase().includes(actorQ))) return false
     if (f.watched === 'watched' && m.playCount === 0) return false
     if (f.watched === 'unwatched' && m.playCount > 0) return false
+    if (f.issue === 'unmatched' && m.matchStatus !== 'unmatched') return false
+    if (f.issue === 'missing' && !m.fileMissing) return false
+    if (f.issue === 'fetchFailed' && !m.fetchFailed) return false
     return true
   })
 }

@@ -50,6 +50,7 @@ function mountLibrary(loadResult: LibraryLoadResult): ReturnType<typeof mount> {
     })),
     loadLibrary: vi.fn(async () => loadResult),
     onMovieUpdated: vi.fn(),
+    onMovieRemoved: vi.fn(),
     onScanProgress: vi.fn()
   } as unknown as Window['api']
 

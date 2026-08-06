@@ -42,6 +42,23 @@ describe('discoverVideoFiles', () => {
       join(root, 'The Matrix (1999)', 'The Matrix (1999).mkv')
     ])
   })
+
+  it('keeps one primary video per movie subfolder (largest non-sample, non-empty)', async () => {
+    const dir = join(root, 'Absolutely Anything (2015)')
+    mkdirSync(dir)
+    writeFileSync(join(dir, 'Absolutely Anything (2015).mp4'), '') // cloud stub / empty
+    writeFileSync(join(dir, 'Absolutely Anything (2015) 2.mp4'), 'x'.repeat(5000))
+    writeFileSync(join(dir, 'sample.mp4'), 'x'.repeat(100))
+    writeFileSync(join(root, 'Loose.mp4'), 'loose')
+    writeFileSync(join(root, 'Loose2.mp4'), 'loose2')
+
+    const files = await discoverVideoFiles(root)
+    expect(files).toEqual([
+      join(dir, 'Absolutely Anything (2015) 2.mp4'),
+      join(root, 'Loose.mp4'),
+      join(root, 'Loose2.mp4')
+    ])
+  })
 })
 
 describe('ingestFile', () => {
@@ -110,7 +127,10 @@ describe('ingestFile', () => {
     writeFileSync(file, 'x')
     const cached = cachedSidecarPathsFor(file, appData)
     mkdirSync(dirname(cached.nfo), { recursive: true })
-    writeFileSync(cached.nfo, movieToNfoXml({ ...(await ingestFile(file, root)), ...matchedMovie() }))
+    writeFileSync(
+      cached.nfo,
+      movieToNfoXml({ ...(await ingestFile(file, root)), ...matchedMovie() })
+    )
     writeFileSync(cached.poster, 'poster')
     writeFileSync(cached.fanart, 'fanart')
 
@@ -127,7 +147,10 @@ describe('ingestFile', () => {
     const file = join(root, 'The Matrix (1999).mkv')
     writeFileSync(file, 'x')
     const source = sidecarPathsFor(file)
-    writeFileSync(source.nfo, movieToNfoXml({ ...(await ingestFile(file, root)), ...matchedMovie() }))
+    writeFileSync(
+      source.nfo,
+      movieToNfoXml({ ...(await ingestFile(file, root)), ...matchedMovie() })
+    )
     writeFileSync(source.poster, 'poster')
     writeFileSync(source.fanart, 'fanart')
 
@@ -147,7 +170,10 @@ describe('ingestFile', () => {
     writeFileSync(file, 'x')
     const cached = cachedSidecarPathsFor(file, appData)
     mkdirSync(dirname(cached.nfo), { recursive: true })
-    writeFileSync(cached.nfo, movieToNfoXml({ ...(await ingestFile(file, root)), ...matchedMovie() }))
+    writeFileSync(
+      cached.nfo,
+      movieToNfoXml({ ...(await ingestFile(file, root)), ...matchedMovie() })
+    )
     writeFileSync(cached.poster, 'poster')
 
     const m = await ingestFile(file, root, { appDataPath: appData })
@@ -163,7 +189,10 @@ describe('ingestFile', () => {
     const source = sidecarPathsFor(file)
     const cached = cachedSidecarPathsFor(file, appData)
     mkdirSync(dirname(cached.nfo), { recursive: true })
-    writeFileSync(cached.nfo, movieToNfoXml({ ...(await ingestFile(file, root)), ...matchedMovie() }))
+    writeFileSync(
+      cached.nfo,
+      movieToNfoXml({ ...(await ingestFile(file, root)), ...matchedMovie() })
+    )
     // Distinct cache bytes: if resolveArtworkPath probed source it would mirror
     // and overwrite these (REQ-038 must prefer cache without touching source).
     writeFileSync(cached.poster, 'cache-poster')

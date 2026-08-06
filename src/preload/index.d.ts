@@ -23,6 +23,7 @@ declare global {
       searchTmdb(query: string, year: number | null): Promise<TmdbSearchResult[]>
       revealFile(id: string): Promise<void>
       onMovieUpdated(cb: (m: MovieRecord) => void): void
+      onMovieRemoved(cb: (id: string) => void): void
       onScanProgress(cb: (p: ScanProgress) => void): void
     }
   }

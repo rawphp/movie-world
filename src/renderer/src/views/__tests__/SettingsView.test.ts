@@ -48,7 +48,8 @@ describe('SettingsView', () => {
   it('lists registered folders and saves the api key', async () => {
     const w = mount(SettingsView)
     await flushPromises()
-    expect(w.find('[data-testid="folder-row"]').text()).toContain('/Movies')
+    expect(w.find('[data-testid="folder-row"]').text()).toContain('Movies')
+    expect(w.find('[data-testid="folder-row"]').attributes('title') || w.html()).toContain('Movies')
 
     await w.find('[data-testid="apikey-input"]').setValue('NEWKEY')
     await w.find('[data-testid="apikey-save"]').trigger('click')

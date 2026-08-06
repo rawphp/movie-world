@@ -71,6 +71,20 @@ describe('filterMovies', () => {
     expect(filterMovies(all, EMPTY_FILTERS)).toHaveLength(3))
   it('search matches title case-insensitively', () =>
     expect(filterMovies(all, { ...EMPTY_FILTERS, search: 'matr' })).toEqual([matrix]))
+  it('search also matches cast names', () =>
+    expect(filterMovies(all, { ...EMPTY_FILTERS, search: 'sigourney' })).toEqual([alien]))
+  it('filters by library issue state', () => {
+    const broken = movie({
+      title: 'Broken',
+      matchStatus: 'unmatched',
+      fileMissing: true,
+      fetchFailed: true
+    })
+    const pool = [...all, broken]
+    expect(filterMovies(pool, { ...EMPTY_FILTERS, issue: 'unmatched' })).toEqual([broken])
+    expect(filterMovies(pool, { ...EMPTY_FILTERS, issue: 'missing' })).toEqual([broken])
+    expect(filterMovies(pool, { ...EMPTY_FILTERS, issue: 'fetchFailed' })).toEqual([broken])
+  })
   it('filters by genre, certification, min rating, actor', () => {
     expect(filterMovies(all, { ...EMPTY_FILTERS, genre: 'Horror' })).toEqual([alien])
     expect(filterMovies(all, { ...EMPTY_FILTERS, certification: 'PG' })).toEqual([up])

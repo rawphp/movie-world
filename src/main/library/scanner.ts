@@ -1,15 +1,77 @@
 import { createHash } from 'node:crypto'
 import { copyFileSync, existsSync, mkdirSync } from 'node:fs'
 import { readdir, stat } from 'node:fs/promises'
-import { basename, dirname, extname, join } from 'node:path'
+import { basename, dirname, extname, join, resolve } from 'node:path'
 import type { MovieRecord, ParsedFilename } from '../../shared/types'
 import { parseFilename } from './filename-parser'
 import { cachedSidecarPathsFor, readSidecarNfo, sidecarPathsFor } from './nfo'
 
 export const VIDEO_EXTENSIONS = new Set(['.mkv', '.mp4', '.avi', '.mov', '.m4v', '.wmv', '.webm'])
 
+/** Extras / samples that should lose to the main feature in a multi-file movie folder. */
+const EXTRA_VIDEO_NAME =
+  /(?:^|[\s._-])(sample|trailer|featurette|extra|deleted.?scene|bonus)(?:$|[\s._-])/i
+
 export const movieId = (filePath: string): string =>
   createHash('sha1').update(filePath).digest('hex')
+
+/**
+ * When a movie lives in its own subfolder with multiple video files (main + sample,
+ * cloud stub + full file, disc1/disc2, etc.), keep one primary file per folder.
+ * Files directly under the library root are never collapsed (flat libraries).
+ */
+export async function selectPrimaryVideosPerFolder(
+  files: string[],
+  libraryRoot: string
+): Promise<string[]> {
+  const root = resolve(libraryRoot)
+  const groups = new Map<string, string[]>()
+  for (const file of files) {
+    const parent = dirname(file)
+    const list = groups.get(parent) ?? []
+    list.push(file)
+    groups.set(parent, list)
+  }
+
+  const selected: string[] = []
+  for (const [parent, group] of groups) {
+    if (group.length === 1 || resolve(parent) === root) {
+      selected.push(...group)
+      continue
+    }
+    selected.push(await pickPrimaryVideo(group))
+  }
+  return selected.sort()
+}
+
+async function pickPrimaryVideo(files: string[]): Promise<string> {
+  const ranked = await Promise.all(
+    files.map(async (file) => {
+      let size = 0
+      try {
+        size = (await stat(file)).size
+      } catch {
+        size = 0
+      }
+      const name = basename(file)
+      return {
+        file,
+        size,
+        zeroPenalty: size === 0 ? 1 : 0,
+        extraPenalty: EXTRA_VIDEO_NAME.test(name) ? 1 : 0
+      }
+    })
+  )
+
+  ranked.sort((a, b) => {
+    if (a.zeroPenalty !== b.zeroPenalty) return a.zeroPenalty - b.zeroPenalty
+    if (a.extraPenalty !== b.extraPenalty) return a.extraPenalty - b.extraPenalty
+    if (b.size !== a.size) return b.size - a.size
+    return a.file.localeCompare(b.file)
+  })
+
+  return ranked[0]!.file
+}
 
 export async function discoverVideoFiles(root: string): Promise<string[]> {
   const found: string[] = []
@@ -21,7 +83,8 @@ export async function discoverVideoFiles(root: string): Promise<string[]> {
     }
   }
   await walk(root)
-  return found.sort()
+  // One entry per movie folder when users keep each title in its own directory.
+  return selectPrimaryVideosPerFolder(found, root)
 }
 
 // A year is the strongest match signal; a multi-word title is a weaker one.
@@ -114,10 +177,7 @@ export function needsCacheArtBackfill(
  * Does not re-read NFO or reparse metadata — art-only heal for incomplete cache (REQ-046).
  * Failed or missing source leaves the corresponding cache field null.
  */
-export function backfillCacheArtFromSource(
-  movie: MovieRecord,
-  appDataPath: string
-): MovieRecord {
+export function backfillCacheArtFromSource(movie: MovieRecord, appDataPath: string): MovieRecord {
   const source = sidecarPathsFor(movie.filePath)
   const cached = cachedSidecarPathsFor(movie.filePath, appDataPath)
 

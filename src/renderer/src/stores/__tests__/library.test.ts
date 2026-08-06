@@ -58,6 +58,7 @@ beforeEach(() => {
         }
       })),
       onMovieUpdated: vi.fn(),
+      onMovieRemoved: vi.fn(),
       onScanProgress: vi.fn((cb: (p: ScanProgress) => void) => {
         progressCb = cb
       })
