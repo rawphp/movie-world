@@ -20,11 +20,13 @@ const store = useLibraryStore()
         </RouterLink>
         <RouterLink
           to="/settings"
-          class="text-neutral-300 hover:text-white"
+          class="inline-flex items-center gap-1.5 text-neutral-300 hover:text-white"
+          exact-active-class="text-sky-400"
           aria-label="Settings"
           title="Settings"
         >
-          ⚙️
+          <span aria-hidden="true">⚙️</span>
+          <span>Settings</span>
         </RouterLink>
       </nav>
     </header>

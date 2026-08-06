@@ -54,9 +54,9 @@ describe('SettingsView', () => {
     await w.find('[data-testid="apikey-save"]').trigger('click')
     await flushPromises()
     expect(window.api.setApiKey).toHaveBeenCalledWith('NEWKEY')
-    // Reflects a validation / saved result after a successful save.
+    // Reflects a saved result after a successful save.
     expect(w.find('[data-testid="apikey-save"]').text()).not.toBe('')
-    expect(w.text().toLowerCase()).toContain('valid')
+    expect(w.get('[data-testid="apikey-status"]').text().toLowerCase()).toContain('saved')
   })
 
   it('adds a folder via the native dialog and can rescan it', async () => {
@@ -84,13 +84,27 @@ describe('SettingsView', () => {
     expect(w.find('[data-testid="folder-row"]').text()).toContain('10')
   })
 
-  it('removes a folder (forget only) via removeFolder', async () => {
+  it('removes a folder (forget only) via removeFolder after confirm', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
     const w = mount(SettingsView)
     await flushPromises()
     await w.find('[data-testid="folder-remove"]').trigger('click')
     await flushPromises()
+    expect(confirm).toHaveBeenCalled()
     expect(window.api.removeFolder).toHaveBeenCalledWith('/Movies')
     expect(w.findAll('[data-testid="folder-row"]')).toHaveLength(0)
+    confirm.mockRestore()
+  })
+
+  it('keeps the folder when remove is cancelled', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    const w = mount(SettingsView)
+    await flushPromises()
+    await w.find('[data-testid="folder-remove"]').trigger('click')
+    await flushPromises()
+    expect(window.api.removeFolder).not.toHaveBeenCalled()
+    expect(w.findAll('[data-testid="folder-row"]')).toHaveLength(1)
+    confirm.mockRestore()
   })
 
   it('shows the first-run guided empty state when no key and no folders', async () => {

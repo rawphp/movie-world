@@ -3,6 +3,8 @@ import type { MovieRecord, ScanProgress } from '../../../shared/types'
 import {
   EMPTY_FILTERS,
   filterMovies,
+  filtersAreActive,
+  normalizeCertification,
   sortMovies,
   type LibraryFilters,
   type SortKey
@@ -43,8 +45,16 @@ export const useLibraryStore = defineStore('library', {
     },
     allCertifications(): string[] {
       return [
-        ...new Set(this.all.map((m) => m.certificationAu).filter((c): c is string => c != null))
+        ...new Set(
+          this.all
+            .map((m) => m.certificationAu)
+            .filter((c): c is string => c != null)
+            .map(normalizeCertification)
+        )
       ].sort()
+    },
+    hasActiveFilters(): boolean {
+      return filtersAreActive(this.filters)
     },
     cacheStatusMessage(): string | null {
       if (!this.firstViewFromCache || this.all.length === 0) return null

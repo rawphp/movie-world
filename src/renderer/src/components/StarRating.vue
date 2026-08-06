@@ -10,10 +10,14 @@ const stars = computed(() => (props.voteAverage == null ? 0 : Math.round(props.v
 <template>
   <span
     v-if="voteAverage != null"
-    class="inline-flex items-center gap-0.5 text-amber-400"
-    :title="`${voteAverage.toFixed(1)} / 10`"
+    class="inline-flex items-center gap-1 text-amber-400"
+    :title="`${voteAverage.toFixed(1)} / 10 on TMDB`"
+    :aria-label="`${voteAverage.toFixed(1)} out of 10 on TMDB`"
   >
-    <span v-for="i in 5" :key="i">{{ i <= stars ? '★' : i - 0.5 === stars ? '⯨' : '☆' }}</span>
+    <span aria-hidden="true" class="inline-flex items-center gap-0.5">
+      <span v-for="i in 5" :key="i">{{ i <= Math.round(stars) ? '★' : '☆' }}</span>
+    </span>
+    <span class="text-xs text-neutral-400">{{ voteAverage.toFixed(1) }}</span>
   </span>
-  <span v-else class="text-neutral-500">—</span>
+  <span v-else class="text-neutral-500" aria-label="No rating">—</span>
 </template>

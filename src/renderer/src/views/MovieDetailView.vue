@@ -82,6 +82,21 @@ function navigate(direction: MovieNavDirection): void {
   }
 }
 
+function formatCombo(combo: string): string {
+  return combo
+    .split('+')
+    .map((part) => {
+      if (part === 'Mod') return isMac ? '⌘' : 'Ctrl'
+      if (part === 'Alt') return isMac ? 'Option' : 'Alt'
+      if (part === 'ArrowLeft') return '←'
+      if (part === 'ArrowRight') return '→'
+      if (part === 'ArrowUp') return '↑'
+      if (part === 'ArrowDown') return '↓'
+      return part
+    })
+    .join('+')
+}
+
 function onKeydown(event: KeyboardEvent): void {
   if (fixing.value || !keybindings.value || isEditableTarget(event.target)) {
     return
@@ -150,7 +165,11 @@ onUnmounted(() => {
         aria-hidden="true"
       />
 
-      <div class="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-between px-6 py-6">
+      <!-- z-20 keeps Play/Fix match above the overlapping poster column (detail-body uses -mt). -->
+      <div
+        data-testid="detail-hero-content"
+        class="relative z-20 mx-auto flex h-full max-w-7xl flex-col justify-between px-6 py-6"
+      >
         <button
           class="w-fit rounded-full bg-black/45 px-3 py-1 text-sm text-white shadow-lg shadow-black/30 hover:bg-black/70"
           @click="router.push('/')"
@@ -175,13 +194,23 @@ onUnmounted(() => {
           </div>
           <div class="mt-5 flex flex-wrap items-center gap-2">
             <button
+              data-testid="detail-play"
               class="inline-flex items-center gap-1 rounded-full bg-sky-600 px-5 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
               :disabled="movie.fileMissing"
+              :title="
+                movie.fileMissing
+                  ? 'Video file is missing from disk'
+                  : 'Play in your default player'
+              "
+              :aria-label="
+                movie.fileMissing ? 'Play unavailable — video file is missing' : `Play ${title}`
+              "
               @click="play"
             >
               ▶ Play
             </button>
             <button
+              data-testid="detail-fix-match"
               class="rounded-full bg-neutral-900/80 px-4 py-2 text-sm text-neutral-100 ring-1 ring-white/10 hover:bg-neutral-800"
               @click="fixing = true"
             >
@@ -195,13 +224,29 @@ onUnmounted(() => {
               Retry fetch
             </button>
           </div>
+          <p
+            v-if="movie.fileMissing"
+            data-testid="detail-file-missing-hint"
+            class="mt-2 text-xs text-red-300"
+          >
+            Video file is missing — reconnect the folder or restore the file to play.
+          </p>
+          <p
+            v-if="keybindings"
+            data-testid="detail-shortcut-hint"
+            class="mt-2 text-xs text-neutral-400"
+          >
+            Navigate library:
+            {{ formatCombo(keybindings.prevMovie) }} previous ·
+            {{ formatCombo(keybindings.nextMovie) }} next
+          </p>
         </div>
       </div>
     </section>
 
     <div
       data-testid="detail-body"
-      class="relative z-10 mx-auto grid max-w-7xl gap-6 bg-neutral-950 px-6 pb-10 md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)]"
+      class="relative z-0 mx-auto grid max-w-7xl gap-6 bg-neutral-950 px-6 pb-10 md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)]"
     >
       <div class="space-y-4 md:-mt-24">
         <img

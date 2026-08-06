@@ -48,7 +48,7 @@ describe('FilterBar', () => {
     seed(store)
     const w = mount(FilterBar)
     expect(w.find('[data-testid="filter-genre"]').text()).toContain('Action')
-    expect(w.find('[data-testid="filter-certification"]').text()).toContain('R18+')
+    expect(w.find('[data-testid="filter-certification"]').text()).toContain('R 18+')
   })
 
   it('writes search and genre into the store', async () => {
@@ -59,6 +59,26 @@ describe('FilterBar', () => {
     await w.find('[data-testid="filter-genre"]').setValue('Horror')
     expect(store.filters.search).toBe('alien')
     expect(store.filters.genre).toBe('Horror')
+  })
+
+  it('exposes accessible names on filters and a result count', () => {
+    const store = useLibraryStore()
+    seed(store)
+    const w = mount(FilterBar)
+    expect(w.find('[data-testid="filter-search"]').attributes('aria-label')).toBe('Search movies')
+    expect(w.find('[data-testid="filter-genre"]').attributes('aria-label')).toContain('genre')
+    expect(w.find('[data-testid="filter-certification"]').text()).toContain('classifications')
+    expect(w.find('[data-testid="library-result-count"]').text()).toMatch(/2 movies/)
+  })
+
+  it('filters actors by typed name and only shows Clear when filters are active', async () => {
+    const store = useLibraryStore()
+    seed(store)
+    const w = mount(FilterBar)
+    expect(w.find('[data-testid="filter-clear"]').exists()).toBe(false)
+    await w.find('[data-testid="filter-actor"]').setValue('keanu')
+    expect(store.filters.actor).toBe('keanu')
+    expect(w.find('[data-testid="filter-clear"]').exists()).toBe(true)
   })
 
   it('writes the sort key into the store', async () => {

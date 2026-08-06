@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { filterMovies, sortMovies, EMPTY_FILTERS } from '../filtering'
+import {
+  filterMovies,
+  filtersAreActive,
+  normalizeCertification,
+  sortMovies,
+  EMPTY_FILTERS
+} from '../filtering'
 import type { MovieRecord } from '../../../../shared/types'
 
 const movie = (over: Partial<MovieRecord>): MovieRecord => ({
@@ -70,6 +76,21 @@ describe('filterMovies', () => {
     expect(filterMovies(all, { ...EMPTY_FILTERS, certification: 'PG' })).toEqual([up])
     expect(filterMovies(all, { ...EMPTY_FILTERS, minRating: 8 })).toEqual([matrix, alien])
     expect(filterMovies(all, { ...EMPTY_FILTERS, actor: 'Sigourney Weaver' })).toEqual([alien])
+  })
+  it('matches actor names partially and normalizes AU certification variants', () => {
+    expect(filterMovies(all, { ...EMPTY_FILTERS, actor: 'keanu' })).toEqual([matrix])
+    expect(filterMovies(all, { ...EMPTY_FILTERS, certification: 'MA 15+' })).toEqual([matrix])
+    expect(filterMovies(all, { ...EMPTY_FILTERS, certification: 'MA15+' })).toEqual([matrix])
+  })
+  it('detects active filters', () => {
+    expect(filtersAreActive(EMPTY_FILTERS)).toBe(false)
+    expect(filtersAreActive({ ...EMPTY_FILTERS, search: 'x' })).toBe(true)
+    expect(filtersAreActive({ ...EMPTY_FILTERS, watched: 'watched' })).toBe(true)
+  })
+  it('normalizes certification display forms', () => {
+    expect(normalizeCertification('MA15+')).toBe('MA 15+')
+    expect(normalizeCertification('MA 15+')).toBe('MA 15+')
+    expect(normalizeCertification('R18+')).toBe('R 18+')
   })
   it('filters by year', () =>
     expect(filterMovies(all, { ...EMPTY_FILTERS, year: 2009 })).toEqual([up]))

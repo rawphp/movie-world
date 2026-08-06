@@ -63,4 +63,11 @@ describe('FixMatchDialog', () => {
     await w.find('[data-testid="fix-id-submit"]').trigger('click')
     expect(window.api.fixMatch).toHaveBeenCalledWith('id1', 550)
   })
+
+  it('closes on Escape', async () => {
+    const w = mount(FixMatchDialog, { props: { movie } })
+    await flushPromises()
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    expect(w.emitted('close')).toBeTruthy()
+  })
 })

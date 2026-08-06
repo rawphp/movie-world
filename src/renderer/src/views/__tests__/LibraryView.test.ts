@@ -102,4 +102,26 @@ describe('LibraryView', () => {
     expect(wrapper.find('[data-testid="library-cache-status"]').exists()).toBe(false)
     expect(wrapper.get('[data-testid="library-empty"]').text()).toContain('Your library is empty')
   })
+
+  it('shows a no-results state when filters match nothing', async () => {
+    const wrapper = mountLibrary({
+      movies: [movie('alpha')],
+      status: {
+        firstViewFromCache: false,
+        backgroundScanRunning: false,
+        unavailableFolders: []
+      }
+    })
+    await flushPromises()
+
+    const { useLibraryStore } = await import('../../stores/library')
+    const store = useLibraryStore()
+    store.setFilter({ search: 'zzzz-no-match' })
+    await flushPromises()
+
+    expect(wrapper.get('[data-testid="library-no-results"]').text()).toContain(
+      'No movies match your filters'
+    )
+    expect(wrapper.findAll('[data-testid="movie-card"]')).toHaveLength(0)
+  })
 })

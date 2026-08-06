@@ -132,9 +132,7 @@ describe('MovieDetailView', () => {
   })
 
   it('falls back to cached poster when cached fanart is unavailable', () => {
-    const wrapper = mountWithMovie(
-      makeMovie({ fanartPath: null, cachedFanartPath: null })
-    )
+    const wrapper = mountWithMovie(makeMovie({ fanartPath: null, cachedFanartPath: null }))
 
     const background = wrapper.get('[data-testid="detail-hero-art"]')
 
@@ -159,8 +157,12 @@ describe('MovieDetailView', () => {
     expect(fallback.classes()).toContain('bg-neutral-950')
     expect(fallback.classes()).toContain('pointer-events-none')
     expect(wrapper.find('[data-testid="detail-hero-art"]').exists()).toBe(false)
-    expect(wrapper.html()).not.toContain(encodeURIComponent('/Google Drive/Movies/Example-fanart.jpg'))
-    expect(wrapper.html()).not.toContain(encodeURIComponent('/Google Drive/Movies/Example-poster.jpg'))
+    expect(wrapper.html()).not.toContain(
+      encodeURIComponent('/Google Drive/Movies/Example-fanart.jpg')
+    )
+    expect(wrapper.html()).not.toContain(
+      encodeURIComponent('/Google Drive/Movies/Example-poster.jpg')
+    )
   })
 
   it('uses a solid fallback hero surface when no artwork is available', () => {
@@ -224,6 +226,22 @@ describe('MovieDetailView', () => {
 
     expect(body.classes()).toContain('max-w-7xl')
     expect(body.classes()).not.toContain('max-w-5xl')
+  })
+
+  it('keeps hero actions above the poster column stacking context', () => {
+    const wrapper = mountWithMovie(makeMovie())
+
+    expect(wrapper.get('[data-testid="detail-hero-content"]').classes()).toContain('z-20')
+    expect(wrapper.get('[data-testid="detail-body"]').classes()).toContain('z-0')
+    expect(wrapper.find('[data-testid="detail-play"]').exists()).toBe(true)
+  })
+
+  it('explains why Play is disabled when the file is missing', () => {
+    const wrapper = mountWithMovie(makeMovie({ fileMissing: true }))
+
+    const play = wrapper.get('[data-testid="detail-play"]')
+    expect(play.attributes('disabled')).toBeDefined()
+    expect(wrapper.get('[data-testid="detail-file-missing-hint"]').text()).toContain('missing')
   })
 
   it('uses settings keybindings to navigate to the next movie in store list order', async () => {

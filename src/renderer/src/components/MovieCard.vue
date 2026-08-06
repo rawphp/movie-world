@@ -6,7 +6,7 @@ import { artSrc } from '../lib/art'
 import StarRating from './StarRating.vue'
 
 const props = defineProps<{ movie: MovieRecord }>()
-defineEmits<{ open: [id: string] }>()
+const emit = defineEmits<{ open: [id: string] }>()
 
 const title = computed(() => props.movie.title ?? props.movie.parsedTitle)
 const year = computed(() => props.movie.year ?? props.movie.parsedYear)
@@ -23,15 +23,40 @@ const lastWatched = computed(() => {
   return days <= 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`
 })
 
+const ariaLabel = computed(() => {
+  const bits = [title.value]
+  if (year.value != null) bits.push(String(year.value))
+  if (props.movie.matchStatus === 'unmatched') bits.push('needs match')
+  if (props.movie.fileMissing) bits.push('file missing')
+  if (props.movie.fetchFailed) bits.push('fetch failed')
+  return bits.filter(Boolean).join(', ')
+})
+
 const retry = (): void => {
   void window.api.retryFetch(props.movie.id)
+}
+
+const open = (): void => {
+  emit('open', props.movie.id)
+}
+
+const onKeydown = (event: KeyboardEvent): void => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault()
+    open()
+  }
 }
 </script>
 
 <template>
   <div
-    class="group cursor-pointer overflow-hidden rounded-xl bg-neutral-800 shadow transition hover:scale-[1.02] hover:shadow-lg"
-    @click="$emit('open', movie.id)"
+    role="button"
+    tabindex="0"
+    data-testid="movie-card"
+    :aria-label="ariaLabel"
+    class="group cursor-pointer overflow-hidden rounded-xl bg-neutral-800 shadow transition hover:scale-[1.02] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+    @click="open"
+    @keydown="onKeydown"
   >
     <div class="relative aspect-[2/3] bg-neutral-700">
       <img
@@ -58,27 +83,30 @@ const retry = (): void => {
         v-if="movie.matchStatus === 'unmatched'"
         data-testid="badge-unmatched"
         class="absolute left-1 top-1 rounded-full bg-amber-500 px-1.5 py-0.5 text-xs font-medium uppercase text-black"
-        >Needs Match</span
+        title="Open this movie and choose Fix match"
+        >Needs match</span
       >
       <span
         v-if="movie.fetchFailed"
         data-testid="badge-fetch-failed"
         class="absolute left-1 top-8 inline-flex items-center gap-1 rounded-full bg-red-700 px-1.5 py-0.5 text-xs font-medium uppercase text-white"
       >
-        Fetch Failed
-        <button class="underline" @click.stop="retry">Retry</button>
+        Fetch failed
+        <button type="button" class="underline" @click.stop="retry">Retry</button>
       </span>
       <span
         v-if="movie.fileMissing"
         data-testid="badge-missing"
         class="absolute right-1 top-1 rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-medium uppercase text-white"
-        >File Missing</span
+        title="The video file is not on disk"
+        >File missing</span
       >
       <span
         v-if="movie.sidecarWriteFailed"
         data-testid="badge-unsaved"
         class="absolute right-1 top-8 rounded-full bg-orange-500 px-1.5 py-0.5 text-xs font-medium uppercase text-black"
-        >Not Saved</span
+        title="Metadata could not be written next to the file"
+        >Not saved</span
       >
 
       <span

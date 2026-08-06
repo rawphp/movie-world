@@ -8,7 +8,7 @@ const api = window.api
 const settings = ref<Settings>({ folders: [], tmdbApiKey: null, keybindings: DEFAULT_KEYBINDINGS })
 const keyInput = ref('')
 const saving = ref(false)
-type KeyState = 'idle' | 'valid' | 'invalid'
+type KeyState = 'idle' | 'valid' | 'invalid' | 'cleared'
 const keyState = ref<KeyState>('idle')
 const progress = ref<Record<string, ScanProgress>>({})
 const shortcutErrors = ref<Partial<Record<keyof Keybindings, string>>>({})
@@ -27,9 +27,15 @@ async function saveKey(): Promise<void> {
   saving.value = true
   keyState.value = 'idle'
   try {
-    const next = await api.setApiKey(keyInput.value.trim())
+    const trimmed = keyInput.value.trim()
+    const next = await api.setApiKey(trimmed)
     settings.value = next
-    keyState.value = next.tmdbApiKey ? 'valid' : 'invalid'
+    keyInput.value = next.tmdbApiKey ?? ''
+    if (!trimmed) {
+      keyState.value = 'cleared'
+    } else {
+      keyState.value = next.tmdbApiKey ? 'valid' : 'invalid'
+    }
   } catch {
     keyState.value = 'invalid'
   } finally {
@@ -43,6 +49,11 @@ async function addFolder(): Promise<void> {
 }
 
 async function removeFolder(path: string): Promise<void> {
+  const folderName = path.split('/').filter(Boolean).pop() ?? path
+  const ok = window.confirm(
+    `Remove “${folderName}” from Movie World?\n\nYour files on disk are not deleted — the app only stops scanning this folder.`
+  )
+  if (!ok) return
   settings.value = await api.removeFolder(path)
   const rest = { ...progress.value }
   delete rest[path]
@@ -111,17 +122,26 @@ async function resetShortcuts(): Promise<void> {
     <section>
       <h2 class="mb-2 text-lg font-semibold text-white">TMDB API key</h2>
       <p class="mb-2 text-sm text-neutral-400">
-        Get a free key at themoviedb.org → Settings → API. Without it, movies are indexed but no
-        metadata is fetched.
+        Get a free key at
+        <a
+          href="https://www.themoviedb.org/settings/api"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-sky-400 underline hover:text-sky-300"
+          >themoviedb.org → Settings → API</a
+        >. Without it, movies are indexed but no metadata is fetched.
       </p>
       <div class="flex gap-2">
+        <label class="sr-only" for="apikey-input">TMDB API key</label>
         <input
+          id="apikey-input"
           v-model="keyInput"
           data-testid="apikey-input"
           type="password"
           autocomplete="off"
+          aria-label="TMDB API key"
           class="flex-1 rounded bg-neutral-700 px-3 py-2 text-sm text-white placeholder-neutral-400"
-          placeholder="TMDB API key"
+          placeholder="Paste your TMDB API key"
         />
         <button
           data-testid="apikey-save"
@@ -132,11 +152,26 @@ async function resetShortcuts(): Promise<void> {
           {{ saving ? 'Saving…' : 'Save' }}
         </button>
       </div>
-      <p v-if="keyState === 'valid'" class="mt-2 text-xs text-emerald-400">
-        ✓ Saved — key is valid.
+      <p
+        v-if="keyState === 'valid'"
+        data-testid="apikey-status"
+        class="mt-2 text-xs text-emerald-400"
+      >
+        ✓ Saved — key is set.
       </p>
-      <p v-else-if="keyState === 'invalid'" class="mt-2 text-xs text-red-400">
-        ✕ That key looks invalid — double-check it and save again.
+      <p
+        v-else-if="keyState === 'cleared'"
+        data-testid="apikey-status"
+        class="mt-2 text-xs text-amber-300"
+      >
+        API key cleared. Metadata won’t be fetched until you add a key.
+      </p>
+      <p
+        v-else-if="keyState === 'invalid'"
+        data-testid="apikey-status"
+        class="mt-2 text-xs text-red-400"
+      >
+        ✕ That key could not be saved — try again.
       </p>
     </section>
 
