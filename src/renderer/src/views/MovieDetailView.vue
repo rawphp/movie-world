@@ -188,9 +188,10 @@ onUnmounted(() => {
   </div>
 
   <div v-else class="relative -mx-6 -my-6 min-h-[calc(100vh-4rem)] bg-neutral-950 text-neutral-100">
+    <!-- Hero: art + title only. Actions live on a solid bar below so they never fight fanart. -->
     <section
       data-testid="detail-hero"
-      class="relative h-[45vh] min-h-[360px] overflow-hidden bg-neutral-950"
+      class="relative h-[42vh] min-h-[320px] overflow-hidden bg-neutral-950"
     >
       <div
         v-if="backgroundArt"
@@ -204,30 +205,29 @@ onUnmounted(() => {
         class="pointer-events-none absolute inset-0 bg-neutral-950"
       />
       <div
-        class="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-b from-transparent to-neutral-950"
+        class="pointer-events-none absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-b from-transparent via-neutral-950/70 to-neutral-950"
         aria-hidden="true"
       />
       <div
-        class="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-r from-neutral-950/90 via-neutral-950/45 to-transparent md:w-2/3"
+        class="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-r from-neutral-950/95 via-neutral-950/55 to-transparent md:w-3/4"
         aria-hidden="true"
       />
 
-      <!-- z-20 keeps Play/Fix match above the overlapping poster column (detail-body uses -mt). -->
       <div
         data-testid="detail-hero-content"
-        class="relative z-20 mx-auto flex h-full max-w-7xl flex-col justify-between px-6 py-6"
+        class="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-between px-6 py-6"
       >
         <button
           type="button"
           data-testid="detail-back"
-          class="w-fit rounded-full bg-black/45 px-3 py-1 text-sm text-white shadow-lg shadow-black/30 hover:bg-black/70"
+          class="w-fit rounded-full bg-black/55 px-3 py-1 text-sm text-white shadow-lg shadow-black/30 backdrop-blur-sm hover:bg-black/75"
           @click="goBack"
         >
           ← Back
         </button>
 
-        <div class="max-w-4xl pb-8">
-          <h1 class="text-3xl font-bold text-white drop-shadow-lg">
+        <div class="max-w-3xl pb-4">
+          <h1 class="text-3xl font-bold text-white drop-shadow-lg md:text-4xl">
             {{ title }}
             <span class="font-normal text-neutral-300">({{ year ?? '—' }})</span>
           </h1>
@@ -241,113 +241,122 @@ onUnmounted(() => {
             >
             <span v-if="movie.genres.length">· {{ movie.genres.join(' · ') }}</span>
           </div>
-          <div class="mt-5 flex flex-wrap items-center gap-2">
-            <button
-              v-if="movie.matchStatus === 'unmatched'"
-              data-testid="detail-fix-match"
-              class="inline-flex items-center gap-1 rounded-full bg-amber-500 px-5 py-2 text-sm font-medium text-black hover:bg-amber-400"
-              @click="fixing = true"
-            >
-              Fix match
-            </button>
-            <button
-              data-testid="detail-play"
-              class="inline-flex items-center gap-1 rounded-full bg-sky-600 px-5 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
-              :class="
-                movie.matchStatus === 'unmatched' ? 'bg-neutral-800 ring-1 ring-white/10' : ''
-              "
-              :disabled="movie.fileMissing || playing"
-              :title="
-                movie.fileMissing
-                  ? 'Video file is missing from disk'
-                  : 'Play in your default player'
-              "
-              :aria-label="
-                movie.fileMissing
-                  ? 'Play unavailable — video file is missing'
-                  : playing
-                    ? `Opening ${title}`
-                    : `Play ${title}`
-              "
-              @click="play"
-            >
-              {{ playing ? 'Opening…' : '▶ Play' }}
-            </button>
-            <button
-              v-if="movie.matchStatus !== 'unmatched'"
-              data-testid="detail-fix-match"
-              class="rounded-full bg-neutral-900/80 px-4 py-2 text-sm text-neutral-100 ring-1 ring-white/10 hover:bg-neutral-800"
-              @click="fixing = true"
-            >
-              Fix match
-            </button>
-            <button
-              v-if="movie.fetchFailed"
-              class="rounded-full bg-neutral-900/80 px-4 py-2 text-sm text-neutral-100 ring-1 ring-white/10 hover:bg-neutral-800"
-              @click="retry"
-            >
-              Retry fetch
-            </button>
-            <button
-              type="button"
-              data-testid="detail-prev"
-              class="rounded-full bg-neutral-900/80 px-3 py-2 text-sm text-neutral-100 ring-1 ring-white/10 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
-              :disabled="!prevId"
-              :title="keybindings ? formatCombo(keybindings.prevMovie) : 'Previous movie'"
-              aria-label="Previous movie"
-              @click="navigate('prev')"
-            >
-              ← Prev
-            </button>
-            <button
-              type="button"
-              data-testid="detail-next"
-              class="rounded-full bg-neutral-900/80 px-3 py-2 text-sm text-neutral-100 ring-1 ring-white/10 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
-              :disabled="!nextId"
-              :title="keybindings ? formatCombo(keybindings.nextMovie) : 'Next movie'"
-              aria-label="Next movie"
-              @click="navigate('next')"
-            >
-              Next →
-            </button>
-          </div>
           <p
             v-if="movie.matchStatus === 'unmatched'"
             data-testid="detail-unmatched-hint"
-            class="mt-2 text-xs text-amber-200"
+            class="mt-3 text-xs text-amber-200"
           >
             This file was not matched to TMDB — use Fix match to pick the correct title.
           </p>
           <p
             v-if="movie.fileMissing"
             data-testid="detail-file-missing-hint"
-            class="mt-2 text-xs text-red-300"
+            class="mt-3 text-xs text-red-300"
           >
             Video file is missing — reconnect the folder or restore the file to play.
-          </p>
-          <p
-            v-if="keybindings"
-            data-testid="detail-shortcut-hint"
-            class="mt-2 text-xs text-neutral-400"
-          >
-            Keyboard:
-            {{ formatCombo(keybindings.prevMovie) }} previous ·
-            {{ formatCombo(keybindings.nextMovie) }} next · Esc back
           </p>
         </div>
       </div>
     </section>
 
+    <!-- Solid action bar: primary + secondary left, browse nav right. Never over fanart. -->
+    <div data-testid="detail-action-bar" class="border-b border-neutral-800/80 bg-neutral-950">
+      <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-6 py-4">
+        <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+          <button
+            v-if="movie.matchStatus === 'unmatched'"
+            type="button"
+            data-testid="detail-fix-match"
+            class="inline-flex items-center gap-1 rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-black hover:bg-amber-400"
+            @click="fixing = true"
+          >
+            Fix match
+          </button>
+          <button
+            type="button"
+            data-testid="detail-play"
+            class="inline-flex items-center gap-1.5 rounded-full bg-cyan-400 px-6 py-2.5 text-sm font-semibold text-neutral-950 shadow-lg shadow-cyan-400/20 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-neutral-700 disabled:text-neutral-400 disabled:shadow-none"
+            :disabled="movie.fileMissing || playing"
+            :title="
+              movie.fileMissing ? 'Video file is missing from disk' : 'Play in your default player'
+            "
+            :aria-label="
+              movie.fileMissing
+                ? 'Play unavailable — video file is missing'
+                : playing
+                  ? `Opening ${title}`
+                  : `Play ${title}`
+            "
+            @click="play"
+          >
+            {{ playing ? 'Opening…' : '▶ Play' }}
+          </button>
+          <button
+            v-if="movie.matchStatus !== 'unmatched'"
+            type="button"
+            data-testid="detail-fix-match"
+            class="rounded-full bg-neutral-800 px-4 py-2.5 text-sm font-medium text-neutral-100 ring-1 ring-white/15 hover:bg-neutral-700"
+            @click="fixing = true"
+          >
+            Fix match
+          </button>
+          <button
+            v-if="movie.fetchFailed"
+            type="button"
+            data-testid="detail-retry-fetch"
+            class="rounded-full bg-neutral-800 px-4 py-2.5 text-sm font-medium text-neutral-100 ring-1 ring-white/15 hover:bg-neutral-700"
+            @click="retry"
+          >
+            Retry fetch
+          </button>
+        </div>
+
+        <div class="flex items-center gap-1.5">
+          <button
+            type="button"
+            data-testid="detail-prev"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-neutral-800 text-neutral-100 ring-1 ring-white/10 hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-35"
+            :disabled="!prevId"
+            :title="keybindings ? formatCombo(keybindings.prevMovie) : 'Previous movie'"
+            aria-label="Previous movie"
+            @click="navigate('prev')"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            data-testid="detail-next"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-neutral-800 text-neutral-100 ring-1 ring-white/10 hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-35"
+            :disabled="!nextId"
+            :title="keybindings ? formatCombo(keybindings.nextMovie) : 'Next movie'"
+            aria-label="Next movie"
+            @click="navigate('next')"
+          >
+            ›
+          </button>
+        </div>
+      </div>
+      <p
+        v-if="keybindings"
+        data-testid="detail-shortcut-hint"
+        class="mx-auto max-w-7xl px-6 pb-3 text-xs text-neutral-500"
+      >
+        Keyboard:
+        {{ formatCombo(keybindings.prevMovie) }} previous ·
+        {{ formatCombo(keybindings.nextMovie) }} next · Esc back
+      </p>
+    </div>
+
     <div
       data-testid="detail-body"
-      class="relative z-0 mx-auto grid max-w-7xl gap-6 bg-neutral-950 px-6 pb-10 md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)]"
+      class="relative z-0 mx-auto grid max-w-7xl gap-6 bg-neutral-950 px-6 pb-10 pt-6 md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)]"
     >
-      <div class="space-y-4 md:-mt-24">
+      <div class="space-y-4">
         <img
           v-if="poster"
           :src="poster"
           :alt="title"
-          class="aspect-[2/3] w-full rounded-lg object-cover shadow-xl"
+          class="aspect-[2/3] w-full rounded-lg object-cover shadow-xl shadow-black/50"
         />
         <div
           v-else
@@ -376,7 +385,7 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="min-w-0 space-y-5 py-8">
+      <div class="min-w-0 space-y-5 md:pt-1">
         <p data-testid="detail-watch-summary" class="text-xs text-neutral-500">
           {{ watchSummary }}
         </p>

@@ -103,7 +103,7 @@ describe('MovieDetailView', () => {
     const hero = wrapper.get('[data-testid="detail-hero"]')
     const background = wrapper.get('[data-testid="detail-hero-art"]')
 
-    expect(hero.classes()).toContain('h-[45vh]')
+    expect(hero.classes()).toContain('h-[42vh]')
     expect(background.attributes('style')).toContain('mw-art://')
     expect(background.attributes('style')).toContain(
       encodeURIComponent('/userData/cache/art/fanart.jpg')
@@ -230,12 +230,23 @@ describe('MovieDetailView', () => {
     expect(body.classes()).not.toContain('max-w-5xl')
   })
 
-  it('keeps hero actions above the poster column stacking context', () => {
+  it('places primary actions on a solid bar below the hero, not over fanart', () => {
     const wrapper = mountWithMovie(makeMovie())
 
-    expect(wrapper.get('[data-testid="detail-hero-content"]').classes()).toContain('z-20')
-    expect(wrapper.get('[data-testid="detail-body"]').classes()).toContain('z-0')
-    expect(wrapper.find('[data-testid="detail-play"]').exists()).toBe(true)
+    const actionBar = wrapper.get('[data-testid="detail-action-bar"]')
+    expect(actionBar.find('[data-testid="detail-play"]').exists()).toBe(true)
+    expect(actionBar.find('[data-testid="detail-fix-match"]').exists()).toBe(true)
+    expect(actionBar.find('[data-testid="detail-prev"]').exists()).toBe(true)
+    expect(actionBar.find('[data-testid="detail-next"]').exists()).toBe(true)
+    // Hero keeps title chrome only — Play must not live there.
+    expect(
+      wrapper
+        .get('[data-testid="detail-hero-content"]')
+        .find('[data-testid="detail-play"]')
+        .exists()
+    ).toBe(false)
+    // Poster column no longer pulls up over the action row.
+    expect(wrapper.get('[data-testid="detail-body"]').html()).not.toContain('md:-mt-24')
   })
 
   it('explains why Play is disabled when the file is missing', () => {
@@ -299,7 +310,7 @@ describe('MovieDetailView', () => {
     })
     await flushPromises()
 
-    await fixingWrapper.get('button:nth-of-type(2)').trigger('click')
+    await fixingWrapper.get('[data-testid="detail-fix-match"]').trigger('click')
     window.dispatchEvent(new KeyboardEvent('keydown', { key: ']', altKey: true, bubbles: true }))
     fixingWrapper.unmount()
 
