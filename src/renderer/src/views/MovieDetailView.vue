@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { Keybindings } from '../../../shared/types'
 import { matchesCombo } from '../../../shared/keybindings'
 import { displayFanartPath, displayPosterPath } from '../../../shared/display-art'
 import { useLibraryStore } from '../stores/library'
 import { artSrc } from '../lib/art'
+import { formatFileSize, formatWatchSummary } from '../lib/format'
 import { adjacentMovieId, type MovieNavDirection } from '../lib/movie-nav'
 import StarRating from '../components/StarRating.vue'
 import FixMatchDialog from '../components/FixMatchDialog.vue'
@@ -16,6 +17,7 @@ const store = useLibraryStore()
 const api = window.api
 
 const fixing = ref(false)
+const playing = ref(false)
 const keybindings = ref<Keybindings | null>(null)
 const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform)
 let mounted = false
@@ -26,11 +28,9 @@ const year = computed(() => movie.value?.year ?? movie.value?.parsedYear ?? null
 const fanart = computed(() => artSrc(movie.value ? displayFanartPath(movie.value) : null))
 const poster = computed(() => artSrc(movie.value ? displayPosterPath(movie.value) : null))
 const backgroundArt = computed(() => fanart.value || poster.value)
-const sizeGb = computed(() =>
-  movie.value ? `${(movie.value.fileSize / 1024 ** 3).toFixed(2)} GB` : ''
-)
-const lastWatched = computed(() =>
-  movie.value?.lastPlayedAt ? new Date(movie.value.lastPlayedAt).toLocaleString() : 'never'
+const sizeLabel = computed(() => (movie.value ? formatFileSize(movie.value.fileSize) : ''))
+const watchSummary = computed(() =>
+  movie.value ? formatWatchSummary(movie.value.playCount, movie.value.lastPlayedAt) : ''
 )
 const trailerWatchUrl = computed(() =>
   movie.value?.trailerYoutubeKey
@@ -52,14 +52,30 @@ const trailerEmbedUrl = computed(() => {
   return `${origin}/embed/${movie.value.trailerYoutubeKey}?${params.toString()}`
 })
 
-function play(): void {
-  if (movie.value) void api.play(movie.value.id)
+async function play(): Promise<void> {
+  if (!movie.value || movie.value.fileMissing || playing.value) return
+  playing.value = true
+  try {
+    await api.play(movie.value.id)
+  } finally {
+    // Keep “Opening…” visible briefly so the user sees feedback before the OS player takes over.
+    window.setTimeout(() => {
+      if (mounted) playing.value = false
+    }, 900)
+  }
 }
 function reveal(): void {
   if (movie.value) void api.revealFile(movie.value.id)
 }
 function retry(): void {
   if (movie.value) void api.retryFetch(movie.value.id)
+}
+function goBack(): void {
+  if (window.history.length > 1) {
+    router.back()
+    return
+  }
+  void router.push('/')
 }
 
 function isEditableTarget(target: EventTarget | null): boolean {
@@ -101,7 +117,17 @@ function formatCombo(combo: string): string {
 }
 
 function onKeydown(event: KeyboardEvent): void {
-  if (fixing.value || !keybindings.value || isEditableTarget(event.target)) {
+  if (fixing.value || isEditableTarget(event.target)) {
+    return
+  }
+
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    goBack()
+    return
+  }
+
+  if (!keybindings.value) {
     return
   }
 
@@ -116,6 +142,14 @@ function onKeydown(event: KeyboardEvent): void {
     navigate('next')
   }
 }
+
+// Keep the hero in view when flipping with prev/next.
+watch(
+  () => route.params.id,
+  () => {
+    window.scrollTo(0, 0)
+  }
+)
 
 onMounted(async () => {
   mounted = true
@@ -136,9 +170,19 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="!movie" class="mx-auto max-w-2xl py-16 text-center text-neutral-400">
-    Movie not found.
-    <button class="ml-1 underline hover:text-white" @click="router.push('/')">
+  <div
+    v-if="!movie"
+    data-testid="movie-not-found"
+    class="mx-auto max-w-md space-y-3 py-16 text-center text-neutral-300"
+  >
+    <p class="text-lg text-white">Movie not found.</p>
+    <p class="text-sm text-neutral-400">It may have been removed from your library folders.</p>
+    <button
+      type="button"
+      data-testid="movie-not-found-home"
+      class="rounded bg-sky-600 px-4 py-2 text-sm text-white hover:bg-sky-500"
+      @click="router.push('/')"
+    >
       Back to library
     </button>
   </div>
@@ -174,8 +218,10 @@ onUnmounted(() => {
         class="relative z-20 mx-auto flex h-full max-w-7xl flex-col justify-between px-6 py-6"
       >
         <button
+          type="button"
+          data-testid="detail-back"
           class="w-fit rounded-full bg-black/45 px-3 py-1 text-sm text-white shadow-lg shadow-black/30 hover:bg-black/70"
-          @click="router.push('/')"
+          @click="goBack"
         >
           ← Back
         </button>
@@ -210,18 +256,22 @@ onUnmounted(() => {
               :class="
                 movie.matchStatus === 'unmatched' ? 'bg-neutral-800 ring-1 ring-white/10' : ''
               "
-              :disabled="movie.fileMissing"
+              :disabled="movie.fileMissing || playing"
               :title="
                 movie.fileMissing
                   ? 'Video file is missing from disk'
                   : 'Play in your default player'
               "
               :aria-label="
-                movie.fileMissing ? 'Play unavailable — video file is missing' : `Play ${title}`
+                movie.fileMissing
+                  ? 'Play unavailable — video file is missing'
+                  : playing
+                    ? `Opening ${title}`
+                    : `Play ${title}`
               "
               @click="play"
             >
-              ▶ Play
+              {{ playing ? 'Opening…' : '▶ Play' }}
             </button>
             <button
               v-if="movie.matchStatus !== 'unmatched'"
@@ -282,7 +332,7 @@ onUnmounted(() => {
           >
             Keyboard:
             {{ formatCombo(keybindings.prevMovie) }} previous ·
-            {{ formatCombo(keybindings.nextMovie) }} next
+            {{ formatCombo(keybindings.nextMovie) }} next · Esc back
           </p>
         </div>
       </div>
@@ -311,10 +361,11 @@ onUnmounted(() => {
           class="flex flex-wrap items-center gap-2 text-xs text-neutral-400"
           :title="movie.filePath"
         >
-          <span>{{ sizeGb }}</span>
+          <span data-testid="detail-file-size">{{ sizeLabel }}</span>
           <span aria-hidden="true">·</span>
           <button
             type="button"
+            data-testid="detail-reveal"
             class="text-sky-400 hover:text-sky-300 disabled:cursor-not-allowed disabled:text-neutral-500 disabled:no-underline"
             :disabled="movie.fileMissing"
             :title="movie.fileMissing ? 'File is missing from disk' : 'Reveal in Finder'"
@@ -326,8 +377,8 @@ onUnmounted(() => {
       </div>
 
       <div class="min-w-0 space-y-5 py-8">
-        <p class="text-xs text-neutral-500">
-          Watched {{ movie.playCount }}× · last played: {{ lastWatched }}
+        <p data-testid="detail-watch-summary" class="text-xs text-neutral-500">
+          {{ watchSummary }}
         </p>
 
         <section v-if="movie.overview">
@@ -374,7 +425,7 @@ onUnmounted(() => {
             rel="noopener noreferrer"
             class="mt-2 inline-flex text-sm text-sky-400 hover:text-sky-300"
           >
-            Watch on YouTube
+            Open trailer on YouTube
           </a>
           <p v-else class="text-sm text-neutral-500">No trailer found for this movie.</p>
         </section>

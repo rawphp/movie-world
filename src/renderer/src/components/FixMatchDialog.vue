@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import type { MovieRecord } from '../../../shared/types'
 import type { TmdbSearchResult } from '../../../main/tmdb/client'
 
@@ -9,21 +9,29 @@ const emit = defineEmits<{ close: [] }>()
 const api = window.api
 
 const query = ref(props.movie.parsedTitle)
-const year = ref<number | null>(props.movie.parsedYear)
+const yearText = ref(props.movie.parsedYear != null ? String(props.movie.parsedYear) : '')
 const rawId = ref('')
 const results = ref<TmdbSearchResult[]>([])
 const searching = ref(false)
 const applying = ref(false)
+const applyingId = ref<number | null>(null)
 const searchError = ref('')
 const searchInput = ref<HTMLInputElement | null>(null)
+const dialogRoot = ref<HTMLElement | null>(null)
 
 const rawIdValid = computed(() => /^\d+$/.test(rawId.value.trim()))
+const yearValue = computed((): number | null => {
+  const t = yearText.value.trim()
+  if (!t) return null
+  const n = Number(t)
+  return Number.isFinite(n) && n > 0 ? Math.trunc(n) : null
+})
 
 async function search(): Promise<void> {
   searching.value = true
   searchError.value = ''
   try {
-    results.value = await api.searchTmdb(query.value, year.value)
+    results.value = await api.searchTmdb(query.value, yearValue.value)
   } catch {
     results.value = []
     searchError.value = 'Search failed — check your TMDB API key and connection.'
@@ -35,6 +43,7 @@ async function search(): Promise<void> {
 async function apply(tmdbId: number): Promise<void> {
   if (applying.value) return
   applying.value = true
+  applyingId.value = tmdbId
   try {
     await api.fixMatch(props.movie.id, tmdbId)
     emit('close')
@@ -42,6 +51,7 @@ async function apply(tmdbId: number): Promise<void> {
     searchError.value = 'Could not apply that match. Try another result or TMDB id.'
   } finally {
     applying.value = false
+    applyingId.value = null
   }
 }
 
@@ -49,16 +59,44 @@ function submitRawId(): void {
   if (rawIdValid.value) void apply(Number(rawId.value.trim()))
 }
 
+function focusableInDialog(): HTMLElement[] {
+  const root = dialogRoot.value
+  if (!root) return []
+  return [
+    ...root.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )
+  ].filter((el) => !el.hasAttribute('disabled') && el.tabIndex !== -1)
+}
+
 function onKeydown(event: KeyboardEvent): void {
   if (event.key === 'Escape') {
     event.preventDefault()
     emit('close')
+    return
+  }
+
+  if (event.key !== 'Tab') return
+  const nodes = focusableInDialog()
+  if (nodes.length === 0) return
+  const first = nodes[0]
+  const last = nodes[nodes.length - 1]
+  const active = document.activeElement as HTMLElement | null
+  if (event.shiftKey) {
+    if (!active || active === first || !dialogRoot.value?.contains(active)) {
+      event.preventDefault()
+      last.focus()
+    }
+  } else if (active === last) {
+    event.preventDefault()
+    first.focus()
   }
 }
 
 onMounted(() => {
   window.addEventListener('keydown', onKeydown)
-  void search().then(() => {
+  void search().then(async () => {
+    await nextTick()
     searchInput.value?.focus()
     searchInput.value?.select()
   })
@@ -78,6 +116,7 @@ onUnmounted(() => {
     @click.self="emit('close')"
   >
     <div
+      ref="dialogRoot"
       class="max-h-[80vh] w-[560px] overflow-y-auto rounded-lg bg-neutral-800 p-4 text-sm text-white shadow-2xl"
     >
       <div class="mb-3 flex items-center justify-between">
@@ -103,9 +142,11 @@ onUnmounted(() => {
           @keyup.enter="search"
         />
         <input
-          v-model.number="year"
+          v-model="yearText"
           data-testid="fix-search-year"
-          type="number"
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
           aria-label="Search year"
           placeholder="Year"
           class="w-24 rounded bg-neutral-700 px-2 py-1 outline-none focus:ring-2 focus:ring-sky-500"
@@ -114,7 +155,7 @@ onUnmounted(() => {
         <button
           type="button"
           class="rounded bg-sky-600 px-3 py-1 hover:bg-sky-500 disabled:opacity-50"
-          :disabled="searching"
+          :disabled="searching || applying"
           @click="search"
         >
           {{ searching ? 'Searching…' : 'Search' }}
@@ -123,6 +164,9 @@ onUnmounted(() => {
 
       <p v-if="searchError" data-testid="fix-error" class="mb-2 text-red-400">{{ searchError }}</p>
       <p v-else-if="searching" class="text-neutral-400">Searching…</p>
+      <p v-else-if="applying" data-testid="fix-applying" class="mb-2 text-sky-300">
+        Applying match…
+      </p>
       <p v-else-if="!results.length" class="text-neutral-400">
         No results — adjust the search or paste a TMDB id below.
       </p>
@@ -133,7 +177,7 @@ onUnmounted(() => {
             data-testid="fix-candidate"
             class="flex w-full cursor-pointer gap-3 rounded bg-neutral-700/60 p-2 text-left hover:bg-neutral-600 disabled:opacity-50"
             :disabled="applying"
-            :aria-label="`Use match ${r.title}`"
+            :aria-label="applyingId === r.id ? `Applying match ${r.title}` : `Use match ${r.title}`"
             @click="apply(r.id)"
           >
             <img
@@ -157,6 +201,7 @@ onUnmounted(() => {
               <div class="font-medium">
                 {{ r.title }}
                 <span class="text-neutral-400">({{ r.release_date?.slice(0, 4) ?? '—' }})</span>
+                <span v-if="applyingId === r.id" class="ml-2 text-xs text-sky-300">Applying…</span>
               </div>
               <div class="line-clamp-2 text-xs text-neutral-400">{{ r.overview }}</div>
             </div>

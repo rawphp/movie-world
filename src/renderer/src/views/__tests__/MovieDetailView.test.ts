@@ -8,6 +8,7 @@ import type { Keybindings, MovieRecord } from '../../../../shared/types'
 
 let routeId = 'movie-1'
 const push = vi.fn()
+const back = vi.fn()
 const getSettings = vi.fn()
 const defaultKeybindings: Keybindings = { prevMovie: 'Mod+ArrowLeft', nextMovie: 'Mod+ArrowRight' }
 
@@ -22,7 +23,7 @@ function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
 
 vi.mock('vue-router', () => ({
   useRoute: () => ({ params: { id: routeId } }),
-  useRouter: () => ({ push })
+  useRouter: () => ({ push, back })
 }))
 
 const makeMovie = (overrides: Partial<MovieRecord> = {}): MovieRecord => ({
@@ -91,6 +92,7 @@ function mountWithMovie(
 
 beforeEach(() => {
   push.mockReset()
+  back.mockReset()
   getSettings.mockReset()
 })
 
@@ -242,6 +244,27 @@ describe('MovieDetailView', () => {
     const play = wrapper.get('[data-testid="detail-play"]')
     expect(play.attributes('disabled')).toBeDefined()
     expect(wrapper.get('[data-testid="detail-file-missing-hint"]').text()).toContain('missing')
+  })
+
+  it('shows a friendly not-watched summary instead of 0× · never', () => {
+    const wrapper = mountWithMovie(makeMovie({ playCount: 0, lastPlayedAt: null }))
+    expect(wrapper.get('[data-testid="detail-watch-summary"]').text()).toBe('Not watched yet')
+  })
+
+  it('formats file size in human units', () => {
+    const wrapper = mountWithMovie(makeMovie({ fileSize: 280 * 1024 ** 2 }))
+    expect(wrapper.get('[data-testid="detail-file-size"]').text()).toContain('MB')
+  })
+
+  it('goes back on Escape when the fix-match dialog is closed', async () => {
+    const wrapper = mountWithMovie(makeMovie())
+    await flushPromises()
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
+    )
+    // Prefer history.back when available; otherwise push library.
+    expect(back.mock.calls.length + push.mock.calls.length).toBeGreaterThan(0)
+    wrapper.unmount()
   })
 
   it('uses settings keybindings to navigate to the next movie in store list order', async () => {

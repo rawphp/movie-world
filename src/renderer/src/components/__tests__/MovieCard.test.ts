@@ -39,13 +39,13 @@ const base: MovieRecord = {
 }
 
 describe('MovieCard', () => {
-  it('shows title, year, certification, actors and "never" watched state', () => {
+  it('shows title, year, certification, actors and not-watched state', () => {
     const w = mount(MovieCard, { props: { movie: base } })
     expect(w.text()).toContain('The Matrix')
     expect(w.text()).toContain('1999')
     expect(w.text()).toContain('MA15+')
     expect(w.text()).toContain('Keanu Reeves')
-    expect(w.text().toLowerCase()).toContain('never')
+    expect(w.text()).toContain('Not watched')
     expect(w.find('img').attributes('src')).toContain('mw-art://')
     expect(w.find('img').attributes('src')).toContain(
       encodeURIComponent('/userData/cache/art/p.jpg')
@@ -70,7 +70,7 @@ describe('MovieCard', () => {
     expect(src).not.toContain(encodeURIComponent('/Google Drive/Movies/The Matrix-poster.jpg'))
   })
 
-  it('shows title placeholder when only Drive posterPath is set (no cache)', () => {
+  it('shows no-poster fallback when only Drive posterPath is set (no cache)', () => {
     const w = mount(MovieCard, {
       props: {
         movie: {
@@ -82,6 +82,8 @@ describe('MovieCard', () => {
     })
 
     expect(w.find('img').exists()).toBe(false)
+    expect(w.find('[data-testid="poster-fallback"]').text()).toContain('No poster')
+    // Title still appears once in the card body, not duplicated in the art slot.
     expect(w.text()).toContain('The Matrix')
     // Must not request Drive path via mw-art
     expect(w.html()).not.toContain('Google Drive')

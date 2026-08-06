@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import type { MovieRecord } from '../../../shared/types'
 import { displayPosterPath } from '../../../shared/display-art'
 import { artSrc } from '../lib/art'
+import { formatLastWatchedRelative } from '../lib/format'
 import StarRating from './StarRating.vue'
 
 const props = defineProps<{ movie: MovieRecord }>()
@@ -20,11 +21,7 @@ const actors = computed(() =>
     .map((c) => c.name)
     .join(', ')
 )
-const lastWatched = computed(() => {
-  if (!props.movie.lastPlayedAt) return 'never'
-  const days = Math.floor((Date.now() - Date.parse(props.movie.lastPlayedAt)) / 86_400_000)
-  return days <= 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`
-})
+const lastWatched = computed(() => formatLastWatchedRelative(props.movie.lastPlayedAt))
 
 const ariaLabel = computed(() => {
   const bits = [titleWithYear.value]
@@ -70,9 +67,12 @@ const onKeydown = (event: KeyboardEvent): void => {
       />
       <div
         v-else
-        class="flex h-full items-center justify-center p-2 text-center text-sm text-neutral-400"
+        data-testid="poster-fallback"
+        class="flex h-full flex-col items-center justify-center gap-1 p-3 text-center text-sm text-neutral-500"
+        aria-hidden="true"
       >
-        {{ title }}
+        <span class="text-2xl opacity-60">🎬</span>
+        <span>No poster</span>
       </div>
 
       <span
@@ -128,7 +128,9 @@ const onKeydown = (event: KeyboardEvent): void => {
         <StarRating :vote-average="movie.voteAverage" />
       </div>
       <div v-if="actors" class="truncate text-xs text-neutral-400">{{ actors }}</div>
-      <div class="text-xs text-neutral-500">Watched: {{ lastWatched }}</div>
+      <div class="text-xs text-neutral-500">
+        {{ lastWatched === 'never' ? 'Not watched' : `Watched: ${lastWatched}` }}
+      </div>
     </div>
   </div>
 </template>

@@ -173,20 +173,58 @@ describe('SettingsView', () => {
     expect(w.get('[data-testid="shortcut-next"]').text()).toContain('Alt + n')
   })
 
-  it('resets shortcuts to defaults', async () => {
+  it('resets shortcuts to defaults after confirm', async () => {
     makeApi({
       folders: ['/Movies'],
       tmdbApiKey: null,
       keybindings: { prevMovie: 'Alt+p', nextMovie: 'Alt+n' }
     })
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
     const w = mount(SettingsView)
     await flushPromises()
 
     await w.get('[data-testid="shortcut-reset"]').trigger('click')
     await flushPromises()
 
+    expect(confirm).toHaveBeenCalled()
     expect(window.api.setKeybindings).toHaveBeenCalledWith(DEFAULT_KEYBINDINGS)
     expect(w.get('[data-testid="shortcut-prev"]').text()).toContain('←')
     expect(w.get('[data-testid="shortcut-next"]').text()).toContain('→')
+    confirm.mockRestore()
+  })
+
+  it('does not reset shortcuts when confirm is cancelled', async () => {
+    makeApi({
+      folders: ['/Movies'],
+      tmdbApiKey: null,
+      keybindings: { prevMovie: 'Alt+p', nextMovie: 'Alt+n' }
+    })
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    const w = mount(SettingsView)
+    await flushPromises()
+
+    await w.get('[data-testid="shortcut-reset"]').trigger('click')
+    await flushPromises()
+
+    expect(window.api.setKeybindings).not.toHaveBeenCalled()
+    confirm.mockRestore()
+  })
+
+  it('shows that an existing API key is already set on load', async () => {
+    makeApi({
+      folders: ['/Movies'],
+      tmdbApiKey: 'existing-key',
+      keybindings: DEFAULT_KEYBINDINGS
+    })
+    const w = mount(SettingsView)
+    await flushPromises()
+    expect(w.get('[data-testid="apikey-status"]').text()).toContain('Key is set')
+    expect(w.find('[data-testid="apikey-toggle"]').exists()).toBe(true)
+  })
+
+  it('uses Settings as the page heading', async () => {
+    const w = mount(SettingsView)
+    await flushPromises()
+    expect(w.get('h1').text()).toBe('Settings')
   })
 })

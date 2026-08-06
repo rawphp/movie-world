@@ -24,6 +24,7 @@ const emptyFiltered = computed(
 const cacheStatusMessage = computed(() => store.cacheStatusMessage)
 const unmatchedCount = computed(() => store.all.filter((m) => m.matchStatus === 'unmatched').length)
 const missingCount = computed(() => store.all.filter((m) => m.fileMissing).length)
+const fetchFailedCount = computed(() => store.all.filter((m) => m.fetchFailed).length)
 </script>
 
 <template>
@@ -49,12 +50,14 @@ const missingCount = computed(() => store.all.filter((m) => m.fileMissing).lengt
         match.</span
       >
       <button
+        v-if="store.filters.issue !== 'unmatched'"
         type="button"
         class="underline hover:text-white"
         @click="store.setFilter({ issue: 'unmatched' })"
       >
         Show them
       </button>
+      <span v-else class="text-amber-200/80">Showing them now.</span>
     </div>
     <div
       v-if="missingCount > 0"
@@ -66,12 +69,33 @@ const missingCount = computed(() => store.all.filter((m) => m.fileMissing).lengt
         disk.</span
       >
       <button
+        v-if="store.filters.issue !== 'missing'"
         type="button"
         class="underline hover:text-white"
         @click="store.setFilter({ issue: 'missing' })"
       >
         Show them
       </button>
+      <span v-else class="text-red-200/80">Showing them now.</span>
+    </div>
+    <div
+      v-if="fetchFailedCount > 0"
+      data-testid="library-fetch-failed-banner"
+      class="flex flex-wrap items-center gap-2 rounded-lg bg-orange-900/40 px-4 py-3 text-sm text-orange-100"
+    >
+      <span
+        >{{ fetchFailedCount }} {{ fetchFailedCount === 1 ? 'movie failed' : 'movies failed' }} to
+        fetch metadata.</span
+      >
+      <button
+        v-if="store.filters.issue !== 'fetchFailed'"
+        type="button"
+        class="underline hover:text-white"
+        @click="store.setFilter({ issue: 'fetchFailed' })"
+      >
+        Show them
+      </button>
+      <span v-else class="text-orange-200/80">Showing them now.</span>
     </div>
 
     <div

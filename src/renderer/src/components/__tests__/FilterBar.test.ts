@@ -68,6 +68,7 @@ describe('FilterBar', () => {
     expect(w.find('[data-testid="filter-search"]').attributes('aria-label')).toBe('Search movies')
     expect(w.find('[data-testid="filter-genre"]').attributes('aria-label')).toContain('genre')
     expect(w.find('[data-testid="filter-certification"]').text()).toContain('classifications')
+    expect(w.find('[data-testid="filter-issue"]').text()).toContain('All movies')
     expect(w.find('[data-testid="library-result-count"]').text()).toMatch(/2 movies/)
   })
 

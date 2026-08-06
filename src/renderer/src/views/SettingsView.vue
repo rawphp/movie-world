@@ -2,24 +2,33 @@
 import { computed, onMounted, ref } from 'vue'
 import { DEFAULT_KEYBINDINGS, isValidCombo } from '../../../shared/keybindings'
 import type { Keybindings, ScanProgress, Settings } from '../../../shared/types'
+import { formatFolderLabel } from '../lib/format'
 import ShortcutRecorder from '../components/ShortcutRecorder.vue'
 
 const api = window.api
 const settings = ref<Settings>({ folders: [], tmdbApiKey: null, keybindings: DEFAULT_KEYBINDINGS })
 const keyInput = ref('')
 const saving = ref(false)
-type KeyState = 'idle' | 'valid' | 'invalid' | 'cleared'
+const showKey = ref(false)
+type KeyState = 'idle' | 'present' | 'valid' | 'invalid' | 'cleared'
 const keyState = ref<KeyState>('idle')
 const progress = ref<Record<string, ScanProgress>>({})
 const shortcutErrors = ref<Partial<Record<keyof Keybindings, string>>>({})
+const rescanning = ref<Record<string, boolean>>({})
 
 const firstRun = computed(() => settings.value.folders.length === 0 && !settings.value.tmdbApiKey)
 
 onMounted(async () => {
   settings.value = await api.getSettings()
   keyInput.value = settings.value.tmdbApiKey ?? ''
+  keyState.value = settings.value.tmdbApiKey ? 'present' : 'idle'
   api.onScanProgress((p) => {
     progress.value = { ...progress.value, [p.folder]: p }
+    if (p.done) {
+      const next = { ...rescanning.value }
+      delete next[p.folder]
+      rescanning.value = next
+    }
   })
 })
 
@@ -61,7 +70,15 @@ async function removeFolder(path: string): Promise<void> {
 }
 
 async function rescan(folder: string): Promise<void> {
-  await api.rescanFolder(folder)
+  if (rescanning.value[folder]) return
+  rescanning.value = { ...rescanning.value, [folder]: true }
+  try {
+    await api.rescanFolder(folder)
+  } catch {
+    const next = { ...rescanning.value }
+    delete next[folder]
+    rescanning.value = next
+  }
 }
 
 async function saveShortcut(action: keyof Keybindings, combo: string): Promise<void> {
@@ -90,6 +107,8 @@ async function saveShortcut(action: keyof Keybindings, combo: string): Promise<v
 }
 
 async function resetShortcuts(): Promise<void> {
+  const ok = window.confirm('Reset keyboard shortcuts to the defaults?')
+  if (!ok) return
   shortcutErrors.value = {}
   settings.value = await api.setKeybindings(DEFAULT_KEYBINDINGS)
 }
@@ -98,7 +117,7 @@ async function resetShortcuts(): Promise<void> {
 <template>
   <div class="mx-auto max-w-2xl space-y-8">
     <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-white">Library &amp; keys</h1>
+      <h1 class="text-2xl font-bold text-white">Settings</h1>
       <RouterLink to="/" class="text-sm text-sky-400 hover:text-sky-300">
         ← Back to library
       </RouterLink>
@@ -131,18 +150,29 @@ async function resetShortcuts(): Promise<void> {
           >themoviedb.org → Settings → API</a
         >. Without it, movies are indexed but no metadata is fetched.
       </p>
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
         <label class="sr-only" for="apikey-input">TMDB API key</label>
         <input
           id="apikey-input"
           v-model="keyInput"
           data-testid="apikey-input"
-          type="password"
+          :type="showKey ? 'text' : 'password'"
           autocomplete="off"
+          spellcheck="false"
           aria-label="TMDB API key"
-          class="flex-1 rounded bg-neutral-700 px-3 py-2 text-sm text-white placeholder-neutral-400"
+          class="min-w-0 flex-1 rounded bg-neutral-700 px-3 py-2 text-sm text-white placeholder-neutral-400"
           placeholder="Paste your TMDB API key"
         />
+        <button
+          type="button"
+          data-testid="apikey-toggle"
+          class="rounded bg-neutral-700 px-3 py-2 text-sm text-white hover:bg-neutral-600"
+          :aria-pressed="showKey"
+          :aria-label="showKey ? 'Hide API key' : 'Show API key'"
+          @click="showKey = !showKey"
+        >
+          {{ showKey ? 'Hide' : 'Show' }}
+        </button>
         <button
           data-testid="apikey-save"
           class="rounded bg-sky-600 px-4 py-2 text-sm text-white hover:bg-sky-500 disabled:opacity-50"
@@ -158,6 +188,13 @@ async function resetShortcuts(): Promise<void> {
         class="mt-2 text-xs text-emerald-400"
       >
         ✓ Saved — key is set.
+      </p>
+      <p
+        v-else-if="keyState === 'present'"
+        data-testid="apikey-status"
+        class="mt-2 text-xs text-emerald-400"
+      >
+        ✓ Key is set.
       </p>
       <p
         v-else-if="keyState === 'cleared'"
@@ -185,14 +222,15 @@ async function resetShortcuts(): Promise<void> {
           data-testid="folder-row"
           class="flex items-center gap-2 rounded-lg bg-neutral-800 px-3 py-2 text-sm text-white"
         >
-          <span class="min-w-0 flex-1 truncate" :title="f">
-            📁 {{ f.split('/').filter(Boolean).pop() || f }}
-          </span>
+          <span class="min-w-0 flex-1 truncate" :title="f"> 📁 {{ formatFolderLabel(f) }} </span>
           <span
-            v-if="progress[f] && !progress[f].done"
+            v-if="(progress[f] && !progress[f].done) || rescanning[f]"
             class="whitespace-nowrap text-xs text-sky-300"
           >
-            scanning {{ progress[f].ingested }}/{{ progress[f].discovered }}…
+            <template v-if="progress[f] && !progress[f].done">
+              scanning {{ progress[f].ingested }}/{{ progress[f].discovered }}…
+            </template>
+            <template v-else>scanning…</template>
           </span>
           <span
             v-else-if="progress[f] && progress[f].done"
@@ -202,10 +240,11 @@ async function resetShortcuts(): Promise<void> {
           </span>
           <button
             data-testid="folder-rescan"
-            class="rounded bg-neutral-700 px-2 py-1 text-xs text-white hover:bg-neutral-600"
+            class="rounded bg-neutral-700 px-2 py-1 text-xs text-white hover:bg-neutral-600 disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="!!rescanning[f] || !!(progress[f] && !progress[f].done)"
             @click="rescan(f)"
           >
-            Rescan
+            {{ rescanning[f] || (progress[f] && !progress[f].done) ? 'Scanning…' : 'Rescan' }}
           </button>
           <button
             data-testid="folder-remove"
@@ -247,6 +286,7 @@ async function resetShortcuts(): Promise<void> {
         >
           <span class="pt-2">Previous movie</span>
           <ShortcutRecorder
+            action-label="Previous movie"
             :combo="settings.keybindings.prevMovie"
             :error="shortcutErrors.prevMovie"
             @update:combo="saveShortcut('prevMovie', $event)"
@@ -258,6 +298,7 @@ async function resetShortcuts(): Promise<void> {
         >
           <span class="pt-2">Next movie</span>
           <ShortcutRecorder
+            action-label="Next movie"
             :combo="settings.keybindings.nextMovie"
             :error="shortcutErrors.nextMovie"
             @update:combo="saveShortcut('nextMovie', $event)"

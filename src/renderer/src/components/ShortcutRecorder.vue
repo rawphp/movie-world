@@ -5,6 +5,7 @@ import { comboFromEvent, isValidCombo } from '../../../shared/keybindings'
 const props = defineProps<{
   combo: string
   error?: string
+  actionLabel?: string
 }>()
 
 const emit = defineEmits<{
@@ -87,6 +88,13 @@ onBeforeUnmount(stopRecording)
       data-testid="shortcut-recorder"
       class="min-w-32 rounded bg-neutral-700 px-3 py-2 text-left text-sm text-white hover:bg-neutral-600 focus:outline-none focus:ring-2 focus:ring-sky-500"
       :class="{ 'ring-2 ring-sky-500': recording }"
+      :aria-label="
+        actionLabel
+          ? recording
+            ? `Recording shortcut for ${actionLabel}`
+            : `Shortcut for ${actionLabel}: ${label}`
+          : undefined
+      "
       @click="startRecording"
     >
       <span v-if="recording">Press a combination… Esc to cancel</span>

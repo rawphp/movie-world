@@ -17,7 +17,10 @@ const filtersActive = computed(() => store.hasActiveFilters)
 </script>
 
 <template>
-  <div class="space-y-2">
+  <div
+    data-testid="filter-bar"
+    class="sticky top-[61px] z-[5] -mx-1 space-y-2 bg-neutral-900/95 px-1 pb-2 pt-1 backdrop-blur-xl"
+  >
     <div
       class="hide-scrollbar flex flex-wrap items-center gap-2 rounded-full bg-neutral-800 p-3 text-sm backdrop-blur-xl"
     >
@@ -125,7 +128,7 @@ const filtersActive = computed(() => store.hasActiveFilters)
           })
         "
       >
-        <option value="all">Any issues</option>
+        <option value="all">All movies</option>
         <option value="unmatched">Needs match</option>
         <option value="missing">File missing</option>
         <option value="fetchFailed">Fetch failed</option>
