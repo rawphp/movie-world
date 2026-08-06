@@ -148,7 +148,8 @@ export function buildCsp(isDev: boolean): string {
     "default-src 'self'",
     `script-src ${scriptSrc}`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: mw-art:",
+    // image.tmdb.org: Fix match candidate posters (search results are remote URLs).
+    "img-src 'self' data: mw-art: https://image.tmdb.org",
     "font-src 'self' data:",
     `connect-src ${connectSrc}`,
     'frame-src https://www.youtube.com https://www.youtube-nocookie.com',

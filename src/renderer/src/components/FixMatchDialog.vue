@@ -138,10 +138,21 @@ onUnmounted(() => {
           >
             <img
               v-if="r.poster_path"
+              data-testid="fix-candidate-poster"
               :src="`https://image.tmdb.org/t/p/w92${r.poster_path}`"
-              :alt="''"
-              class="h-20 w-14 shrink-0 rounded object-cover"
+              :alt="`${r.title} poster`"
+              class="h-20 w-14 shrink-0 rounded bg-neutral-900 object-cover"
+              loading="lazy"
+              referrerpolicy="no-referrer"
             />
+            <div
+              v-else
+              data-testid="fix-candidate-poster-fallback"
+              class="flex h-20 w-14 shrink-0 items-center justify-center rounded bg-neutral-900 text-[10px] text-neutral-500"
+              aria-hidden="true"
+            >
+              No art
+            </div>
             <div class="min-w-0">
               <div class="font-medium">
                 {{ r.title }}

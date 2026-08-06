@@ -39,9 +39,10 @@ describe('decodeArtUrl', () => {
 })
 
 describe('buildCsp', () => {
-  it('permits mw-art: image sources and the youtube trailer frame', () => {
+  it('permits mw-art: and TMDB image sources and the youtube trailer frame', () => {
     const csp = buildCsp(false)
     expect(csp).toMatch(/img-src[^;]*mw-art:/)
+    expect(csp).toMatch(/img-src[^;]*https:\/\/image\.tmdb\.org/)
     expect(csp).toMatch(/frame-src[^;]*https:\/\/www\.youtube\.com/)
     expect(csp).toMatch(/frame-src[^;]*https:\/\/www\.youtube-nocookie\.com/)
     expect(csp).toMatch(/child-src[^;]*https:\/\/www\.youtube\.com/)
