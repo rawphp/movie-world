@@ -70,4 +70,30 @@ describe('FixMatchDialog', () => {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
     expect(w.emitted('close')).toBeTruthy()
   })
+
+  it('displays the source filename from the movie file path', async () => {
+    const w = mount(FixMatchDialog, {
+      props: {
+        movie: { ...movie, filePath: '/Movies/The Matrix (1999)/The.Matrix.1999.1080p.mkv' }
+      }
+    })
+    await flushPromises()
+    const source = w.find('[data-testid="fix-source-filename"]')
+    expect(source.exists()).toBe(true)
+    expect(source.text()).toContain('The.Matrix.1999.1080p.mkv')
+  })
+
+  it('keeps TMDB id controls in a sticky footer outside the scrollable results', async () => {
+    const w = mount(FixMatchDialog, { props: { movie } })
+    await flushPromises()
+    const footer = w.find('[data-testid="fix-id-footer"]')
+    expect(footer.exists()).toBe(true)
+    expect(footer.find('[data-testid="fix-id-input"]').exists()).toBe(true)
+    expect(footer.find('[data-testid="fix-id-submit"]').exists()).toBe(true)
+    // Sticky / non-scrolling placement: footer is a flex child sibling of the scroll region
+    expect(footer.classes().join(' ')).toMatch(/sticky|shrink-0/)
+    const results = w.find('[data-testid="fix-results"]')
+    expect(results.exists()).toBe(true)
+    expect(results.classes().join(' ')).toMatch(/overflow-y-auto/)
+  })
 })
