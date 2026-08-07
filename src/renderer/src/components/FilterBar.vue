@@ -14,6 +14,14 @@ const sortOptions: Array<[SortKey, string]> = [
 const resultCount = computed(() => store.list.length)
 const totalCount = computed(() => store.all.length)
 const filtersActive = computed(() => store.hasActiveFilters)
+
+const isCertSelected = (cert: string): boolean => store.filters.certification.includes(cert)
+
+const toggleCertification = (cert: string): void => {
+  const current = store.filters.certification
+  const next = current.includes(cert) ? current.filter((c) => c !== cert) : [...current, cert]
+  store.setFilter({ certification: next })
+}
 </script>
 
 <template>
@@ -59,18 +67,30 @@ const filtersActive = computed(() => store.hasActiveFilters)
         <option value="">All years</option>
         <option v-for="y in store.allYears" :key="y" :value="y">{{ y }}</option>
       </select>
-      <select
+      <div
         data-testid="filter-certification"
-        :value="store.filters.certification ?? ''"
-        aria-label="Filter by Australian classification"
-        class="rounded-full bg-neutral-700 px-2 py-1 text-white"
-        @change="
-          store.setFilter({ certification: ($event.target as HTMLSelectElement).value || null })
-        "
+        role="group"
+        aria-label="Australian classification multi-select"
+        class="flex flex-wrap items-center gap-1"
       >
-        <option value="">All classifications</option>
-        <option v-for="c in store.allCertifications" :key="c" :value="c">{{ c }}</option>
-      </select>
+        <button
+          v-for="c in store.allCertifications"
+          :key="c"
+          type="button"
+          :data-testid="`filter-cert-chip-${c}`"
+          :aria-pressed="isCertSelected(c)"
+          :aria-label="`Classification ${c}`"
+          class="rounded-full px-2 py-1 text-xs transition-colors"
+          :class="
+            isCertSelected(c)
+              ? 'bg-sky-600 text-white'
+              : 'bg-neutral-700 text-neutral-200 hover:bg-neutral-600'
+          "
+          @click="toggleCertification(c)"
+        >
+          {{ c }}
+        </button>
+      </div>
       <select
         data-testid="filter-minrating"
         :value="store.filters.minRating ?? ''"

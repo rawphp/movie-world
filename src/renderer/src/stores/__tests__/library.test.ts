@@ -142,4 +142,23 @@ describe('library store', () => {
     store.resetFilters()
     expect(store.list).toHaveLength(2)
   })
+
+  it('multi-select certification filter and resetFilters clear certs', async () => {
+    const store = useLibraryStore()
+    await store.load()
+    store.applyUpdate(
+      m('c', {
+        matchStatus: 'matched',
+        certificationAu: 'G',
+        year: 2010
+      })
+    )
+    store.setFilter({ certification: ['G', 'M'] })
+    expect(store.filters.certification).toEqual(['G', 'M'])
+    expect(store.list.map((mv) => mv.id).sort()).toEqual(['b', 'c'])
+    store.resetFilters()
+    expect(store.filters.certification).toEqual([])
+    expect(store.list).toHaveLength(3)
+  })
 })
+
