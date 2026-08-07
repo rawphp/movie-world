@@ -60,9 +60,21 @@ function mountLibrary(loadResult: LibraryLoadResult): ReturnType<typeof mount> {
         FilterBar: { template: '<div data-testid="filter-bar" />' },
         MovieCard: {
           props: ['movie'],
-          emits: ['open'],
+          emits: ['open', 'fixMatch'],
+          template: `<div data-testid="movie-card">
+            <button data-testid="stub-open" @click="$emit('open', movie.id)">{{ movie.id }}</button>
+            <button
+              v-if="movie.matchStatus === 'unmatched'"
+              data-testid="card-fix-match"
+              @click="$emit('fixMatch', movie.id)"
+            >Fix match</button>
+          </div>`
+        },
+        FixMatchDialog: {
+          props: ['movie'],
+          emits: ['close'],
           template:
-            '<button data-testid="movie-card" @click="$emit(\'open\', movie.id)">{{ movie.id }}</button>'
+            '<div data-testid="library-fix-match-dialog" :data-movie-id="movie.id">FixMatchDialog</div>'
         },
         RouterLink: { template: '<a><slot /></a>' }
       }
@@ -199,9 +211,60 @@ describe('LibraryView', () => {
 
     await wrapper
       .get('[data-testid="continue-watching"]')
-      .get('[data-testid="movie-card"]')
+      .get('[data-testid="stub-open"]')
       .trigger('click')
 
     expect(push).toHaveBeenCalledWith('/movie/watched-one')
+  })
+
+  it('hosts Fix match dialog from an unmatched card without navigating to detail', async () => {
+    const unmatched = { ...movie('needs-match'), matchStatus: 'unmatched' as const, tmdbId: null }
+    const wrapper = mountLibrary({
+      movies: [unmatched],
+      status: {
+        firstViewFromCache: false,
+        backgroundScanRunning: false,
+        unavailableFolders: []
+      }
+    })
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="library-fix-match-dialog"]').exists()).toBe(false)
+
+    await wrapper.get('[data-testid="card-fix-match"]').trigger('click')
+    await flushPromises()
+
+    const dialog = wrapper.get('[data-testid="library-fix-match-dialog"]')
+    expect(dialog.attributes('data-movie-id')).toBe('needs-match')
+    expect(push).not.toHaveBeenCalled()
+  })
+
+  it('keeps Fix match dialog open when the card leaves the filtered list', async () => {
+    const unmatched = { ...movie('needs-match'), matchStatus: 'unmatched' as const, tmdbId: null }
+    const wrapper = mountLibrary({
+      movies: [unmatched, movie('other')],
+      status: {
+        firstViewFromCache: false,
+        backgroundScanRunning: false,
+        unavailableFolders: []
+      }
+    })
+    await flushPromises()
+
+    await wrapper.get('[data-testid="card-fix-match"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('[data-testid="library-fix-match-dialog"]').exists()).toBe(true)
+
+    const { useLibraryStore } = await import('../../stores/library')
+    const store = useLibraryStore()
+    // Filter out the unmatched card from the grid (card unmounts) while store still holds it.
+    store.setFilter({ search: 'other' })
+    await flushPromises()
+
+    expect(wrapper.findAll('[data-testid="movie-card"]')).toHaveLength(1)
+    expect(wrapper.find('[data-testid="card-fix-match"]').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="library-fix-match-dialog"]').attributes('data-movie-id')).toBe(
+      'needs-match'
+    )
   })
 })

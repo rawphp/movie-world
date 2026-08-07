@@ -7,7 +7,7 @@ import { formatLastWatchedRelative } from '../lib/format'
 import StarRating from './StarRating.vue'
 
 const props = defineProps<{ movie: MovieRecord }>()
-const emit = defineEmits<{ open: [id: string] }>()
+const emit = defineEmits<{ open: [id: string]; fixMatch: [id: string] }>()
 
 const title = computed(() => props.movie.title ?? props.movie.parsedTitle)
 const year = computed(() => props.movie.year ?? props.movie.parsedYear)
@@ -22,10 +22,11 @@ const actors = computed(() =>
     .join(', ')
 )
 const lastWatched = computed(() => formatLastWatchedRelative(props.movie.lastPlayedAt))
+const isUnmatched = computed(() => props.movie.matchStatus === 'unmatched')
 
 const ariaLabel = computed(() => {
   const bits = [titleWithYear.value]
-  if (props.movie.matchStatus === 'unmatched') bits.push('needs match')
+  if (isUnmatched.value) bits.push('needs match')
   if (props.movie.fileMissing) bits.push('file missing')
   if (props.movie.fetchFailed) bits.push('fetch failed')
   return bits.filter(Boolean).join(', ')
@@ -37,6 +38,10 @@ const retry = (): void => {
 
 const open = (): void => {
   emit('open', props.movie.id)
+}
+
+const onFixMatch = (): void => {
+  emit('fixMatch', props.movie.id)
 }
 
 const onKeydown = (event: KeyboardEvent): void => {
@@ -82,10 +87,10 @@ const onKeydown = (event: KeyboardEvent): void => {
         >Fetching…</span
       >
       <span
-        v-if="movie.matchStatus === 'unmatched'"
+        v-if="isUnmatched"
         data-testid="badge-unmatched"
         class="absolute left-1 top-1 rounded-full bg-amber-500 px-1.5 py-0.5 text-xs font-medium uppercase text-black"
-        title="Open this movie and choose Fix match"
+        title="Use Fix match to pick the correct TMDB title"
         >Needs match</span
       >
       <span
@@ -110,6 +115,16 @@ const onKeydown = (event: KeyboardEvent): void => {
         title="Metadata could not be written next to the file"
         >Not saved</span
       >
+
+      <button
+        v-if="isUnmatched"
+        type="button"
+        data-testid="card-fix-match"
+        class="absolute bottom-1 left-1 z-10 rounded-full bg-amber-500 px-2.5 py-1 text-xs font-semibold text-black shadow-md hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-300"
+        @click.stop="onFixMatch"
+      >
+        Fix match
+      </button>
 
       <span
         v-if="movie.certificationAu"

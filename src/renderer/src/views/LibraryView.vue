@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import type { MovieRecord } from '../../../shared/types'
 import { useLibraryStore } from '../stores/library'
 import FilterBar from '../components/FilterBar.vue'
+import FixMatchDialog from '../components/FixMatchDialog.vue'
 import MovieCard from '../components/MovieCard.vue'
 
 const store = useLibraryStore()
 const router = useRouter()
 const apiKeyMissing = ref(false)
 const hasFolders = ref(true)
+/** Host Fix match at the view so card unmount during scan cannot tear the dialog down. */
+const fixingMovieId = ref<string | null>(null)
+const fixingSnapshot = ref<MovieRecord | null>(null)
 
 onMounted(async () => {
   const settings = await window.api.getSettings()
@@ -25,6 +30,36 @@ const cacheStatusMessage = computed(() => store.cacheStatusMessage)
 const unmatchedCount = computed(() => store.all.filter((m) => m.matchStatus === 'unmatched').length)
 const missingCount = computed(() => store.all.filter((m) => m.fileMissing).length)
 const fetchFailedCount = computed(() => store.all.filter((m) => m.fetchFailed).length)
+
+const fixingMovie = computed((): MovieRecord | null => {
+  if (!fixingMovieId.value) return null
+  return store.movies[fixingMovieId.value] ?? fixingSnapshot.value
+})
+
+const openFixMatch = (id: string): void => {
+  const movie = store.movies[id]
+  if (!movie) return
+  fixingSnapshot.value = movie
+  fixingMovieId.value = id
+}
+
+const closeFixMatch = (): void => {
+  fixingMovieId.value = null
+  fixingSnapshot.value = null
+}
+
+// If the title is removed from the library while the dialog is open, close cleanly.
+watch(
+  () => (fixingMovieId.value ? store.movies[fixingMovieId.value] : undefined),
+  (live) => {
+    if (!fixingMovieId.value) return
+    if (live) {
+      fixingSnapshot.value = live
+      return
+    }
+    // Live record gone — keep snapshot so an in-flight dialog can finish apply/close.
+  }
+)
 </script>
 
 <template>
@@ -140,7 +175,11 @@ const fetchFailedCount = computed(() => store.all.filter((m) => m.fetchFailed).l
               :data-movie-id="m.id"
               class="w-36 shrink-0 sm:w-40"
             >
-              <MovieCard :movie="m" @open="router.push(`/movie/${$event}`)" />
+              <MovieCard
+                :movie="m"
+                @open="router.push(`/movie/${$event}`)"
+                @fix-match="openFixMatch"
+              />
             </div>
           </div>
         </section>
@@ -171,9 +210,17 @@ const fetchFailedCount = computed(() => store.all.filter((m) => m.fetchFailed).l
             :key="m.id"
             :movie="m"
             @open="router.push(`/movie/${$event}`)"
+            @fix-match="openFixMatch"
           />
         </div>
       </template>
     </template>
+
+    <FixMatchDialog
+      v-if="fixingMovie"
+      data-testid="library-fix-match-dialog"
+      :movie="fixingMovie"
+      @close="closeFixMatch"
+    />
   </div>
 </template>
