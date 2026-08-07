@@ -119,10 +119,100 @@ describe('SettingsView', () => {
     expect(w.findAll('[data-testid="folder-row"]')).toHaveLength(0)
   })
 
-  it('hides the first-run state once a folder exists', async () => {
+  it('hides the first-run welcome once a folder exists', async () => {
     const w = mount(SettingsView)
     await flushPromises()
     expect(w.find('[data-testid="first-run"]').exists()).toBe(false)
+  })
+
+  it('shows setup progress with both steps remaining on first run', async () => {
+    makeApi({ folders: [], tmdbApiKey: null, keybindings: DEFAULT_KEYBINDINGS })
+    const w = mount(SettingsView)
+    await flushPromises()
+    const panel = w.get('[data-testid="setup-progress"]')
+    expect(panel.exists()).toBe(true)
+    expect(w.get('[data-testid="setup-step-key"]').attributes('data-done')).toBe('false')
+    expect(w.get('[data-testid="setup-step-folder"]').attributes('data-done')).toBe('false')
+  })
+
+  it('marks API key done and folder remaining when key exists but no folders', async () => {
+    makeApi({ folders: [], tmdbApiKey: 'k', keybindings: DEFAULT_KEYBINDINGS })
+    const w = mount(SettingsView)
+    await flushPromises()
+    expect(w.get('[data-testid="setup-progress"]').exists()).toBe(true)
+    expect(w.get('[data-testid="setup-step-key"]').attributes('data-done')).toBe('true')
+    expect(w.get('[data-testid="setup-step-folder"]').attributes('data-done')).toBe('false')
+    expect(w.find('[data-testid="first-run"]').exists()).toBe(false)
+  })
+
+  it('marks folder done and API key remaining when folders exist but no key', async () => {
+    makeApi({ folders: ['/Movies'], tmdbApiKey: null, keybindings: DEFAULT_KEYBINDINGS })
+    const w = mount(SettingsView)
+    await flushPromises()
+    expect(w.get('[data-testid="setup-progress"]').exists()).toBe(true)
+    expect(w.get('[data-testid="setup-step-key"]').attributes('data-done')).toBe('false')
+    expect(w.get('[data-testid="setup-step-folder"]').attributes('data-done')).toBe('true')
+  })
+
+  it('hides setup progress when both key and folders are configured', async () => {
+    makeApi({
+      folders: ['/Movies'],
+      tmdbApiKey: 'existing-key',
+      keybindings: DEFAULT_KEYBINDINGS
+    })
+    const w = mount(SettingsView)
+    await flushPromises()
+    expect(w.find('[data-testid="setup-progress"]').exists()).toBe(false)
+  })
+
+  it('updates setup progress after saving a key with no folders yet', async () => {
+    makeApi({ folders: [], tmdbApiKey: null, keybindings: DEFAULT_KEYBINDINGS })
+    const w = mount(SettingsView)
+    await flushPromises()
+    expect(w.get('[data-testid="setup-step-key"]').attributes('data-done')).toBe('false')
+
+    await w.find('[data-testid="apikey-input"]').setValue('NEWKEY')
+    await w.find('[data-testid="apikey-save"]').trigger('click')
+    await flushPromises()
+
+    expect(w.get('[data-testid="apikey-status"]').text().toLowerCase()).toContain('saved')
+    expect(w.get('[data-testid="setup-step-key"]').attributes('data-done')).toBe('true')
+    expect(w.get('[data-testid="setup-step-folder"]').attributes('data-done')).toBe('false')
+  })
+
+  it('explains free TMDB key purpose and deep-links to API settings', async () => {
+    const w = mount(SettingsView)
+    await flushPromises()
+    const help = w.get('[data-testid="tmdb-key-help"]')
+    const text = help.text().toLowerCase()
+    expect(text).toMatch(/free/)
+    expect(text).toMatch(/poster|metadata|detail/)
+    const link = help.get('a')
+    expect(link.attributes('href')).toBe('https://www.themoviedb.org/settings/api')
+    expect(link.attributes('target')).toBe('_blank')
+  })
+
+  it('shows scanning feedback on a folder when progress events fire after add', async () => {
+    makeApi({ folders: [], tmdbApiKey: 'k', keybindings: DEFAULT_KEYBINDINGS })
+    // addFolder returns a folder path that can receive progress
+    window.api.addFolder = vi.fn(async () => ({
+      folders: ['/NewMovies'],
+      tmdbApiKey: 'k',
+      keybindings: DEFAULT_KEYBINDINGS
+    }))
+    const w = mount(SettingsView)
+    await flushPromises()
+
+    await w.find('[data-testid="folder-add"]').trigger('click')
+    await flushPromises()
+    expect(w.find('[data-testid="folder-row"]').text()).toContain('NewMovies')
+
+    progressCb?.({ folder: '/NewMovies', discovered: 5, ingested: 2, done: false })
+    await flushPromises()
+    const row = w.find('[data-testid="folder-row"]')
+    expect(row.text()).toMatch(/scanning/i)
+    expect(row.text()).toContain('2')
+    expect(row.text()).toContain('5')
   })
 
   it('renders keyboard shortcut recorders from settings', async () => {

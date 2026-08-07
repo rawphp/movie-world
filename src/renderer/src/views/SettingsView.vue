@@ -16,7 +16,11 @@ const progress = ref<Record<string, ScanProgress>>({})
 const shortcutErrors = ref<Partial<Record<keyof Keybindings, string>>>({})
 const rescanning = ref<Record<string, boolean>>({})
 
-const firstRun = computed(() => settings.value.folders.length === 0 && !settings.value.tmdbApiKey)
+const hasApiKey = computed(() => !!settings.value.tmdbApiKey)
+const hasFolders = computed(() => settings.value.folders.length > 0)
+const firstRun = computed(() => !hasFolders.value && !hasApiKey.value)
+/** Incomplete setup: missing key and/or folders — show step checklist. */
+const setupIncomplete = computed(() => !hasApiKey.value || !hasFolders.value)
 
 onMounted(async () => {
   settings.value = await api.getSettings()
@@ -137,18 +141,54 @@ async function resetShortcuts(): Promise<void> {
       </ol>
     </div>
 
+    <!-- Setup progress: which steps are done vs remaining -->
+    <div
+      v-if="setupIncomplete"
+      data-testid="setup-progress"
+      class="rounded-xl border border-neutral-700 bg-neutral-900/60 p-5 text-sm text-neutral-200"
+    >
+      <p class="mb-3 font-semibold text-white">Setup progress</p>
+      <ul class="space-y-2">
+        <li
+          data-testid="setup-step-key"
+          :data-done="hasApiKey ? 'true' : 'false'"
+          class="flex items-start gap-2"
+          :class="hasApiKey ? 'text-emerald-400' : 'text-amber-200'"
+        >
+          <span class="select-none" aria-hidden="true">{{ hasApiKey ? '✓' : '○' }}</span>
+          <span>
+            <template v-if="hasApiKey">TMDB API key saved</template>
+            <template v-else>Add a free TMDB API key (for posters &amp; details)</template>
+          </span>
+        </li>
+        <li
+          data-testid="setup-step-folder"
+          :data-done="hasFolders ? 'true' : 'false'"
+          class="flex items-start gap-2"
+          :class="hasFolders ? 'text-emerald-400' : 'text-amber-200'"
+        >
+          <span class="select-none" aria-hidden="true">{{ hasFolders ? '✓' : '○' }}</span>
+          <span>
+            <template v-if="hasFolders">Movie folder added</template>
+            <template v-else>Add a movie folder to scan</template>
+          </span>
+        </li>
+      </ul>
+    </div>
+
     <!-- Metadata: TMDB API key -->
     <section>
       <h2 class="mb-2 text-lg font-semibold text-white">TMDB API key</h2>
-      <p class="mb-2 text-sm text-neutral-400">
-        Get a free key at
+      <p data-testid="tmdb-key-help" class="mb-2 text-sm text-neutral-400">
+        Movie World uses a free TMDB API key to fetch posters, titles, cast, and other metadata for
+        your files. Get one at
         <a
           href="https://www.themoviedb.org/settings/api"
           target="_blank"
           rel="noopener noreferrer"
           class="text-sky-400 underline hover:text-sky-300"
           >themoviedb.org → Settings → API</a
-        >. Without it, movies are indexed but no metadata is fetched.
+        >. Without a key, movies are still indexed on disk but no metadata is fetched.
       </p>
       <div class="flex flex-wrap gap-2">
         <label class="sr-only" for="apikey-input">TMDB API key</label>
