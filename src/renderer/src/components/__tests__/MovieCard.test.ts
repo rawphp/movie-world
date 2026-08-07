@@ -143,4 +143,29 @@ describe('MovieCard', () => {
     await w.trigger('click')
     expect(w.emitted('open')).toEqual([['id1']])
   })
+
+  it('shows Fix match control only for unmatched cards', () => {
+    const unmatched = mount(MovieCard, {
+      props: { movie: { ...base, matchStatus: 'unmatched' } }
+    })
+    expect(unmatched.find('[data-testid="card-fix-match"]').exists()).toBe(true)
+    expect(unmatched.find('[data-testid="card-fix-match"]').text()).toMatch(/Fix match/i)
+
+    const matched = mount(MovieCard, { props: { movie: base } })
+    expect(matched.find('[data-testid="card-fix-match"]').exists()).toBe(false)
+
+    const pending = mount(MovieCard, {
+      props: { movie: { ...base, matchStatus: 'pending' } }
+    })
+    expect(pending.find('[data-testid="card-fix-match"]').exists()).toBe(false)
+  })
+
+  it('emits fixMatch without open when Fix match is activated', async () => {
+    const w = mount(MovieCard, {
+      props: { movie: { ...base, matchStatus: 'unmatched' } }
+    })
+    await w.get('[data-testid="card-fix-match"]').trigger('click')
+    expect(w.emitted('fixMatch')).toEqual([['id1']])
+    expect(w.emitted('open')).toBeUndefined()
+  })
 })
