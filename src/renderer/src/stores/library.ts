@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { MovieRecord, ScanProgress } from '../../../shared/types'
 import {
+  continueWatchingMovies,
   EMPTY_FILTERS,
   filterMovies,
   filtersAreActive,
@@ -26,6 +27,9 @@ export const useLibraryStore = defineStore('library', {
     all: (s): MovieRecord[] => Object.values(s.movies),
     list(): MovieRecord[] {
       return sortMovies(filterMovies(this.all, this.filters), this.sort)
+    },
+    continueWatching(): MovieRecord[] {
+      return continueWatchingMovies(this.all)
     },
     pendingCount(): number {
       return this.all.filter((m) => m.matchStatus === 'pending').length
