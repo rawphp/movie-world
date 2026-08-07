@@ -48,16 +48,15 @@ const closeFixMatch = (): void => {
   fixingSnapshot.value = null
 }
 
-// If the title is removed from the library while the dialog is open, close cleanly.
+// Keep snapshot in sync with live store updates while the dialog is open.
+// If the title is removed mid-dialog, keep the last snapshot so apply/close can finish.
 watch(
   () => (fixingMovieId.value ? store.movies[fixingMovieId.value] : undefined),
   (live) => {
     if (!fixingMovieId.value) return
     if (live) {
       fixingSnapshot.value = live
-      return
     }
-    // Live record gone — keep snapshot so an in-flight dialog can finish apply/close.
   }
 )
 </script>

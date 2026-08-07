@@ -14,7 +14,8 @@ import {
 export const useLibraryStore = defineStore('library', {
   state: () => ({
     movies: {} as Record<string, MovieRecord>,
-    filters: { ...EMPTY_FILTERS } as LibraryFilters,
+    // Fresh certification array — never share EMPTY_FILTERS.certification by reference.
+    filters: { ...EMPTY_FILTERS, certification: [] as string[] } as LibraryFilters,
     sort: 'title' as SortKey,
     loaded: false,
     subscribed: false,
@@ -114,7 +115,7 @@ export const useLibraryStore = defineStore('library', {
       this.filters = { ...this.filters, ...patch }
     },
     resetFilters() {
-      this.filters = { ...EMPTY_FILTERS }
+      this.filters = { ...EMPTY_FILTERS, certification: [] }
     },
     setSort(key: SortKey) {
       this.sort = key

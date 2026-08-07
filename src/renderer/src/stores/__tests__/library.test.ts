@@ -160,5 +160,17 @@ describe('library store', () => {
     expect(store.filters.certification).toEqual([])
     expect(store.list).toHaveLength(3)
   })
+
+  it('resetFilters uses a fresh certification array (not EMPTY_FILTERS by reference)', async () => {
+    const store = useLibraryStore()
+    await store.load()
+    store.setFilter({ certification: ['M'] })
+    store.resetFilters()
+    const afterReset = store.filters.certification
+    afterReset.push('POISON')
+    store.resetFilters()
+    expect(store.filters.certification).toEqual([])
+    expect(store.filters.certification).not.toBe(afterReset)
+  })
 })
 

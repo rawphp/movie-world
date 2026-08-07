@@ -24,13 +24,14 @@ let mounted = false
 
 const movie = computed(() => store.movies[String(route.params.id)])
 
-// Unknown id must not stick on #/movie/:id — replace home so reload is library.
+// Unknown id must not stick on #/movie/:id — replace home so reload is not sticky.
+// Wait until the library has loaded; otherwise a refresh/deep-link looks "missing" before movies exist.
 watch(
-  () => String(route.params.id),
-  (id) => {
-    if (!store.movies[id]) {
-      void router.replace('/')
-    }
+  () =>
+    [String(route.params.id), store.loaded, store.movies[String(route.params.id)]] as const,
+  ([, loaded, record]) => {
+    if (!loaded) return
+    if (!record) void router.replace('/')
   },
   { immediate: true }
 )
@@ -165,6 +166,12 @@ watch(
 
 onMounted(async () => {
   mounted = true
+  // Detail can be opened via deep-link/refresh; library load is otherwise only on LibraryView.
+  await store.load()
+  if (!mounted) {
+    return
+  }
+
   const settings = await api.getSettings()
 
   if (!mounted) {

@@ -73,9 +73,21 @@ function mountWithMovie(
     tmdbApiKey: null,
     keybindings: options.keybindings ?? defaultKeybindings
   }
+  const list = options.list ?? [movie]
   getSettings.mockReturnValue(options.settingsPromise ?? Promise.resolve(settings))
   window.api = {
     getSettings,
+    loadLibrary: vi.fn(async () => ({
+      movies: list,
+      status: {
+        firstViewFromCache: false,
+        backgroundScanRunning: false,
+        unavailableFolders: []
+      }
+    })),
+    onMovieUpdated: vi.fn(),
+    onMovieRemoved: vi.fn(),
+    onScanProgress: vi.fn(),
     play: vi.fn(async () => {}),
     revealFile: vi.fn(async () => {}),
     retryFetch: vi.fn(async () => {}),
@@ -83,7 +95,7 @@ function mountWithMovie(
   } as unknown as Window['api']
 
   const store = useLibraryStore()
-  for (const item of options.list ?? [movie]) {
+  for (const item of list) {
     store.movies[item.id] = item
   }
   routeId = movie.id
@@ -411,6 +423,17 @@ describe('MovieDetailView', () => {
     )
     window.api = {
       getSettings,
+      loadLibrary: vi.fn(async () => ({
+        movies: [],
+        status: {
+          firstViewFromCache: false,
+          backgroundScanRunning: false,
+          unavailableFolders: []
+        }
+      })),
+      onMovieUpdated: vi.fn(),
+      onMovieRemoved: vi.fn(),
+      onScanProgress: vi.fn(),
       play: vi.fn(async () => {}),
       revealFile: vi.fn(async () => {}),
       retryFetch: vi.fn(async () => {}),
@@ -418,7 +441,7 @@ describe('MovieDetailView', () => {
     } as unknown as Window['api']
 
     routeId = 'missing-movie-id'
-    // empty library — id is unknown
+    // empty library after load — id is unknown
     const wrapper = mount(MovieDetailView)
     await flushPromises()
 
@@ -426,6 +449,58 @@ describe('MovieDetailView', () => {
     expect(push).not.toHaveBeenCalledWith('/')
     // not-found sticky UI should not remain the primary experience
     expect(wrapper.find('[data-testid="movie-not-found"]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('does not redirect a valid movie id while the library is still loading', async () => {
+    setActivePinia(createPinia())
+    const pending = deferred<{
+      movies: MovieRecord[]
+      status: {
+        firstViewFromCache: boolean
+        backgroundScanRunning: boolean
+        unavailableFolders: string[]
+      }
+    }>()
+    getSettings.mockReturnValue(
+      Promise.resolve({
+        folders: [],
+        tmdbApiKey: null,
+        keybindings: defaultKeybindings
+      })
+    )
+    const known = makeMovie({ id: 'deep-link-movie' })
+    window.api = {
+      getSettings,
+      loadLibrary: vi.fn(() => pending.promise),
+      onMovieUpdated: vi.fn(),
+      onMovieRemoved: vi.fn(),
+      onScanProgress: vi.fn(),
+      play: vi.fn(async () => {}),
+      revealFile: vi.fn(async () => {}),
+      retryFetch: vi.fn(async () => {}),
+      searchTmdb: vi.fn(async () => [])
+    } as unknown as Window['api']
+
+    routeId = 'deep-link-movie'
+    const wrapper = mount(MovieDetailView)
+    await flushPromises()
+
+    // Still loading — must not bounce home for a yet-to-arrive valid id.
+    expect(replace).not.toHaveBeenCalled()
+
+    pending.resolve({
+      movies: [known],
+      status: {
+        firstViewFromCache: false,
+        backgroundScanRunning: false,
+        unavailableFolders: []
+      }
+    })
+    await flushPromises()
+
+    expect(replace).not.toHaveBeenCalled()
+    expect(wrapper.find('[data-testid="detail-hero"]').exists()).toBe(true)
     wrapper.unmount()
   })
 
