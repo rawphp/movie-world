@@ -9,6 +9,7 @@ import type { Keybindings, MovieRecord } from '../../../../shared/types'
 let routeId = 'movie-1'
 const push = vi.fn()
 const back = vi.fn()
+const replace = vi.fn()
 const getSettings = vi.fn()
 const defaultKeybindings: Keybindings = { prevMovie: 'Mod+ArrowLeft', nextMovie: 'Mod+ArrowRight' }
 
@@ -23,7 +24,7 @@ function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
 
 vi.mock('vue-router', () => ({
   useRoute: () => ({ params: { id: routeId } }),
-  useRouter: () => ({ push, back })
+  useRouter: () => ({ push, back, replace })
 }))
 
 const makeMovie = (overrides: Partial<MovieRecord> = {}): MovieRecord => ({
@@ -93,6 +94,7 @@ function mountWithMovie(
 beforeEach(() => {
   push.mockReset()
   back.mockReset()
+  replace.mockReset()
   getSettings.mockReset()
 })
 
@@ -397,4 +399,35 @@ describe('MovieDetailView', () => {
 
     expect(push).not.toHaveBeenCalled()
   })
+
+  it('redirects unknown movie id to library with replace so reload is not sticky', async () => {
+    setActivePinia(createPinia())
+    getSettings.mockReturnValue(
+      Promise.resolve({
+        folders: [],
+        tmdbApiKey: null,
+        keybindings: defaultKeybindings
+      })
+    )
+    window.api = {
+      getSettings,
+      play: vi.fn(async () => {}),
+      revealFile: vi.fn(async () => {}),
+      retryFetch: vi.fn(async () => {}),
+      searchTmdb: vi.fn(async () => [])
+    } as unknown as Window['api']
+
+    routeId = 'missing-movie-id'
+    // empty library — id is unknown
+    const wrapper = mount(MovieDetailView)
+    await flushPromises()
+
+    expect(replace).toHaveBeenCalledWith('/')
+    expect(push).not.toHaveBeenCalledWith('/')
+    // not-found sticky UI should not remain the primary experience
+    expect(wrapper.find('[data-testid="movie-not-found"]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+
 })

@@ -23,6 +23,18 @@ const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform)
 let mounted = false
 
 const movie = computed(() => store.movies[String(route.params.id)])
+
+// Unknown id must not stick on #/movie/:id — replace home so reload is library.
+watch(
+  () => String(route.params.id),
+  (id) => {
+    if (!store.movies[id]) {
+      void router.replace('/')
+    }
+  },
+  { immediate: true }
+)
+
 const title = computed(() => movie.value?.title ?? movie.value?.parsedTitle ?? '')
 const year = computed(() => movie.value?.year ?? movie.value?.parsedYear ?? null)
 const fanart = computed(() => artSrc(movie.value ? displayFanartPath(movie.value) : null))
@@ -170,22 +182,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div
-    v-if="!movie"
-    data-testid="movie-not-found"
-    class="mx-auto max-w-md space-y-3 py-16 text-center text-neutral-300"
-  >
-    <p class="text-lg text-white">Movie not found.</p>
-    <p class="text-sm text-neutral-400">It may have been removed from your library folders.</p>
-    <button
-      type="button"
-      data-testid="movie-not-found-home"
-      class="rounded bg-sky-600 px-4 py-2 text-sm text-white hover:bg-sky-500"
-      @click="router.push('/')"
-    >
-      Back to library
-    </button>
-  </div>
+  <div v-if="!movie" data-testid="movie-redirecting" class="py-16" />
 
   <div v-else class="relative -mx-6 -my-6 min-h-[calc(100vh-4rem)] bg-neutral-950 text-neutral-100">
     <!-- Hero: art + title only. Actions live on a solid bar below so they never fight fanart. -->
