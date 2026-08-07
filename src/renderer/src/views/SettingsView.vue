@@ -346,5 +346,60 @@ async function resetShortcuts(): Promise<void> {
         </div>
       </div>
     </section>
+
+    <!-- Where data lives (always visible; matches README) -->
+    <section
+      data-testid="data-location"
+      class="rounded-xl border border-neutral-700 bg-neutral-900/60 p-5 text-sm text-neutral-200"
+    >
+      <h2 class="mb-2 text-lg font-semibold text-white">Where your data lives</h2>
+      <ul class="list-disc space-y-2 pl-5 text-neutral-300">
+        <li>
+          <span class="font-medium text-neutral-100">Movie metadata (NFO sidecars &amp; artwork):</span>
+          written next to each movie file. For
+          <code class="rounded bg-neutral-800 px-1 text-xs text-neutral-200">Movie.mkv</code>
+          you get
+          <code class="rounded bg-neutral-800 px-1 text-xs text-neutral-200">Movie.nfo</code>,
+          <code class="rounded bg-neutral-800 px-1 text-xs text-neutral-200">Movie-poster.jpg</code>
+          and
+          <code class="rounded bg-neutral-800 px-1 text-xs text-neutral-200">Movie-fanart.jpg</code>
+          in the same folder.
+        </li>
+        <li>
+          <span class="font-medium text-neutral-100">App settings</span>
+          (library folders + TMDB API key): stored in
+          <code class="break-all rounded bg-neutral-800 px-1 text-xs text-neutral-200"
+            >~/Library/Application Support/Movie World/settings.json</code
+          >
+          for the packaged app
+          (<code class="break-all rounded bg-neutral-800 px-1 text-xs text-neutral-200"
+            >~/Library/Application Support/movie-world/settings.json</code
+          >
+          when running
+          <code class="rounded bg-neutral-800 px-1 text-xs text-neutral-200">npm run dev</code>).
+        </li>
+      </ul>
+    </section>
+
+    <!-- Gatekeeper tip for unsigned personal builds (always visible) -->
+    <section
+      data-testid="gatekeeper-tip"
+      class="rounded-xl border border-neutral-700 bg-neutral-900/60 p-5 text-sm text-neutral-200"
+    >
+      <h2 class="mb-2 text-lg font-semibold text-white">First launch (unsigned app + Gatekeeper)</h2>
+      <p class="mb-2 text-neutral-300">
+        Because the app is unsigned (personal use), macOS Gatekeeper may block a normal double-click
+        the first time. To open it:
+      </p>
+      <ol class="list-decimal space-y-1 pl-5 text-neutral-300">
+        <li>In Finder, right-click (or Control-click) <strong class="text-neutral-100">Movie World.app</strong>.</li>
+        <li>Choose <strong class="text-neutral-100">Open</strong>.</li>
+        <li>Confirm <strong class="text-neutral-100">Open</strong> in the dialog that appears.</li>
+      </ol>
+      <p class="mt-2 text-xs text-neutral-500">
+        macOS remembers this choice, so subsequent launches work with a normal double-click.
+      </p>
+    </section>
   </div>
 </template>
+

@@ -317,4 +317,44 @@ describe('SettingsView', () => {
     await flushPromises()
     expect(w.get('h1').text()).toBe('Settings')
   })
+
+  it('always shows where data lives (NFO/art beside files + settings path)', async () => {
+    makeApi({
+      folders: ['/Movies'],
+      tmdbApiKey: 'existing-key',
+      keybindings: DEFAULT_KEYBINDINGS
+    })
+    const w = mount(SettingsView)
+    await flushPromises()
+    const panel = w.get('[data-testid="data-location"]')
+    const text = panel.text().toLowerCase()
+    expect(text).toMatch(/nfo/)
+    expect(text).toMatch(/poster|artwork|fanart|art/)
+    expect(text).toMatch(/next to|beside|same folder/)
+    expect(text).toMatch(/application support|settings\.json/)
+  })
+
+  it('always shows Gatekeeper tip for unsigned personal builds', async () => {
+    makeApi({
+      folders: ['/Movies'],
+      tmdbApiKey: 'existing-key',
+      keybindings: DEFAULT_KEYBINDINGS
+    })
+    const w = mount(SettingsView)
+    await flushPromises()
+    const panel = w.get('[data-testid="gatekeeper-tip"]')
+    const text = panel.text().toLowerCase()
+    expect(text).toMatch(/gatekeeper|unsigned/)
+    expect(text).toMatch(/right-click|control-click|control.click/)
+    expect(text).toMatch(/open/)
+  })
+
+  it('keeps data location and Gatekeeper visible on first-run setup', async () => {
+    makeApi({ folders: [], tmdbApiKey: null, keybindings: DEFAULT_KEYBINDINGS })
+    const w = mount(SettingsView)
+    await flushPromises()
+    expect(w.find('[data-testid="data-location"]').exists()).toBe(true)
+    expect(w.find('[data-testid="gatekeeper-tip"]').exists()).toBe(true)
+    expect(w.find('[data-testid="setup-progress"]').exists()).toBe(true)
+  })
 })
