@@ -4,6 +4,7 @@ import {
   filtersAreActive,
   normalizeCertification,
   sortMovies,
+  continueWatchingMovies,
   EMPTY_FILTERS
 } from '../filtering'
 import type { MovieRecord } from '../../../../shared/types'
@@ -87,17 +88,38 @@ describe('filterMovies', () => {
   })
   it('filters by genre, certification, min rating, actor', () => {
     expect(filterMovies(all, { ...EMPTY_FILTERS, genre: 'Horror' })).toEqual([alien])
-    expect(filterMovies(all, { ...EMPTY_FILTERS, certification: 'PG' })).toEqual([up])
+    expect(filterMovies(all, { ...EMPTY_FILTERS, certification: ['PG'] })).toEqual([up])
     expect(filterMovies(all, { ...EMPTY_FILTERS, minRating: 8 })).toEqual([matrix, alien])
     expect(filterMovies(all, { ...EMPTY_FILTERS, actor: 'Sigourney Weaver' })).toEqual([alien])
   })
   it('matches actor names partially and normalizes AU certification variants', () => {
     expect(filterMovies(all, { ...EMPTY_FILTERS, actor: 'keanu' })).toEqual([matrix])
-    expect(filterMovies(all, { ...EMPTY_FILTERS, certification: 'MA 15+' })).toEqual([matrix])
-    expect(filterMovies(all, { ...EMPTY_FILTERS, certification: 'MA15+' })).toEqual([matrix])
+    expect(filterMovies(all, { ...EMPTY_FILTERS, certification: ['MA 15+'] })).toEqual([matrix])
+    expect(filterMovies(all, { ...EMPTY_FILTERS, certification: ['MA15+'] })).toEqual([matrix])
+  })
+  it('multi-select certifications match with OR after normalize', () => {
+    expect(filterMovies(all, { ...EMPTY_FILTERS, certification: ['PG', 'M'] })).toEqual([
+      alien,
+      up
+    ])
+    expect(filterMovies(all, { ...EMPTY_FILTERS, certification: ['MA15+', 'PG'] })).toEqual([
+      matrix,
+      up
+    ])
+    // selected compact form matches movie stored with spacing after normalize
+    expect(filterMovies(all, { ...EMPTY_FILTERS, certification: ['MA 15+', 'M'] })).toEqual([
+      matrix,
+      alien
+    ])
+  })
+  it('empty certification selection applies no cert constraint', () => {
+    expect(filterMovies(all, { ...EMPTY_FILTERS, certification: [] })).toEqual(all)
+    expect(EMPTY_FILTERS.certification).toEqual([])
   })
   it('detects active filters', () => {
     expect(filtersAreActive(EMPTY_FILTERS)).toBe(false)
+    expect(filtersAreActive({ ...EMPTY_FILTERS, certification: [] })).toBe(false)
+    expect(filtersAreActive({ ...EMPTY_FILTERS, certification: ['PG'] })).toBe(true)
     expect(filtersAreActive({ ...EMPTY_FILTERS, search: 'x' })).toBe(true)
     expect(filtersAreActive({ ...EMPTY_FILTERS, watched: 'watched' })).toBe(true)
   })
@@ -124,5 +146,11 @@ describe('sortMovies', () => {
     expect(sortMovies(all, 'year').map((m) => m.title)).toEqual(['Up', 'The Matrix', 'Alien'])
     expect(sortMovies(all, 'rating').map((m) => m.title)).toEqual(['The Matrix', 'Alien', 'Up'])
     expect(sortMovies(all, 'lastWatched')[0].title).toBe('The Matrix')
+  })
+})
+
+describe('continueWatchingMovies', () => {
+  it('returns recently watched titles newest first', () => {
+    expect(continueWatchingMovies(all).map((m) => m.title)).toEqual(['The Matrix'])
   })
 })
