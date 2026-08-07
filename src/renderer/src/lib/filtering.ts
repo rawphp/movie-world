@@ -6,7 +6,8 @@ export interface LibraryFilters {
   search: string
   genre: string | null
   year: number | null
-  certification: string | null
+  /** Selected AU certifications; empty = no cert constraint. Matched with OR after normalize. */
+  certification: string[]
   minRating: number | null
   actor: string | null
   watched: 'all' | 'watched' | 'unwatched'
@@ -19,7 +20,7 @@ export const EMPTY_FILTERS: LibraryFilters = {
   search: '',
   genre: null,
   year: null,
-  certification: null,
+  certification: [],
   minRating: null,
   actor: null,
   watched: 'all',
@@ -45,7 +46,7 @@ export function filtersAreActive(f: LibraryFilters): boolean {
     f.search.trim() !== '' ||
     f.genre != null ||
     f.year != null ||
-    f.certification != null ||
+    f.certification.length > 0 ||
     f.minRating != null ||
     (f.actor != null && f.actor.trim() !== '') ||
     f.watched !== 'all' ||
@@ -56,7 +57,10 @@ export function filtersAreActive(f: LibraryFilters): boolean {
 export function filterMovies(movies: MovieRecord[], f: LibraryFilters): MovieRecord[] {
   const q = f.search.trim().toLowerCase()
   const actorQ = f.actor?.trim().toLowerCase() ?? ''
-  const cert = f.certification ? normalizeCertification(f.certification) : null
+  const certs =
+    f.certification.length > 0
+      ? new Set(f.certification.map(normalizeCertification))
+      : null
   return movies.filter((m) => {
     if (q) {
       const inTitle = displayTitle(m).toLowerCase().includes(q)
@@ -65,8 +69,9 @@ export function filterMovies(movies: MovieRecord[], f: LibraryFilters): MovieRec
     }
     if (f.genre && !m.genres.includes(f.genre)) return false
     if (f.year != null && (m.year ?? m.parsedYear) !== f.year) return false
-    if (cert && (!m.certificationAu || normalizeCertification(m.certificationAu) !== cert))
-      return false
+    if (certs) {
+      if (!m.certificationAu || !certs.has(normalizeCertification(m.certificationAu))) return false
+    }
     if (f.minRating != null && (m.voteAverage ?? -1) < f.minRating) return false
     if (actorQ && !m.cast.some((c) => c.name.toLowerCase().includes(actorQ))) return false
     if (f.watched === 'watched' && m.playCount === 0) return false
