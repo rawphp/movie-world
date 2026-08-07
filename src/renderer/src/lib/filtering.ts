@@ -91,3 +91,14 @@ export function sortMovies(movies: MovieRecord[], key: SortKey): MovieRecord[] {
       return arr.sort((a, b) => (b.lastPlayedAt ?? '').localeCompare(a.lastPlayedAt ?? ''))
   }
 }
+
+/** Recently watched titles for the library Continue watching strip (newest first). */
+export const CONTINUE_WATCHING_LIMIT = 12
+
+export function continueWatchingMovies(
+  movies: MovieRecord[],
+  limit = CONTINUE_WATCHING_LIMIT
+): MovieRecord[] {
+  const watched = movies.filter((m) => m.lastPlayedAt != null && m.lastPlayedAt !== '')
+  return sortMovies(watched, 'lastWatched').slice(0, limit)
+}

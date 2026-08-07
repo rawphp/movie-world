@@ -120,34 +120,60 @@ const fetchFailedCount = computed(() => store.all.filter((m) => m.fetchFailed).l
         </RouterLink>
       </div>
 
-      <div
-        v-else-if="emptyFiltered"
-        data-testid="library-no-results"
-        class="rounded-lg bg-neutral-800 p-10 text-center text-neutral-300"
-      >
-        <p class="mb-2 text-lg">No movies match your filters.</p>
-        <p class="mb-4 text-sm text-neutral-400">Try a different search or clear filters.</p>
-        <button
-          type="button"
-          data-testid="library-no-results-clear"
-          class="rounded bg-sky-600 px-4 py-2 text-white hover:bg-sky-500"
-          @click="store.resetFilters()"
+      <template v-else>
+        <section
+          v-if="store.continueWatching.length > 0"
+          data-testid="continue-watching"
+          class="space-y-3"
+          aria-label="Continue watching"
         >
-          Clear filters
-        </button>
-      </div>
+          <h2 class="text-sm font-semibold tracking-wide text-neutral-200 uppercase">
+            Continue watching
+          </h2>
+          <div
+            class="flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            <div
+              v-for="m in store.continueWatching"
+              :key="m.id"
+              data-testid="continue-watching-item"
+              :data-movie-id="m.id"
+              class="w-36 shrink-0 sm:w-40"
+            >
+              <MovieCard :movie="m" @open="router.push(`/movie/${$event}`)" />
+            </div>
+          </div>
+        </section>
 
-      <div
-        v-else
-        class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-      >
-        <MovieCard
-          v-for="m in store.list"
-          :key="m.id"
-          :movie="m"
-          @open="router.push(`/movie/${$event}`)"
-        />
-      </div>
+        <div
+          v-if="emptyFiltered"
+          data-testid="library-no-results"
+          class="rounded-lg bg-neutral-800 p-10 text-center text-neutral-300"
+        >
+          <p class="mb-2 text-lg">No movies match your filters.</p>
+          <p class="mb-4 text-sm text-neutral-400">Try a different search or clear filters.</p>
+          <button
+            type="button"
+            data-testid="library-no-results-clear"
+            class="rounded bg-sky-600 px-4 py-2 text-white hover:bg-sky-500"
+            @click="store.resetFilters()"
+          >
+            Clear filters
+          </button>
+        </div>
+
+        <div
+          v-else
+          class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+        >
+          <MovieCard
+            v-for="m in store.list"
+            :key="m.id"
+            :movie="m"
+            @open="router.push(`/movie/${$event}`)"
+          />
+        </div>
+      </template>
     </template>
   </div>
 </template>

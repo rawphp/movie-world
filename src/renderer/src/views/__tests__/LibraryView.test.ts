@@ -60,7 +60,9 @@ function mountLibrary(loadResult: LibraryLoadResult): ReturnType<typeof mount> {
         FilterBar: { template: '<div data-testid="filter-bar" />' },
         MovieCard: {
           props: ['movie'],
-          template: '<button data-testid="movie-card">{{ movie.id }}</button>'
+          emits: ['open'],
+          template:
+            '<button data-testid="movie-card" @click="$emit(\'open\', movie.id)">{{ movie.id }}</button>'
         },
         RouterLink: { template: '<a><slot /></a>' }
       }
@@ -124,5 +126,82 @@ describe('LibraryView', () => {
       'No movies match your filters'
     )
     expect(wrapper.findAll('[data-testid="movie-card"]')).toHaveLength(0)
+  })
+
+  it('hides continue-watching strip when no movie has lastPlayedAt', async () => {
+    const wrapper = mountLibrary({
+      movies: [movie('alpha'), movie('beta')],
+      status: {
+        firstViewFromCache: false,
+        backgroundScanRunning: false,
+        unavailableFolders: []
+      }
+    })
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="continue-watching"]').exists()).toBe(false)
+  })
+
+  it('shows continue-watching strip ordered by lastPlayedAt desc and capped at 12', async () => {
+    // 14 watched titles + 1 never-watched. Cap is 12, newest first.
+    // extras 0..10 → Jul 16..26 (newest); new → Jul 15; mid → Jun; old → Jan (falls off cap)
+    const watched = [
+      { ...movie('old'), playCount: 1, lastPlayedAt: '2026-01-01T00:00:00.000Z' },
+      { ...movie('mid'), playCount: 1, lastPlayedAt: '2026-06-01T00:00:00.000Z' },
+      { ...movie('new'), playCount: 1, lastPlayedAt: '2026-07-15T00:00:00.000Z' },
+      ...Array.from({ length: 11 }, (_, i) => ({
+        ...movie(`extra-${i}`),
+        playCount: 1,
+        lastPlayedAt: `2026-07-${String(16 + i).padStart(2, '0')}T00:00:00.000Z`
+      }))
+    ]
+    const wrapper = mountLibrary({
+      movies: [...watched, movie('never-watched')],
+      status: {
+        firstViewFromCache: false,
+        backgroundScanRunning: false,
+        unavailableFolders: []
+      }
+    })
+    await flushPromises()
+
+    const strip = wrapper.get('[data-testid="continue-watching"]')
+    expect(strip.text()).toMatch(/Continue watching|Recently watched/i)
+
+    const items = strip.findAll('[data-testid="continue-watching-item"]')
+    expect(items).toHaveLength(12)
+    // newest first: extra-10 (2026-07-26)
+    expect(items[0].attributes('data-movie-id')).toBe('extra-10')
+    const ids = items.map((w) => w.attributes('data-movie-id'))
+    expect(ids).not.toContain('never-watched')
+    // 14 watched → cap 12 drops oldest two (mid, old)
+    expect(ids).not.toContain('old')
+    expect(ids).not.toContain('mid')
+    expect(ids).toContain('new')
+  })
+
+  it('navigates to movie detail when a continue-watching item is opened', async () => {
+    const wrapper = mountLibrary({
+      movies: [
+        {
+          ...movie('watched-one'),
+          playCount: 2,
+          lastPlayedAt: '2026-07-01T10:00:00.000Z'
+        }
+      ],
+      status: {
+        firstViewFromCache: false,
+        backgroundScanRunning: false,
+        unavailableFolders: []
+      }
+    })
+    await flushPromises()
+
+    await wrapper
+      .get('[data-testid="continue-watching"]')
+      .get('[data-testid="movie-card"]')
+      .trigger('click')
+
+    expect(push).toHaveBeenCalledWith('/movie/watched-one')
   })
 })
