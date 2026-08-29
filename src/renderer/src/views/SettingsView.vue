@@ -427,12 +427,12 @@ async function resetShortcuts(): Promise<void> {
       <ol class="list-decimal space-y-1 pl-5 text-neutral-300">
         <li>
           <code class="rounded bg-neutral-800 px-1 text-xs text-neutral-200"
-            >chmod +x Movie-World-*.AppImage</code
+            >chmod +x "Movie World-"*.AppImage</code
           >
         </li>
         <li>
           <code class="rounded bg-neutral-800 px-1 text-xs text-neutral-200"
-            >./Movie-World-*.AppImage</code
+            >./Movie\ World-*.AppImage</code
           >
         </li>
       </ol>

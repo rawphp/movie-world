@@ -348,6 +348,9 @@ describe('SettingsView', () => {
     expect(text).toMatch(/right-click|control-click|control.click/)
     expect(text).toMatch(/open/)
     expect(text).toMatch(/appimage/)
+    // Artifact name is ${productName}-${version}-${arch}.AppImage (space kept).
+    expect(text).toMatch(/movie world-/)
+    expect(text).not.toMatch(/movie-world-\*\.appimage/)
   })
 
   it('keeps data location and Gatekeeper visible on first-run setup', async () => {
