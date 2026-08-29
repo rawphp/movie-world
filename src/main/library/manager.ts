@@ -65,6 +65,8 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
   const folderExists = opts.scanDeps?.folderExists ?? defaultFolderExists
   const downloadImage = opts.downloadImage ?? downloadImageToFile
   const startupScans = new Set<Promise<void>>()
+  // Serialize cache writes so idle() can wait until Drive-scan commits are on disk.
+  let persistTail: Promise<void> = Promise.resolve()
 
   // Startup cache-art backfill pool (concurrency 2): never blocks loadLibrary.
   const backfillWaiting: MovieRecord[] = []
@@ -89,8 +91,11 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
     void persistCache().catch(() => undefined)
   }
 
-  async function persistCache(): Promise<void> {
-    await cache?.write([...movies.values()])
+  function persistCache(): Promise<void> {
+    persistTail = persistTail
+      .then(() => cache?.write([...movies.values()]) ?? Promise.resolve())
+      .catch(() => undefined)
+    return persistTail
   }
 
   function notifyBackfillIdle(): void {
@@ -106,7 +111,7 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
       const appDataPath = opts.appDataPath
       if (!appDataPath) return
       const current = movies.get(movie.id) ?? movie
-      const updated = backfillCacheArtFromSource(current, appDataPath)
+      const updated = await backfillCacheArtFromSource(current, appDataPath)
       if (
         updated.cachedPosterPath !== (current.cachedPosterPath ?? null) ||
         updated.cachedFanartPath !== (current.cachedFanartPath ?? null)
@@ -332,6 +337,7 @@ export function createLibraryManager(opts: ManagerOpts): LibraryManager {
       await waitForStartupScans()
       await waitForCacheArtBackfill()
       await (queue?.idle() ?? Promise.resolve())
+      await persistTail
     }
   }
 }

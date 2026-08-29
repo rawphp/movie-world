@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { writeFileSync } from 'node:fs'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { XMLBuilder, XMLParser } from 'fast-xml-parser'
 import type { CastMember, MovieRecord } from '../../shared/types'
@@ -130,18 +131,18 @@ export function writeSidecarNfo(movie: MovieRecord): void {
   writeFileSync(sidecarPathsFor(movie.filePath).nfo, movieToNfoXml(movie))
 }
 
-function tryReadText(path: string): string | null {
+async function tryReadText(path: string): Promise<string | null> {
   try {
-    return existsSync(path) ? readFileSync(path, 'utf8') : null
+    return await readFile(path, 'utf8')
   } catch {
     return null
   }
 }
 
-function writeCachedText(path: string, value: string): void {
+async function writeCachedText(path: string, value: string): Promise<void> {
   try {
-    mkdirSync(dirname(path), { recursive: true })
-    writeFileSync(path, value, 'utf8')
+    await mkdir(dirname(path), { recursive: true })
+    await writeFile(path, value, 'utf8')
   } catch {
     // Cache refresh is best-effort; source sidecar ingestion should still work.
   }
@@ -156,27 +157,33 @@ export interface ReadSidecarNfoOptions {
   mode?: 'startup' | 'rescan'
 }
 
-export function readSidecarNfo(
+/**
+ * Read sidecar metadata. Source (Drive) and cache NFO are opened with
+ * fs.promises so a cloud-only file cannot stall the Electron UI thread.
+ */
+export async function readSidecarNfo(
   filePath: string,
   appDataPath?: string,
   options?: ReadSidecarNfoOptions
-): NfoData | null {
+): Promise<NfoData | null> {
   const preferCache = options?.mode === 'startup'
 
   if (preferCache && appDataPath) {
-    const cachedXml = tryReadText(cachedSidecarPathsFor(filePath, appDataPath).nfo)
+    const cachedXml = await tryReadText(cachedSidecarPathsFor(filePath, appDataPath).nfo)
     if (cachedXml != null) return parseNfoXml(cachedXml)
   }
 
   const { nfo } = sidecarPathsFor(filePath)
-  const sourceXml = tryReadText(nfo)
+  const sourceXml = await tryReadText(nfo)
   if (sourceXml != null) {
-    if (appDataPath) writeCachedText(cachedSidecarPathsFor(filePath, appDataPath).nfo, sourceXml)
+    if (appDataPath) {
+      await writeCachedText(cachedSidecarPathsFor(filePath, appDataPath).nfo, sourceXml)
+    }
     return parseNfoXml(sourceXml)
   }
 
   if (preferCache) return null
   if (!appDataPath) return null
-  const cachedXml = tryReadText(cachedSidecarPathsFor(filePath, appDataPath).nfo)
+  const cachedXml = await tryReadText(cachedSidecarPathsFor(filePath, appDataPath).nfo)
   return cachedXml == null ? null : parseNfoXml(cachedXml)
 }
