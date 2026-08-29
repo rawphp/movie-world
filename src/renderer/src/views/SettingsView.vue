@@ -355,7 +355,9 @@ async function resetShortcuts(): Promise<void> {
       <h2 class="mb-2 text-lg font-semibold text-white">Where your data lives</h2>
       <ul class="list-disc space-y-2 pl-5 text-neutral-300">
         <li>
-          <span class="font-medium text-neutral-100">Movie metadata (NFO sidecars &amp; artwork):</span>
+          <span class="font-medium text-neutral-100"
+            >Movie metadata (NFO sidecars &amp; artwork):</span
+          >
           written next to each movie file. For
           <code class="rounded bg-neutral-800 px-1 text-xs text-neutral-200">Movie.mkv</code>
           you get
@@ -367,39 +369,82 @@ async function resetShortcuts(): Promise<void> {
         </li>
         <li>
           <span class="font-medium text-neutral-100">App settings</span>
-          (library folders + TMDB API key): stored in
-          <code class="break-all rounded bg-neutral-800 px-1 text-xs text-neutral-200"
-            >~/Library/Application Support/Movie World/settings.json</code
-          >
-          for the packaged app
-          (<code class="break-all rounded bg-neutral-800 px-1 text-xs text-neutral-200"
-            >~/Library/Application Support/movie-world/settings.json</code
-          >
-          when running
-          <code class="rounded bg-neutral-800 px-1 text-xs text-neutral-200">npm run dev</code>).
+          (library folders + TMDB API key): stored as
+          <code class="rounded bg-neutral-800 px-1 text-xs text-neutral-200">settings.json</code>
+          in the app user-data directory.
+          <ul class="mt-2 list-disc space-y-1 pl-5">
+            <li>
+              macOS packaged:
+              <code class="break-all rounded bg-neutral-800 px-1 text-xs text-neutral-200"
+                >~/Library/Application Support/Movie World/settings.json</code
+              >
+              (<code class="break-all rounded bg-neutral-800 px-1 text-xs text-neutral-200"
+                >~/Library/Application Support/movie-world/settings.json</code
+              >
+              in
+              <code class="rounded bg-neutral-800 px-1 text-xs text-neutral-200">npm run dev</code>)
+            </li>
+            <li>
+              Linux packaged:
+              <code class="break-all rounded bg-neutral-800 px-1 text-xs text-neutral-200"
+                >~/.config/Movie World/settings.json</code
+              >
+              (<code class="break-all rounded bg-neutral-800 px-1 text-xs text-neutral-200"
+                >~/.config/movie-world/settings.json</code
+              >
+              in
+              <code class="rounded bg-neutral-800 px-1 text-xs text-neutral-200">npm run dev</code>)
+            </li>
+          </ul>
         </li>
       </ul>
     </section>
 
-    <!-- Gatekeeper tip for unsigned personal builds (always visible) -->
+    <!-- First-launch tips for unsigned personal builds (always visible) -->
     <section
       data-testid="gatekeeper-tip"
       class="rounded-xl border border-neutral-700 bg-neutral-900/60 p-5 text-sm text-neutral-200"
     >
-      <h2 class="mb-2 text-lg font-semibold text-white">First launch (unsigned app + Gatekeeper)</h2>
+      <h2 class="mb-2 text-lg font-semibold text-white">First launch</h2>
+      <p class="mb-3 text-neutral-300">Builds are unsigned and intended for personal use.</p>
+      <h3 class="mb-1 font-medium text-neutral-100">macOS (Gatekeeper)</h3>
       <p class="mb-2 text-neutral-300">
-        Because the app is unsigned (personal use), macOS Gatekeeper may block a normal double-click
-        the first time. To open it:
+        macOS Gatekeeper may block a normal double-click the first time. To open it:
       </p>
       <ol class="list-decimal space-y-1 pl-5 text-neutral-300">
-        <li>In Finder, right-click (or Control-click) <strong class="text-neutral-100">Movie World.app</strong>.</li>
+        <li>
+          In Finder, right-click (or Control-click)
+          <strong class="text-neutral-100">Movie World.app</strong>.
+        </li>
         <li>Choose <strong class="text-neutral-100">Open</strong>.</li>
         <li>Confirm <strong class="text-neutral-100">Open</strong> in the dialog that appears.</li>
       </ol>
       <p class="mt-2 text-xs text-neutral-500">
         macOS remembers this choice, so subsequent launches work with a normal double-click.
       </p>
+      <h3 class="mb-1 mt-4 font-medium text-neutral-100">Linux (AppImage)</h3>
+      <p class="mb-2 text-neutral-300">Mark the AppImage executable, then run it:</p>
+      <ol class="list-decimal space-y-1 pl-5 text-neutral-300">
+        <li>
+          <code class="rounded bg-neutral-800 px-1 text-xs text-neutral-200"
+            >chmod +x Movie-World-*.AppImage</code
+          >
+        </li>
+        <li>
+          <code class="rounded bg-neutral-800 px-1 text-xs text-neutral-200"
+            >./Movie-World-*.AppImage</code
+          >
+        </li>
+      </ol>
+      <p class="mt-2 text-xs text-neutral-500">
+        If the AppImage fails to mount, install FUSE 2 (on Arch/Omarchy:
+        <code class="rounded bg-neutral-800 px-1">sudo pacman -S fuse2</code>). You can also run the
+        unpacked binary under
+        <code class="rounded bg-neutral-800 px-1">dist/linux-unpacked</code>
+        (or
+        <code class="rounded bg-neutral-800 px-1">dist/linux-arm64-unpacked</code>
+        on ARM).
+      </p>
     </section>
   </div>
 </template>
-

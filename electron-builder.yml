@@ -27,4 +27,20 @@ mac:
     - NSDownloadsFolderUsageDescription: Movie World reads movie files from folders you add to your library.
 dmg:
   artifactName: ${productName}-${version}.${ext}
+linux:
+  category: AudioVideo
+  synopsis: Browse a local movie library with TMDB posters and metadata
+  executableName: movie-world
+  syncDesktopName: true
+  target:
+    - AppImage
+    - dir
+  desktop:
+    entry:
+      Name: Movie World
+      Comment: Browse a local movie library with TMDB posters and metadata
+      Categories: AudioVideo;Video;
+      StartupWMClass: Movie World
+appImage:
+  artifactName: ${productName}-${version}-${arch}.${ext}
 npmRebuild: false

@@ -207,9 +207,30 @@ describe('MovieDetailView', () => {
     const fileInfo = wrapper.get('[data-testid="detail-file-info"]')
 
     expect(fileInfo.text()).toContain('2.33 GB')
-    expect(fileInfo.text()).toContain('Reveal in Finder')
+    expect(fileInfo.text()).toMatch(/Reveal in Finder|Show in folder/)
     expect(wrapper.text()).not.toContain(movie.filePath)
     expect(fileInfo.attributes('title')).toBe(movie.filePath)
+  })
+
+  it('labels the reveal action for the current platform', () => {
+    const original = navigator.platform
+    const stubPlatform = (platform: string): void => {
+      Object.defineProperty(navigator, 'platform', { configurable: true, value: platform })
+    }
+
+    try {
+      stubPlatform('MacIntel')
+      const mac = mountWithMovie(makeMovie())
+      expect(mac.get('[data-testid="detail-reveal"]').text()).toBe('Reveal in Finder')
+      mac.unmount()
+
+      stubPlatform('Linux aarch64')
+      const linux = mountWithMovie(makeMovie())
+      expect(linux.get('[data-testid="detail-reveal"]').text()).toBe('Show in folder')
+      linux.unmount()
+    } finally {
+      Object.defineProperty(navigator, 'platform', { configurable: true, value: original })
+    }
   })
 
   it('caps the trailer embed at a modest 16:9 width', () => {
@@ -503,6 +524,4 @@ describe('MovieDetailView', () => {
     expect(wrapper.find('[data-testid="detail-hero"]').exists()).toBe(true)
     wrapper.unmount()
   })
-
-
 })

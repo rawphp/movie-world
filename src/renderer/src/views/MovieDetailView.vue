@@ -20,6 +20,7 @@ const fixing = ref(false)
 const playing = ref(false)
 const keybindings = ref<Keybindings | null>(null)
 const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform)
+const revealLabel = isMac ? 'Reveal in Finder' : 'Show in folder'
 let mounted = false
 
 const movie = computed(() => store.movies[String(route.params.id)])
@@ -27,8 +28,7 @@ const movie = computed(() => store.movies[String(route.params.id)])
 // Unknown id must not stick on #/movie/:id — replace home so reload is not sticky.
 // Wait until the library has loaded; otherwise a refresh/deep-link looks "missing" before movies exist.
 watch(
-  () =>
-    [String(route.params.id), store.loaded, store.movies[String(route.params.id)]] as const,
+  () => [String(route.params.id), store.loaded, store.movies[String(route.params.id)]] as const,
   ([, loaded, record]) => {
     if (!loaded) return
     if (!record) void router.replace('/')
@@ -381,10 +381,10 @@ onUnmounted(() => {
             data-testid="detail-reveal"
             class="text-sky-400 hover:text-sky-300 disabled:cursor-not-allowed disabled:text-neutral-500 disabled:no-underline"
             :disabled="movie.fileMissing"
-            :title="movie.fileMissing ? 'File is missing from disk' : 'Reveal in Finder'"
+            :title="movie.fileMissing ? 'File is missing from disk' : revealLabel"
             @click="reveal"
           >
-            Reveal in Finder
+            {{ revealLabel }}
           </button>
         </div>
       </div>

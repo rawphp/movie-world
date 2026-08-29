@@ -331,6 +331,7 @@ describe('SettingsView', () => {
     expect(text).toMatch(/poster|artwork|fanart|art/)
     expect(text).toMatch(/next to|beside|same folder/)
     expect(text).toMatch(/application support|settings\.json/)
+    expect(text).toMatch(/\.config/)
   })
 
   it('always shows Gatekeeper tip for unsigned personal builds', async () => {
@@ -346,6 +347,7 @@ describe('SettingsView', () => {
     expect(text).toMatch(/gatekeeper|unsigned/)
     expect(text).toMatch(/right-click|control-click|control.click/)
     expect(text).toMatch(/open/)
+    expect(text).toMatch(/appimage/)
   })
 
   it('keeps data location and Gatekeeper visible on first-run setup', async () => {
