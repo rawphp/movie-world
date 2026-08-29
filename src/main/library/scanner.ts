@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
-import { copyFileSync, existsSync, mkdirSync } from 'node:fs'
-import { readdir, stat } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
+import { access, copyFile, mkdir, readdir, stat } from 'node:fs/promises'
 import { basename, dirname, extname, join, resolve } from 'node:path'
 import type { MovieRecord, ParsedFilename } from '../../shared/types'
 import { parseFilename } from './filename-parser'
@@ -113,10 +113,21 @@ export interface IngestOptions {
   mode?: ScanMode
 }
 
-function mirrorArtwork(sourcePath: string, cachedPath: string): void {
+async function pathExists(path: string): Promise<boolean> {
   try {
-    mkdirSync(dirname(cachedPath), { recursive: true })
-    copyFileSync(sourcePath, cachedPath)
+    await access(path)
+    return true
+  } catch {
+    return false
+  }
+}
+
+async function mirrorArtwork(sourcePath: string, cachedPath: string): Promise<void> {
+  try {
+    await mkdir(dirname(cachedPath), { recursive: true })
+    // fs.promises.copyFile runs on the libuv threadpool so a slow Drive
+    // source cannot freeze the Electron main / UI thread.
+    await copyFile(sourcePath, cachedPath)
   } catch {
     // Cache refresh is best-effort; source artwork remains the usable path.
   }
@@ -131,26 +142,30 @@ interface ResolvedArtworkPath {
  * Resolve poster/fanart paths for a sidecar pair.
  *
  * Cache-first (REQ-038/039): when an app-owned cache file already exists, return
- * it as the usable path without existsSync/read/mirror on the source sidecar.
- * Probing Google Drive cloud-only source files blocks the main process; a warm
- * cache must never require that probe for grid/detail paint or startup scan.
+ * it as the usable path without exists/read/mirror on the source sidecar.
+ * Probing Google Drive cloud-only source files with sync fs blocks the UI
+ * thread; a warm cache must never require that probe for grid/detail paint
+ * or startup scan. Source probes use fs.promises so Drive I/O yields.
  */
-function resolveArtworkPath(sourcePath: string, cachedPath?: string): ResolvedArtworkPath {
-  if (cachedPath && existsSync(cachedPath)) {
+async function resolveArtworkPath(
+  sourcePath: string,
+  cachedPath?: string
+): Promise<ResolvedArtworkPath> {
+  if (cachedPath && (await pathExists(cachedPath))) {
     return { path: cachedPath, cachedPath }
   }
-  if (existsSync(sourcePath)) {
-    if (cachedPath) mirrorArtwork(sourcePath, cachedPath)
+  if (await pathExists(sourcePath)) {
+    if (cachedPath) await mirrorArtwork(sourcePath, cachedPath)
     return {
       path: sourcePath,
-      cachedPath: cachedPath && existsSync(cachedPath) ? cachedPath : null
+      cachedPath: cachedPath && (await pathExists(cachedPath)) ? cachedPath : null
     }
   }
   return { path: null, cachedPath: null }
 }
 
-function usableCachePath(path: string | null | undefined): path is string {
-  return path != null && path !== '' && existsSync(path)
+async function isUsableCacheFile(path: string | null | undefined): Promise<boolean> {
+  return path != null && path !== '' && (await pathExists(path))
 }
 
 /**
@@ -176,33 +191,37 @@ export function needsCacheArtBackfill(
  * Mirror missing app-owned cache poster/fanart from source/Drive sidecars.
  * Does not re-read NFO or reparse metadata — art-only heal for incomplete cache (REQ-046).
  * Failed or missing source leaves the corresponding cache field null.
+ * Drive exists/copy run via fs.promises so rclone FUSE cannot stall the UI.
  */
-export function backfillCacheArtFromSource(movie: MovieRecord, appDataPath: string): MovieRecord {
+export async function backfillCacheArtFromSource(
+  movie: MovieRecord,
+  appDataPath: string
+): Promise<MovieRecord> {
   const source = sidecarPathsFor(movie.filePath)
   const cached = cachedSidecarPathsFor(movie.filePath, appDataPath)
 
-  let cachedPosterPath: string | null = usableCachePath(movie.cachedPosterPath)
+  let cachedPosterPath: string | null = (await isUsableCacheFile(movie.cachedPosterPath))
     ? movie.cachedPosterPath!
     : null
-  let cachedFanartPath: string | null = usableCachePath(movie.cachedFanartPath)
+  let cachedFanartPath: string | null = (await isUsableCacheFile(movie.cachedFanartPath))
     ? movie.cachedFanartPath!
     : null
 
   if (cachedPosterPath == null) {
-    if (existsSync(cached.poster)) {
+    if (await pathExists(cached.poster)) {
       cachedPosterPath = cached.poster
-    } else if (existsSync(source.poster)) {
-      mirrorArtwork(source.poster, cached.poster)
-      cachedPosterPath = existsSync(cached.poster) ? cached.poster : null
+    } else if (await pathExists(source.poster)) {
+      await mirrorArtwork(source.poster, cached.poster)
+      cachedPosterPath = (await pathExists(cached.poster)) ? cached.poster : null
     }
   }
 
   if (cachedFanartPath == null) {
-    if (existsSync(cached.fanart)) {
+    if (await pathExists(cached.fanart)) {
       cachedFanartPath = cached.fanart
-    } else if (existsSync(source.fanart)) {
-      mirrorArtwork(source.fanart, cached.fanart)
-      cachedFanartPath = existsSync(cached.fanart) ? cached.fanart : null
+    } else if (await pathExists(source.fanart)) {
+      await mirrorArtwork(source.fanart, cached.fanart)
+      cachedFanartPath = (await pathExists(cached.fanart)) ? cached.fanart : null
     }
   }
 
@@ -250,12 +269,12 @@ export async function ingestFile(
     posterPath: null,
     fanartPath: null
   }
-  const nfo = readSidecarNfo(filePath, opts.appDataPath, { mode: opts.mode })
+  const nfo = await readSidecarNfo(filePath, opts.appDataPath, { mode: opts.mode })
   if (!nfo) return base
   const paths = sidecarPathsFor(filePath)
   const cachedPaths = opts.appDataPath ? cachedSidecarPathsFor(filePath, opts.appDataPath) : null
-  const poster = resolveArtworkPath(paths.poster, cachedPaths?.poster)
-  const fanart = resolveArtworkPath(paths.fanart, cachedPaths?.fanart)
+  const poster = await resolveArtworkPath(paths.poster, cachedPaths?.poster)
+  const fanart = await resolveArtworkPath(paths.fanart, cachedPaths?.fanart)
   return {
     ...base,
     ...nfo,

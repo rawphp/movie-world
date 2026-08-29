@@ -72,12 +72,12 @@ describe('nfo', () => {
     })
   })
 
-  it('readSidecarNfo returns null when absent, data when present', () => {
+  it('readSidecarNfo returns null when absent, data when present', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'mw-nfo-'))
     const file = join(dir, 'The Matrix (1999).mkv')
-    expect(readSidecarNfo(file)).toBeNull()
+    expect(await readSidecarNfo(file)).toBeNull()
     writeFileSync(sidecarPathsFor(file).nfo, movieToNfoXml(movie))
-    expect(readSidecarNfo(file)?.tmdbId).toBe(603)
+    expect((await readSidecarNfo(file))?.tmdbId).toBe(603)
   })
 
   it('maps cached sidecar paths into app-owned cache storage', () => {
@@ -91,7 +91,7 @@ describe('nfo', () => {
     expect(cachedSidecarPathsFor('/Movies/Alien.mkv', appData)).toEqual(paths)
   })
 
-  it('reads cached NFO when the source sidecar is absent', () => {
+  it('reads cached NFO when the source sidecar is absent', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'mw-nfo-'))
     const appData = join(dir, 'app-data')
     const file = join(dir, 'The Matrix (1999).mkv')
@@ -99,16 +99,16 @@ describe('nfo', () => {
     mkdirSync(dirname(cached.nfo), { recursive: true })
     writeFileSync(cached.nfo, movieToNfoXml(movie))
 
-    expect(readSidecarNfo(file, appData)?.tmdbId).toBe(603)
+    expect((await readSidecarNfo(file, appData))?.tmdbId).toBe(603)
   })
 
-  it('refreshes the cached NFO when the source sidecar is available', () => {
+  it('refreshes the cached NFO when the source sidecar is available', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'mw-nfo-'))
     const appData = join(dir, 'app-data')
     const file = join(dir, 'The Matrix (1999).mkv')
     writeFileSync(sidecarPathsFor(file).nfo, movieToNfoXml(movie))
 
-    expect(readSidecarNfo(file, appData)?.tmdbId).toBe(603)
+    expect((await readSidecarNfo(file, appData))?.tmdbId).toBe(603)
 
     const cached = cachedSidecarPathsFor(file, appData)
     expect(existsSync(cached.nfo)).toBe(true)
